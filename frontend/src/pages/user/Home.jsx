@@ -75,7 +75,7 @@ export default function Home({ user, onLogout }) {
           <h1 className="home-hero-title">Tìm phòng trọ ưng ý<br />chỉ trong vài giây</h1>
           <p className="home-hero-sub">Hàng nghìn phòng trọ chất lượng, giá tốt trên toàn quốc</p>
 
-          <form className="home-search-box" onSubmit={handleSearch}>
+          <form className="home-search-box" onSubmit={e => { e.preventDefault(); navigate(`/search?keyword=${search.keyword}&city=${search.city}&type=${search.type}`); }}>
             <div className="home-search-input">
               <span>🔍</span>
               <input
@@ -98,7 +98,7 @@ export default function Home({ user, onLogout }) {
 
           <div className="home-quick-tags">
             {['Hà Nội', 'TP. HCM', 'Đà Nẵng', 'Phòng trọ', 'Chung cư mini'].map(tag => (
-              <button key={tag} onClick={() => setSearch({ ...search, keyword: tag })}>{tag}</button>
+              <button key={tag} onClick={() => navigate(`/search?keyword=${tag}`)}>{tag}</button>
             ))}
           </div>
         </div>
