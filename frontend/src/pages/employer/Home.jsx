@@ -42,7 +42,7 @@ export default function EmployerHome({ user, onLogout }) {
           <Link to="/" className="emp-nav-logo">🏠 PhòngTrọ<span>VN</span></Link>
 
           <div className="emp-nav-links">
-            <Link to="/employer" className="emp-nav-link active">Tổng quan</Link>
+            <Link to="/employer"      className="emp-nav-link active">Tổng quan</Link>
             <Link to="/employer/rooms" className="emp-nav-link">Tin đăng</Link>
             <Link to="/employer/post" className="emp-nav-link">Đăng tin mới</Link>
           </div>
