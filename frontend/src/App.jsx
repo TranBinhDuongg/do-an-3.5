@@ -6,6 +6,7 @@ import Home from './pages/user/Home';
 import Search from './pages/user/Search';
 import EmployerHome from './pages/employer/Home';
 import PostRoom from './pages/employer/PostRoom';
+import Rooms from './pages/employer/Rooms';
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -18,6 +19,7 @@ export default function App() {
         <Route path="/search" element={<Search user={user} onLogout={logout} />} />
         <Route path="/login"    element={<Login  onLogin={setUser} />} />
         <Route path="/employer"       element={<EmployerHome user={user} onLogout={logout} />} />
+        <Route path="/employer/rooms" element={<Rooms        user={user} onLogout={logout} />} />
         <Route path="/employer/post"  element={<PostRoom     user={user} onLogout={logout} />} />
         <Route path="*"         element={<Navigate to="/" replace />} />
       </Routes>
