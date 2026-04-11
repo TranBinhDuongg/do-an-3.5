@@ -1,0 +1,77 @@
+.al-page {
+  min-height: 100vh;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.al-box {
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  padding: 40px 36px;
+  width: 100%;
+  max-width: 380px;
+  text-align: center;
+}
+
+.al-logo { font-size: 44px; margin-bottom: 12px; }
+.al-title { font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+.al-sub   { font-size: 14px; color: #64748b; margin-bottom: 28px; }
+
+.al-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+.al-form { display: flex; flex-direction: column; gap: 16px; text-align: left; }
+
+.al-field { display: flex; flex-direction: column; gap: 6px; }
+.al-field label { font-size: 13px; font-weight: 600; color: #374151; }
+.al-field input {
+  padding: 11px 14px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #1e293b;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.al-field input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.08); }
+
+.al-pw-wrap { display: flex; border: 1.5px solid #e2e8f0; border-radius: 8px; overflow: hidden; transition: border-color 0.2s; }
+.al-pw-wrap:focus-within { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.08); }
+.al-pw-wrap input { flex: 1; border: none; padding: 11px 14px; font-size: 14px; color: #1e293b; outline: none; }
+.al-pw-wrap button { background: none; border: none; border-left: 1px solid #e2e8f0; padding: 0 12px; cursor: pointer; font-size: 15px; color: #94a3b8; }
+
+.al-btn {
+  width: 100%;
+  padding: 12px;
+  background: #1e293b;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 4px;
+  transition: background 0.2s;
+}
+.al-btn:hover { background: #0f172a; }
+
+.al-back {
+  display: block;
+  margin-top: 20px;
+  font-size: 13px;
+  color: #64748b;
+  text-decoration: none;
+}
+.al-back:hover { color: #2563eb; }
