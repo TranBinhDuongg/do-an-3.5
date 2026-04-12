@@ -23,9 +23,10 @@ export default function Rooms({ user, onLogout }) {
         <div className="emp-nav-inner">
           <Link to="/" className="emp-nav-logo">🏠 PhòngTrọ<span>VN</span></Link>
           <div className="emp-nav-links">
-            <Link to="/employer"       className="emp-nav-link">Tổng quan</Link>
-            <Link to="/employer/rooms" className="emp-nav-link active">Tin đăng</Link>
-            <Link to="/employer/post"  className="emp-nav-link">Đăng tin mới</Link>
+            <Link to="/employer"         className="emp-nav-link">Tổng quan</Link>
+            <Link to="/employer/rooms"   className="emp-nav-link active">Tin đăng</Link>
+            <Link to="/employer/post"    className="emp-nav-link">Đăng tin mới</Link>
+            <Link to="/employer/pricing" className="emp-nav-link emp-nav-link-pricing">💎 Mua gói</Link>
           </div>
           <div className="emp-nav-right">
             <div className="emp-user-wrap">

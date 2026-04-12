@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './PostRoom.css';
 
@@ -101,9 +101,10 @@ export default function PostRoom({ user, onLogout }) {
         <div className="pr-nav-inner">
           <Link to="/" className="pr-nav-logo">🏠 PhòngTrọ<span>VN</span></Link>
           <div className="pr-nav-links">
-            <Link to="/employer" className="pr-nav-link">Tổng quan</Link>
-            <Link to="/employer/rooms" className="pr-nav-link">Tin đăng</Link>
-            <Link to="/employer/post" className="pr-nav-link active">Đăng tin mới</Link>
+            <Link to="/employer"         className="pr-nav-link">Tổng quan</Link>
+            <Link to="/employer/rooms"   className="pr-nav-link">Tin đăng</Link>
+            <Link to="/employer/post"    className="pr-nav-link active">Đăng tin mới</Link>
+            <Link to="/employer/pricing" className="pr-nav-link pr-nav-link-gold">💎 Mua gói</Link>
           </div>
           <div className="pr-nav-right">
             <div className="pr-user-wrap">

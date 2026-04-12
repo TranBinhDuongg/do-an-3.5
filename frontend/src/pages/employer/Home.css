@@ -239,3 +239,12 @@
   font-size: 13px; color: #374151; padding-left: 16px; position: relative; line-height: 1.5;
 }
 .emp-tips-list li::before { content: '→'; position: absolute; left: 0; color: #2563eb; font-weight: 700; }
+
+.emp-nav-link-pricing {
+  background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+  color: #fff !important;
+  border-radius: 8px;
+  padding: 6px 14px !important;
+  font-weight: 700 !important;
+}
+.emp-nav-link-pricing:hover { opacity: 0.9; background: linear-gradient(135deg, #d97706, #b45309) !important; }
