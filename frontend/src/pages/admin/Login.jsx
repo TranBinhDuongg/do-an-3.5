@@ -12,7 +12,7 @@ export default function AdminLogin({ onLogin }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.email || !form.password) {
+    if (!form.username || !form.password) {
       setError('Vui lòng nhập đầy đủ thông tin.');
       return;
     }
