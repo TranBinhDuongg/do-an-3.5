@@ -10,6 +10,7 @@ import Rooms from './pages/employer/Rooms';
 import Pricing from './pages/employer/Pricing';
 import AdminLogin from './pages/admin/Login';
 import AdminDashboard from './pages/admin/Dashboard';
+import Profile from './pages/Profile';
 import Message from './pages/user/Message';
 import ChatBubble from './components/ChatBubble';
 
@@ -22,9 +23,18 @@ function ChatBubbleWrapper() {
 }
 
 export default function App() {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('user')) || null; } catch { return null; }
+  });
+
+  const login = (u) => {
+    setUser(u);
+    localStorage.setItem('user', JSON.stringify(u));
+  };
+
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     setUser(null);
   };
 
@@ -34,9 +44,10 @@ export default function App() {
         <Route path="/"       element={<Home   user={user} onLogout={logout} />} />
         <Route path="/search"   element={<Search  user={user} onLogout={logout} />} />
         <Route path="/message"  element={<Message user={user} onLogout={logout} />} />
-        <Route path="/login"       element={<Login      onLogin={setUser} />} />
-        <Route path="/admin/login"     element={<AdminLogin onLogin={setUser} />} />
+        <Route path="/login"       element={<Login      onLogin={login} />} />
+        <Route path="/admin/login"     element={<AdminLogin onLogin={login} />} />
         <Route path="/admin/dashboard" element={<AdminDashboard user={user} onLogout={logout} />} />
+        <Route path="/profile" element={<Profile user={user} onLogin={login} onLogout={logout} />} />
         <Route path="/employer"       element={<EmployerHome user={user} onLogout={logout} />} />
         <Route path="/employer/rooms"   element={<Rooms    user={user} onLogout={logout} />} />
         <Route path="/employer/post"    element={<PostRoom user={user} onLogout={logout} />} />

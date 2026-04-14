@@ -76,7 +76,11 @@ export default function EmployerHome({ user, onLogout }) {
             {/* User menu */}
             <div className="emp-user-wrap">
               <button className="emp-user-btn" onClick={() => { setMenuOpen(!menuOpen); setNotiOpen(false); }}>
-                <div className="emp-avatar">{user?.name?.charAt(0) || 'C'}</div>
+                <div className="emp-avatar">
+                  {user?.avatar_url
+                    ? <img src={user.avatar_url} alt="avatar" />
+                    : (user?.name?.charAt(0) || 'C')}
+                </div>
                 <div className="emp-user-info">
                   <span className="emp-user-name">{user?.name || 'Chủ trọ'}</span>
                   <span className="emp-user-role">Chủ trọ</span>
@@ -85,7 +89,7 @@ export default function EmployerHome({ user, onLogout }) {
               </button>
               {menuOpen && (
                 <div className="emp-user-dropdown">
-                  <Link to="/employer/profile" className="emp-drop-item" onClick={() => setMenuOpen(false)}>👤 Hồ sơ</Link>
+                  <Link to="/profile" className="emp-drop-item" onClick={() => setMenuOpen(false)}>👤 Hồ sơ</Link>
                   <Link to="/employer/settings" className="emp-drop-item" onClick={() => setMenuOpen(false)}>⚙️ Cài đặt</Link>
                   <hr className="emp-drop-hr" />
                   <Link to="/" className="emp-drop-item" onClick={() => setMenuOpen(false)}>🔍 Xem trang người thuê</Link>
@@ -191,7 +195,7 @@ export default function EmployerHome({ user, onLogout }) {
                 <Link to="/employer/rooms" className="emp-quick-btn green">
                   <span>📋</span> Quản lý tin
                 </Link>
-                <Link to="/employer/profile" className="emp-quick-btn purple">
+                <Link to="/profile" className="emp-quick-btn purple">
                   <span>👤</span> Hồ sơ chủ trọ
                 </Link>
                 <Link to="/" className="emp-quick-btn gray">

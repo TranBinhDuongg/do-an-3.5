@@ -45,8 +45,15 @@ export default function Home({ user, onLogout }) {
             {user ? (
               <div className="home-nav-user">
                 <button className="home-nav-avatar-btn" onClick={() => setMenuOpen(!menuOpen)}>
-                  <div className="home-nav-avatar">{user.name?.charAt(0)}</div>
-                  <span>{user.name}</span>
+                  <div className="home-nav-avatar">
+                    {user.avatar_url
+                      ? <img src={user.avatar_url} alt="avatar" />
+                      : user.name?.charAt(0)}
+                  </div>
+                  <div className="home-nav-user-info">
+                    <span className="home-nav-user-name">{user.name}</span>
+                    <span className="home-nav-user-role">Người thuê</span>
+                  </div>
                   <span>▾</span>
                 </button>
                 {menuOpen && (

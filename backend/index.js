@@ -5,10 +5,12 @@ const cors    = require('cors');
 const app = express();
 
 app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Routes
-app.use('/api/auth', require('./src/routes/auth'));
+app.use('/api/auth',    require('./src/routes/auth'));
+app.use('/api/profile', require('./src/routes/profile'));
 
 // Health check
 app.get('/', (req, res) => res.json({ message: 'PhòngTrọVN API running' }));

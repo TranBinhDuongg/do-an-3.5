@@ -1,11 +1,9 @@
 const express = require('express');
-const bcrypt  = require('bcryptjs');
 const jwt     = require('jsonwebtoken');
 const { pool, poolConnect, sql } = require('../config/db');
 
 const router = express.Router();
 
-// Hàm tạo JWT
 function signToken(user) {
   return jwt.sign(
     { id: user.id, name: user.name, username: user.username, role: user.role },
@@ -14,11 +12,7 @@ function signToken(user) {
   );
 }
 
-// ─────────────────────────────────────────────
 // POST /api/auth/login
-// Body: { email, password, role }
-// role: 'user' | 'employer' | 'admin'
-// ─────────────────────────────────────────────
 router.post('/login', async (req, res) => {
   const { username, password, role } = req.body;
 
@@ -32,7 +26,7 @@ router.post('/login', async (req, res) => {
     await poolConnect;
     const result = await pool.request()
       .input('username', sql.NVarChar, username)
-      .query('SELECT * FROM users WHERE username = @username AND is_active = 1');
+      .execute('sp_GetUserByUsername');
 
     const user = result.recordset[0];
 
@@ -42,23 +36,14 @@ router.post('/login', async (req, res) => {
     if (user.role !== role)
       return res.status(403).json({ message: `Tài khoản này không phải ${role === 'admin' ? 'quản trị viên' : role === 'employer' ? 'chủ trọ' : 'người thuê'}` });
 
-    const isMatch = password === user.password;
-    if (!isMatch)
+    if (password !== user.password)
       return res.status(401).json({ message: 'Tên tài khoản hoặc mật khẩu không đúng' });
 
     const token = signToken(user);
-
     return res.json({
       message: 'Đăng nhập thành công',
       token,
-      user: {
-        id:        user.id,
-        name:      user.name,
-        username:  user.username,
-        phone:     user.phone,
-        role:      user.role,
-        avatarUrl: user.avatar_url,
-      },
+      user: { id: user.id, name: user.name, username: user.username, phone: user.phone, role: user.role, avatar_url: user.avatar_url },
     });
   } catch (err) {
     console.error(err);
@@ -66,11 +51,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// ─────────────────────────────────────────────
 // POST /api/auth/register
-// Body: { name, email, password, phone, role }
-// role: 'user' | 'employer'  (admin không tự đăng ký)
-// ─────────────────────────────────────────────
 router.post('/register', async (req, res) => {
   const { name, username, password, phone, role = 'user' } = req.body;
 
@@ -82,57 +63,36 @@ router.post('/register', async (req, res) => {
 
   try {
     await poolConnect;
-
-    const check = await pool.request()
-      .input('username', sql.NVarChar, username)
-      .query('SELECT id FROM users WHERE username = @username');
-
-    if (check.recordset.length > 0)
-      return res.status(409).json({ message: 'Tên tài khoản đã được sử dụng' });
-
-    const hashed = password; // plain text for development
-
     const insert = await pool.request()
       .input('name',     sql.NVarChar, name)
       .input('username', sql.NVarChar, username)
       .input('phone',    sql.NVarChar, phone || null)
-      .input('password', sql.NVarChar, hashed)
+      .input('password', sql.NVarChar, password)
       .input('role',     sql.NVarChar, role)
-      .query(`
-        INSERT INTO users (name, username, phone, password, role)
-        OUTPUT INSERTED.id, INSERTED.name, INSERTED.username, INSERTED.role
-        VALUES (@name, @username, @phone, @password, @role)
-      `);
+      .execute('sp_RegisterUser');
 
     const newUser = insert.recordset[0];
     const token   = signToken(newUser);
-
-    return res.status(201).json({
-      message: 'Đăng ký thành công',
-      token,
-      user: newUser,
-    });
+    return res.status(201).json({ message: 'Đăng ký thành công', token, user: newUser });
   } catch (err) {
+    if (err.message?.includes('USERNAME_EXISTS'))
+      return res.status(409).json({ message: 'Tên tài khoản đã được sử dụng' });
     console.error(err);
     return res.status(500).json({ message: 'Lỗi server' });
   }
 });
 
-// ─────────────────────────────────────────────
-// GET /api/auth/me  (cần token)
-// ─────────────────────────────────────────────
+// GET /api/auth/me
 const auth = require('../middleware/auth');
-
 router.get('/me', auth(), async (req, res) => {
   try {
     await poolConnect;
     const result = await pool.request()
       .input('id', sql.Int, req.user.id)
-      .query('SELECT id, name, username, phone, role, avatar_url FROM users WHERE id = @id');
+      .execute('sp_GetProfile');
 
     const user = result.recordset[0];
     if (!user) return res.status(404).json({ message: 'Không tìm thấy người dùng' });
-
     return res.json({ user });
   } catch (err) {
     console.error(err);
