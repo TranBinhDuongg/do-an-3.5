@@ -108,7 +108,6 @@ export default function Pricing({ user, onLogout }) {
           <div className="pricing-nav-links">
             <Link to="/employer"         className="pricing-nav-link">Tổng quan</Link>
             <Link to="/employer/rooms"   className="pricing-nav-link">Tin đăng</Link>
-            <Link to="/employer/post"    className="pricing-nav-link">Đăng tin mới</Link>
             <Link to="/employer/pricing" className="pricing-nav-link active pricing-nav-link-gold">💎 Mua gói</Link>
           </div>
           <div className="pricing-nav-right">

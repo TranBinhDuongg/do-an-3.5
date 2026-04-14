@@ -2,6 +2,12 @@
 import { Link, useNavigate } from 'react-router-dom';
 import './PostRoom.css';
 
+const notifications = [
+  { id: 1, icon: '📞', text: 'Nguyễn Văn A vừa xem số điện thoại của bạn', time: '5 phút trước', unread: true },
+  { id: 2, icon: '❤️', text: 'Có người lưu tin "Phòng trọ cao cấp"', time: '1 giờ trước', unread: true },
+  { id: 3, icon: '✅', text: 'Tin đăng của bạn đã được duyệt', time: '3 giờ trước', unread: false },
+];
+
 const STEPS = ['Thông tin cơ bản', 'Tiện ích & Ảnh', 'Liên hệ & Xác nhận'];
 
 const AMENITIES = [
@@ -37,7 +43,9 @@ export default function PostRoom({ user, onLogout }) {
   const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [notiOpen, setNotiOpen] = useState(false);
   const [previewImgs, setPreviewImgs] = useState([]);
+  const unreadCount = notifications.filter(n => n.unread).length;
 
   const set = (k, v) => { setForm(p => ({ ...p, [k]: v })); setErrors(p => ({ ...p, [k]: '' })); };
 
@@ -103,10 +111,33 @@ export default function PostRoom({ user, onLogout }) {
           <div className="pr-nav-links">
             <Link to="/employer"         className="pr-nav-link">Tổng quan</Link>
             <Link to="/employer/rooms"   className="pr-nav-link">Tin đăng</Link>
-            <Link to="/employer/post"    className="pr-nav-link active">Đăng tin mới</Link>
             <Link to="/employer/pricing" className="pr-nav-link pr-nav-link-gold">💎 Mua gói</Link>
           </div>
           <div className="pr-nav-right">
+            {/* Notification bell */}
+            <div className="pr-noti-wrap">
+              <button className="pr-noti-btn" onClick={() => { setNotiOpen(!notiOpen); setMenuOpen(false); }}>
+                🔔
+                {unreadCount > 0 && <span className="pr-noti-dot">{unreadCount}</span>}
+              </button>
+              {notiOpen && (
+                <div className="pr-noti-dropdown">
+                  <div className="pr-noti-header">
+                    <strong>Thông báo</strong>
+                    <button onClick={() => setNotiOpen(false)}>Đóng</button>
+                  </div>
+                  {notifications.map(n => (
+                    <div key={n.id} className={`pr-noti-item ${n.unread ? 'unread' : ''}`}>
+                      <span>{n.icon}</span>
+                      <div>
+                        <p>{n.text}</p>
+                        <span>{n.time}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
             <div className="pr-user-wrap">
               <button className="pr-user-btn" onClick={() => setMenuOpen(!menuOpen)}>
                 <div className="pr-avatar">{user?.name?.charAt(0) || 'C'}</div>
