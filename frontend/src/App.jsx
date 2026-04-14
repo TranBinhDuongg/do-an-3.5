@@ -22,7 +22,10 @@ function ChatBubbleWrapper() {
 
 export default function App() {
   const [user, setUser] = useState(null);
-  const logout = () => setUser(null);
+  const logout = () => {
+    localStorage.removeItem('token');
+    setUser(null);
+  };
 
   return (
     <BrowserRouter>

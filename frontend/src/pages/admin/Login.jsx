@@ -1,21 +1,33 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import './Login.css';
+import { loginApi } from '../../api/auth';
 
 export default function AdminLogin({ onLogin }) {
-  const [form, setForm] = useState({ email: '', password: '' });
+  const [form, setForm] = useState({ username: '', password: '' });
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (form.email !== 'admin@phongtrovn.com' || form.password !== 'admin123') {
-      setError('Email hoặc mật khẩu không đúng.');
+    if (!form.email || !form.password) {
+      setError('Vui lòng nhập đầy đủ thông tin.');
       return;
     }
-    onLogin({ name: 'Admin', email: form.email, role: 'admin' });
-    navigate('/admin/dashboard');
+    setLoading(true);
+    setError('');
+    try {
+      const { token, user } = await loginApi(form.username, form.password, 'admin');
+      localStorage.setItem('token', token);
+      onLogin(user);
+      navigate('/admin/dashboard');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -29,10 +41,10 @@ export default function AdminLogin({ onLogin }) {
 
         <form onSubmit={handleSubmit} className="al-form">
           <div className="al-field">
-            <label>Email</label>
-            <input type="email" placeholder="admin@phongtrovn.com"
-              value={form.email}
-              onChange={e => { setForm({ ...form, email: e.target.value }); setError(''); }} />
+            <label>Tên tài khoản</label>
+            <input type="text" placeholder="Nhập tên tài khoản"
+              value={form.username}
+              onChange={e => { setForm({ ...form, username: e.target.value }); setError(''); }} />
           </div>
 
           <div className="al-field">
@@ -47,7 +59,9 @@ export default function AdminLogin({ onLogin }) {
             </div>
           </div>
 
-          <button type="submit" className="al-btn">Đăng nhập</button>
+          <button type="submit" className="al-btn" disabled={loading}>
+            {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
+          </button>
         </form>
 
         <Link to="/" className="al-back">← Về trang chủ</Link>

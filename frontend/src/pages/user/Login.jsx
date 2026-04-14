@@ -1,22 +1,34 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Login.css';
+import { loginApi } from '../../api/auth';
 
 export default function Login({ onLogin }) {
-  const [form, setForm] = useState({ email: '', password: '' });
+  const [form, setForm] = useState({ username: '', password: '' });
   const [showPass, setShowPass] = useState(false);
   const [role, setRole] = useState('user');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.email || !form.password) {
+    if (!form.username || !form.password) {
       setError('Vui lòng nhập đầy đủ thông tin.');
       return;
     }
-    onLogin({ name: 'Nguyễn Văn A', email: form.email, role });
-    navigate('/');
+    setLoading(true);
+    setError('');
+    try {
+      const { token, user } = await loginApi(form.username, form.password, role);
+      localStorage.setItem('token', token);
+      onLogin(user);
+      navigate(role === 'employer' ? '/employer' : '/');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -68,14 +80,14 @@ export default function Login({ onLogin }) {
             <button
               type="button"
               className={`login-role-tab ${role === 'user' ? 'active' : ''}`}
-              onClick={() => setRole('user')}
+              onClick={() => { setRole('user'); setError(''); }}
             >
               Người thuê
             </button>
             <button
               type="button"
-              className={`login-role-tab ${role === 'owner' ? 'active' : ''}`}
-              onClick={() => setRole('owner')}
+              className={`login-role-tab ${role === 'employer' ? 'active' : ''}`}
+              onClick={() => { setRole('employer'); setError(''); }}
             >
               Chủ trọ
             </button>
@@ -85,14 +97,14 @@ export default function Login({ onLogin }) {
 
           <form onSubmit={handleSubmit} className="login-form">
             <div className="login-field">
-              <label>Email</label>
+              <label>Tên tài khoản</label>
               <div className="login-input-wrap">
-                <span className="login-input-icon">✉</span>
+                <span className="login-input-icon">👤</span>
                 <input
-                  type="email"
-                  placeholder="Nhập địa chỉ email"
-                  value={form.email}
-                  onChange={e => setForm({ ...form, email: e.target.value })}
+                  type="text"
+                  placeholder="Nhập tên tài khoản"
+                  value={form.username}
+                  onChange={e => setForm({ ...form, username: e.target.value })}
                 />
               </div>
             </div>
@@ -120,7 +132,9 @@ export default function Login({ onLogin }) {
               <Link to="/forgot-password" className="login-forgot">Quên mật khẩu?</Link>
             </div>
 
-            <button type="submit" className="login-submit-btn">Đăng nhập</button>
+            <button type="submit" className="login-submit-btn" disabled={loading}>
+              {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
+            </button>
           </form>
 
           <div className="login-divider">
