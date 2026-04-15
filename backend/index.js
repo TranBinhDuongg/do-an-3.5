@@ -11,6 +11,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Routes
 app.use('/api/auth',    require('./src/routes/auth'));
 app.use('/api/profile', require('./src/routes/profile'));
+app.use('/api/rooms',   require('./src/routes/rooms'));
 
 // Health check
 app.get('/', (req, res) => res.json({ message: 'PhòngTrọVN API running' }));

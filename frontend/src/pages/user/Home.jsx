@@ -1,34 +1,36 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { getHomeDataApi } from '../../api/rooms';
 import './Home.css';
 
-const mockRooms = [
-  { id: 1, title: 'Phòng trọ cao cấp gần ĐH Bách Khoa', address: '15 Tạ Quang Bửu, Hai Bà Trưng, Hà Nội', price: 3500000, area: 25, type: 'Phòng trọ', available: true, isNew: true, image: 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400&h=250&fit=crop', postedAt: '2 giờ trước' },
-  { id: 2, title: 'Chung cư mini full nội thất, ban công view đẹp', address: '88 Láng Hạ, Đống Đa, Hà Nội', price: 5500000, area: 35, type: 'Chung cư mini', available: true, isNew: false, image: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400&h=250&fit=crop', postedAt: '5 giờ trước' },
-  { id: 3, title: 'Nhà nguyên căn 3 phòng ngủ, sân vườn rộng', address: '22 Nguyễn Trãi, Thanh Xuân, Hà Nội', price: 12000000, area: 80, type: 'Nhà nguyên căn', available: true, isNew: true, image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400&h=250&fit=crop', postedAt: '1 ngày trước' },
-  { id: 4, title: 'Phòng trọ giá rẻ, gần KCN Thăng Long', address: '5 Phạm Văn Đồng, Bắc Từ Liêm, Hà Nội', price: 1800000, area: 18, type: 'Phòng trọ', available: false, isNew: false, image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400&h=250&fit=crop', postedAt: '2 ngày trước' },
-  { id: 5, title: 'Studio cao cấp trung tâm quận 1, TP.HCM', address: '120 Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh', price: 8000000, area: 30, type: 'Studio', available: true, isNew: true, image: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=400&h=250&fit=crop', postedAt: '3 giờ trước' },
-  { id: 6, title: 'Phòng trọ sạch sẽ, yên tĩnh, gần ĐH Kinh Tế', address: '45 Đinh Tiên Hoàng, Bình Thạnh, TP. Hồ Chí Minh', price: 2800000, area: 22, type: 'Phòng trọ', available: true, isNew: false, image: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&h=250&fit=crop', postedAt: '4 ngày trước' },
-];
+const FALLBACK_IMG = 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400&h=250&fit=crop';
 
 const categories = [
-  { icon: '🛏️', label: 'Phòng trọ', count: '4,200+', color: '#eff6ff', border: '#bfdbfe' },
-  { icon: '🏢', label: 'Chung cư mini', count: '1,800+', color: '#f0fdf4', border: '#bbf7d0' },
-  { icon: '🏡', label: 'Nhà nguyên căn', count: '900+', color: '#fff7ed', border: '#fed7aa' },
-  { icon: '🏨', label: 'Studio', count: '1,200+', color: '#fdf4ff', border: '#e9d5ff' },
-  { icon: '🎓', label: 'Ký túc xá', count: '300+', color: '#fefce8', border: '#fde68a' },
-  { icon: '🏠', label: 'Căn hộ dịch vụ', count: '600+', color: '#fff1f2', border: '#fecdd3' },
+  { icon: '🛏️', label: 'Phòng trọ',      color: '#eff6ff', border: '#bfdbfe' },
+  { icon: '🏢', label: 'Chung cư mini',   color: '#f0fdf4', border: '#bbf7d0' },
+  { icon: '🏡', label: 'Nhà nguyên căn',  color: '#fff7ed', border: '#fed7aa' },
+  { icon: '🏨', label: 'Studio',          color: '#fdf4ff', border: '#e9d5ff' },
+  { icon: '🎓', label: 'Ký túc xá',       color: '#fefce8', border: '#fde68a' },
+  { icon: '🏠', label: 'Căn hộ dịch vụ', color: '#fff1f2', border: '#fecdd3' },
 ];
 
 export default function Home({ user, onLogout }) {
   const [search, setSearch] = useState({ keyword: '', city: '', type: '' });
   const [menuOpen, setMenuOpen] = useState(false);
+  const [newRooms, setNewRooms] = useState([]);
+  const [featuredRooms, setFeaturedRooms] = useState([]);
+  const [stats, setStats] = useState({ total_rooms: 0, total_employers: 0, total_users: 0 });
   const navigate = useNavigate();
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    // navigate to search page later
-  };
+  useEffect(() => {
+    getHomeDataApi()
+      .then(d => {
+        setNewRooms(d.newRooms);
+        setFeaturedRooms(d.featuredRooms);
+        setStats(d.stats);
+      })
+      .catch(console.error);
+  }, []);
 
   return (
     <div className="home-wrap">
@@ -115,9 +117,9 @@ export default function Home({ user, onLogout }) {
       <section className="home-stats-bar">
         <div className="home-container">
           {[
-            { icon: '🏠', num: '10,000+', label: 'Phòng trọ' },
-            { icon: '👥', num: '5,000+', label: 'Chủ trọ' },
-            { icon: '🔍', num: '50,000+', label: 'Người thuê' },
+            { icon: '🏠', num: stats.total_rooms?.toLocaleString('vi-VN') + '+', label: 'Phòng trọ' },
+            { icon: '👥', num: stats.total_employers?.toLocaleString('vi-VN') + '+', label: 'Chủ trọ' },
+            { icon: '🔍', num: stats.total_users?.toLocaleString('vi-VN') + '+', label: 'Người thuê' },
             { icon: '🌆', num: '63', label: 'Tỉnh thành' },
           ].map(s => (
             <div key={s.label} className="home-stat-item">
@@ -138,10 +140,11 @@ export default function Home({ user, onLogout }) {
           </div>
           <div className="home-cat-grid">
             {categories.map(cat => (
-              <div key={cat.label} className="home-cat-card" style={{ background: cat.color, borderColor: cat.border }}>
+              <div key={cat.label} className="home-cat-card"
+                style={{ background: cat.color, borderColor: cat.border }}
+                onClick={() => navigate(`/search?type=${encodeURIComponent(cat.label)}`)}>
                 <span className="home-cat-icon">{cat.icon}</span>
                 <strong>{cat.label}</strong>
-                <span>{cat.count} tin</span>
               </div>
             ))}
           </div>
@@ -153,12 +156,12 @@ export default function Home({ user, onLogout }) {
         <div className="home-container">
           <div className="home-section-head">
             <h2>🆕 Tin mới nhất</h2>
-            <a href="#">Xem tất cả →</a>
+            <Link to="/search" style={{ color: '#2563eb', fontWeight: 600, fontSize: 14, textDecoration: 'none' }}>Xem tất cả →</Link>
           </div>
           <div className="home-room-grid">
-            {mockRooms.filter(r => r.isNew).map(room => (
-              <RoomCard key={room.id} room={room} />
-            ))}
+            {newRooms.length > 0
+              ? newRooms.map(room => <RoomCard key={room.id} room={room} />)
+              : <p style={{ color: '#94a3b8' }}>Chưa có tin đăng nào.</p>}
           </div>
         </div>
       </section>
@@ -168,12 +171,12 @@ export default function Home({ user, onLogout }) {
         <div className="home-container">
           <div className="home-section-head">
             <h2>⭐ Phòng nổi bật</h2>
-            <a href="#">Xem tất cả →</a>
+            <Link to="/search" style={{ color: '#2563eb', fontWeight: 600, fontSize: 14, textDecoration: 'none' }}>Xem tất cả →</Link>
           </div>
           <div className="home-room-grid">
-            {mockRooms.map(room => (
-              <RoomCard key={room.id} room={room} />
-            ))}
+            {featuredRooms.length > 0
+              ? featuredRooms.map(room => <RoomCard key={room.id} room={room} />)
+              : <p style={{ color: '#94a3b8' }}>Chưa có tin đăng nào.</p>}
           </div>
         </div>
       </section>
@@ -228,13 +231,12 @@ export default function Home({ user, onLogout }) {
 
 function RoomCard({ room }) {
   return (
-    <div className="room-card">
+    <Link to={`/room/${room.id}`} className="room-card" style={{ textDecoration: 'none' }}>
       <div className="room-card-img-wrap">
-        <img src={room.image} alt={room.title} />
+        <img src={room.image || FALLBACK_IMG} alt={room.title} />
         <span className={`room-card-badge ${room.available ? 'green' : 'red'}`}>
           {room.available ? 'Còn phòng' : 'Hết phòng'}
         </span>
-        {room.isNew && <span className="room-card-new">Mới</span>}
       </div>
       <div className="room-card-body">
         <h3 className="room-card-title">{room.title}</h3>
@@ -244,10 +246,10 @@ function RoomCard({ room }) {
           <span className="room-card-type">{room.type}</span>
         </div>
         <div className="room-card-footer">
-          <span className="room-card-price">{room.price.toLocaleString('vi-VN')}đ/tháng</span>
+          <span className="room-card-price">{Number(room.price).toLocaleString('vi-VN')}đ/tháng</span>
           <span className="room-card-time">{room.postedAt}</span>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

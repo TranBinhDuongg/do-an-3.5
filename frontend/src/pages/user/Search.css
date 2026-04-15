@@ -233,3 +233,18 @@
   background: #2563eb; color: #fff;
   border: none; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer;
 }
+
+/* PAGINATION */
+.search-pagination {
+  display: flex; align-items: center; justify-content: center;
+  gap: 16px; margin-top: 32px; padding-bottom: 16px;
+}
+.search-pagination button {
+  padding: 8px 20px; border-radius: 8px;
+  border: 1.5px solid #e2e8f0; background: #fff;
+  font-size: 14px; font-weight: 600; color: #2563eb;
+  cursor: pointer; transition: all 0.15s;
+}
+.search-pagination button:hover:not(:disabled) { background: #eff6ff; }
+.search-pagination button:disabled { color: #94a3b8; cursor: not-allowed; }
+.search-pagination span { font-size: 14px; color: #64748b; }
