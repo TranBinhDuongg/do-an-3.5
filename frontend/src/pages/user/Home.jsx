@@ -46,7 +46,7 @@ export default function Home({ user, onLogout }) {
           <div className="home-nav-auth">
             {user ? (
               <div className="home-nav-user">
-                <button className="home-nav-user-btn" onClick={() => setMenuOpen(!menuOpen)}>
+                <button className="home-nav-avatar-btn" onClick={() => setMenuOpen(!menuOpen)}>
                   <div className="home-nav-avatar">
                     {user.avatar_url
                       ? <img src={user.avatar_url} alt="avatar" />
