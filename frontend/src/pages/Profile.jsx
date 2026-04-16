@@ -14,12 +14,20 @@ export default function Profile({ user, onLogin, onLogout }) {
   const [msg, setMsg] = useState({ type: '', text: '' });
 
   useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) { navigate('/login'); return; }
     getProfileApi()
       .then(u => {
         setForm({ name: u.name || '', phone: u.phone || '' });
         if (u.avatar_url) setAvatarPreview(u.avatar_url);
       })
-      .catch(() => navigate('/login'));
+      .catch(err => {
+        if (err.message === 'Chưa đăng nhập' || err.message === 'Token không hợp lệ') {
+          navigate('/login');
+        } else {
+          showMsg('error', err.message || 'Không thể tải thông tin hồ sơ');
+        }
+      });
   }, []);
 
   const showMsg = (type, text) => {

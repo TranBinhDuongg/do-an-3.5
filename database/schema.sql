@@ -20,7 +20,7 @@ CREATE TABLE nguoi_dung (
     mat_khau       NVARCHAR(255)  NOT NULL,
     vai_tro        NVARCHAR(10)   NOT NULL DEFAULT 'user'
                                   CHECK (vai_tro IN ('user','employer','admin')),
-    anh_dai_dien   NVARCHAR(500),
+    anh_dai_dien   NVARCHAR(MAX),
     con_hoat_dong  BIT            NOT NULL DEFAULT 1,
     ngay_tao       DATETIME2      NOT NULL DEFAULT GETDATE(),
     ngay_cap_nhat  DATETIME2      NOT NULL DEFAULT GETDATE()
