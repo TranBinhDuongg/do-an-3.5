@@ -30,13 +30,10 @@ router.post('/login', async (req, res) => {
 
     const user = result.recordset[0];
 
-    if (!user)
+    if (!user || password !== user.password)
       return res.status(401).json({ message: 'Tên tài khoản hoặc mật khẩu không đúng' });
 
     if (user.role !== role)
-      return res.status(403).json({ message: `Tài khoản này không phải ${role === 'admin' ? 'quản trị viên' : role === 'employer' ? 'chủ trọ' : 'người thuê'}` });
-
-    if (password !== user.password)
       return res.status(401).json({ message: 'Tên tài khoản hoặc mật khẩu không đúng' });
 
     const token = signToken(user);
