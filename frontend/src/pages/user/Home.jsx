@@ -63,7 +63,7 @@ export default function Home({ user, onLogout }) {
                     <Link to="/profile" className="home-nav-drop-item" onClick={() => setMenuOpen(false)}>👤 Hồ sơ</Link>
                     <Link to="/favorites" className="home-nav-drop-item" onClick={() => setMenuOpen(false)}>❤️ Yêu thích</Link>
                     <hr className="home-nav-drop-hr" />
-                    <button className="home-nav-drop-logout" onClick={() => { onLogout(); setMenuOpen(false); }}>🚪 Đăng xuất</button>
+                    <button className="home-nav-drop-logout" onClick={() => { onLogout(); setMenuOpen(false); navigate('/login'); }}>🚪 Đăng xuất</button>
                   </div>
                 )}
               </div>

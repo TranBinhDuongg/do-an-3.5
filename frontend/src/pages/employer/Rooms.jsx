@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import './Home.css';
 
 const allRooms = [
@@ -12,6 +12,7 @@ const allRooms = [
 export default function Rooms({ user, onLogout }) {
   const [tab, setTab] = useState('all');
   const [menuOpen, setMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   const filtered = tab === 'all' ? allRooms
     : tab === 'available' ? allRooms.filter(r => r.available)
@@ -41,7 +42,7 @@ export default function Rooms({ user, onLogout }) {
                 <div className="emp-user-dropdown">
                   <Link to="/employer" className="emp-drop-item" onClick={() => setMenuOpen(false)}>🏠 Tổng quan</Link>
                   <hr className="emp-drop-hr" />
-                  <button className="emp-drop-logout" onClick={() => { onLogout?.(); setMenuOpen(false); }}>🚪 Đăng xuất</button>
+                  <button className="emp-drop-logout" onClick={() => { onLogout?.(); setMenuOpen(false); navigate('/login'); }}>🚪 Đăng xuất</button>
                 </div>
               )}
             </div>

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import './Message.css';
 
 // Mock data
@@ -36,6 +36,7 @@ export default function Message({ user, onLogout }) {
   const [imgPreview, setImgPreview] = useState(null);
   const bottomRef = useRef(null);
   const fileRef   = useRef(null);
+  const navigate  = useNavigate();
 
   const active = contacts.find(c => c.id === activeId);
   const msgs   = messages[activeId] || [];
@@ -92,7 +93,7 @@ export default function Message({ user, onLogout }) {
                   <div className="msg-nav-dropdown">
                     <Link to="/profile" className="msg-nav-drop-item" onClick={() => setMenuOpen(false)}>👤 Hồ sơ</Link>
                     <hr className="msg-nav-drop-hr" />
-                    <button className="msg-nav-drop-logout" onClick={() => { onLogout?.(); setMenuOpen(false); }}>🚪 Đăng xuất</button>
+                    <button className="msg-nav-drop-logout" onClick={() => { onLogout?.(); setMenuOpen(false); navigate('/login'); }}>🚪 Đăng xuất</button>
                   </div>
                 )}
               </div>

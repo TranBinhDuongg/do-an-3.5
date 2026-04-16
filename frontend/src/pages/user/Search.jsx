@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { getRoomsApi } from '../../api/rooms';
 import './Search.css';
 
@@ -29,6 +29,7 @@ export default function Search({ user, onLogout }) {
   const [loading, setLoading]   = useState(false);
   const [viewMode, setViewMode] = useState('grid');
   const [menuOpen, setMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   const priceFilter = PRICES[priceIdx];
 
@@ -77,7 +78,7 @@ export default function Search({ user, onLogout }) {
                   <div className="search-nav-dropdown">
                     <Link to="/profile" className="search-nav-drop-item" onClick={() => setMenuOpen(false)}>👤 Hồ sơ</Link>
                     <hr className="search-nav-drop-hr" />
-                    <button className="search-nav-drop-logout" onClick={() => { onLogout(); setMenuOpen(false); }}>🚪 Đăng xuất</button>
+                    <button className="search-nav-drop-logout" onClick={() => { onLogout(); setMenuOpen(false); navigate('/login'); }}>🚪 Đăng xuất</button>
                   </div>
                 )}
               </div>

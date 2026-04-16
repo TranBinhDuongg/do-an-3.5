@@ -148,7 +148,7 @@ export default function PostRoom({ user, onLogout }) {
                 <div className="pr-dropdown">
                   <Link to="/employer" className="pr-drop-item" onClick={() => setMenuOpen(false)}>🏠 Trang chủ</Link>
                   <hr className="pr-drop-hr" />
-                  <button className="pr-drop-logout" onClick={() => { onLogout?.(); setMenuOpen(false); }}>🚪 Đăng xuất</button>
+                  <button className="pr-drop-logout" onClick={() => { onLogout?.(); setMenuOpen(false); navigate('/login'); }}>🚪 Đăng xuất</button>
                 </div>
               )}
             </div>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import './Home.css';
 
 const myRooms = [
@@ -20,6 +20,7 @@ export default function EmployerHome({ user, onLogout }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [notiOpen, setNotiOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
+  const navigate = useNavigate();
 
   const stats = [
     { icon: '🏠', label: 'Tin đang đăng', value: 3, color: 'blue', sub: '+1 tuần này' },
@@ -94,7 +95,7 @@ export default function EmployerHome({ user, onLogout }) {
                   <hr className="emp-drop-hr" />
                   <Link to="/" className="emp-drop-item" onClick={() => setMenuOpen(false)}>🔍 Xem trang người thuê</Link>
                   <hr className="emp-drop-hr" />
-                  <button className="emp-drop-logout" onClick={() => { onLogout?.(); setMenuOpen(false); }}>🚪 Đăng xuất</button>
+                  <button className="emp-drop-logout" onClick={() => { onLogout?.(); setMenuOpen(false); navigate('/login'); }}>🚪 Đăng xuất</button>
                 </div>
               )}
             </div>

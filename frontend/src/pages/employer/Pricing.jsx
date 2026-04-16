@@ -120,7 +120,7 @@ export default function Pricing({ user, onLogout }) {
                 <div className="pricing-dropdown">
                   <Link to="/employer" className="pricing-drop-item" onClick={() => setMenuOpen(false)}>🏠 Tổng quan</Link>
                   <hr className="pricing-drop-hr" />
-                  <button className="pricing-drop-logout" onClick={() => { onLogout?.(); setMenuOpen(false); }}>🚪 Đăng xuất</button>
+                  <button className="pricing-drop-logout" onClick={() => { onLogout?.(); setMenuOpen(false); navigate('/login'); }}>🚪 Đăng xuất</button>
                 </div>
               )}
             </div>
