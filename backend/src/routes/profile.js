@@ -4,17 +4,28 @@ const auth = require('../middleware/auth');
 
 const router = express.Router();
 
+function formatUser(nd) {
+  return {
+    id:         nd.ma_nd,
+    name:       nd.ho_ten,
+    username:   nd.tai_khoan,
+    phone:      nd.dien_thoai,
+    role:       nd.vai_tro,
+    avatar_url: nd.anh_dai_dien,
+  };
+}
+
 // GET /api/profile
 router.get('/', auth(), async (req, res) => {
   try {
     await poolConnect;
     const result = await pool.request()
-      .input('id', sql.Int, req.user.id)
-      .execute('sp_GetProfile');
+      .input('ma_nd', sql.Int, req.user.id)
+      .execute('sp_LayHoSo');
 
-    const user = result.recordset[0];
-    if (!user) return res.status(404).json({ message: 'Không tìm thấy người dùng' });
-    return res.json({ user });
+    const nd = result.recordset[0];
+    if (!nd) return res.status(404).json({ message: 'Không tìm thấy người dùng' });
+    return res.json({ user: formatUser(nd) });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: 'Lỗi server' });
@@ -29,12 +40,12 @@ router.put('/', auth(), async (req, res) => {
   try {
     await poolConnect;
     const result = await pool.request()
-      .input('id',    sql.Int,      req.user.id)
-      .input('name',  sql.NVarChar, name)
-      .input('phone', sql.NVarChar, phone || null)
-      .execute('sp_UpdateProfile');
+      .input('ma_nd',      sql.Int,      req.user.id)
+      .input('ho_ten',     sql.NVarChar, name)
+      .input('dien_thoai', sql.NVarChar, phone || null)
+      .execute('sp_CapNhatHoSo');
 
-    return res.json({ message: 'Cập nhật thành công', user: result.recordset[0] });
+    return res.json({ message: 'Cập nhật thành công', user: formatUser(result.recordset[0]) });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: 'Lỗi server' });
@@ -51,13 +62,13 @@ router.put('/avatar', auth(), async (req, res) => {
   try {
     await poolConnect;
     const result = await pool.request()
-      .input('id',         sql.Int,              req.user.id)
-      .input('avatar_url', sql.NVarChar(sql.MAX), avatar_url)
-      .execute('sp_UpdateAvatar');
+      .input('ma_nd',        sql.Int,              req.user.id)
+      .input('anh_dai_dien', sql.NVarChar(sql.MAX), avatar_url)
+      .execute('sp_CapNhatAnhDaiDien');
 
-    const user = result.recordset[0];
-    if (!user) return res.status(404).json({ message: 'Không tìm thấy người dùng' });
-    return res.json({ message: 'Cập nhật avatar thành công', user });
+    const nd = result.recordset[0];
+    if (!nd) return res.status(404).json({ message: 'Không tìm thấy người dùng' });
+    return res.json({ message: 'Cập nhật avatar thành công', user: formatUser(nd) });
   } catch (err) {
     console.error('[AVATAR ERROR]', err.message, err.stack);
     return res.status(500).json({ message: err.message || 'Lỗi server' });
@@ -75,20 +86,19 @@ router.put('/password', auth(), async (req, res) => {
   try {
     await poolConnect;
 
-    // Verify mật khẩu hiện tại
     const check = await pool.request()
-      .input('id', sql.Int, req.user.id)
-      .execute('sp_GetPasswordById');
+      .input('ma_nd', sql.Int, req.user.id)
+      .execute('sp_LayMatKhauTheoId');
 
-    const user = check.recordset[0];
-    if (!user) return res.status(404).json({ message: 'Không tìm thấy người dùng' });
-    if (currentPassword !== user.password)
+    const nd = check.recordset[0];
+    if (!nd) return res.status(404).json({ message: 'Không tìm thấy người dùng' });
+    if (currentPassword !== nd.mat_khau)
       return res.status(401).json({ message: 'Mật khẩu hiện tại không đúng' });
 
     await pool.request()
-      .input('id',          sql.Int,      req.user.id)
-      .input('newPassword', sql.NVarChar, newPassword)
-      .execute('sp_ChangePassword');
+      .input('ma_nd',        sql.Int,      req.user.id)
+      .input('mat_khau_moi', sql.NVarChar, newPassword)
+      .execute('sp_DoiMatKhau');
 
     return res.json({ message: 'Đổi mật khẩu thành công' });
   } catch (err) {

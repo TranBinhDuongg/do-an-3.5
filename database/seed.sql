@@ -6,9 +6,9 @@ USE doan35;
 GO
 
 -- ------------------------------------------------------------
--- USERS
+-- NGUOI_DUNG
 -- ------------------------------------------------------------
-INSERT INTO users (name, username, phone, password, role) VALUES
+INSERT INTO nguoi_dung (ho_ten, tai_khoan, dien_thoai, mat_khau, vai_tro) VALUES
 (N'Admin',            'admin',  '0900000000', '$2b$10$hashedpassword1', 'admin'),
 (N'Nguyễn Văn Minh',  'minh',   '0912345678', '$2b$10$hashedpassword2', 'employer'),
 (N'Trần Thị Lan',     'lan',    '0987654321', '$2b$10$hashedpassword3', 'employer'),
@@ -17,26 +17,26 @@ INSERT INTO users (name, username, phone, password, role) VALUES
 GO
 
 -- ------------------------------------------------------------
--- PACKAGES
+-- GOI_DANG_TIN
 -- ------------------------------------------------------------
-INSERT INTO packages (name, price, duration_days, post_limit, is_featured, description) VALUES
+INSERT INTO goi_dang_tin (ten_goi, gia, so_ngay, gioi_han_tin, noi_bat, mo_ta) VALUES
 (N'Cơ bản',  0,      30, 1,  0, N'Đăng 1 tin miễn phí, hiển thị thường'),
 (N'Nổi bật', 99000,  30, 5,  1, N'Đăng 5 tin, ưu tiên hiển thị, huy hiệu nổi bật'),
 (N'VIP',     299000, 30, 20, 1, N'Đăng không giới hạn, top tìm kiếm, hỗ trợ 24/7');
 GO
 
 -- ------------------------------------------------------------
--- USER PACKAGES
+-- NGUOI_DUNG_GOI
 -- ------------------------------------------------------------
-INSERT INTO user_packages (user_id, package_id, started_at, expires_at) VALUES
+INSERT INTO nguoi_dung_goi (ma_nd, ma_goi, bat_dau, het_han) VALUES
 (2, 2, '2025-04-01', '2025-05-01'),
 (3, 1, '2025-04-10', '2025-05-10');
 GO
 
 -- ------------------------------------------------------------
--- AMENITIES
+-- TIEN_ICH
 -- ------------------------------------------------------------
-INSERT INTO amenities (key_name, label, icon) VALUES
+INSERT INTO tien_ich (ma_khoa, ten_hien_thi, bieu_tuong) VALUES
 ('wifi',     N'WiFi',        N'📶'),
 ('ac',       N'Điều hòa',    N'❄️'),
 ('wc',       N'WC riêng',    N'🚿'),
@@ -52,11 +52,9 @@ INSERT INTO amenities (key_name, label, icon) VALUES
 GO
 
 -- ------------------------------------------------------------
--- ROOMS
+-- PHONG_TRO
 -- ------------------------------------------------------------
-SET IDENTITY_INSERT rooms OFF;
-
-INSERT INTO rooms (employer_id, title, type, city, district, address, price, deposit, area, description, contact_name, contact_phone, contact_email, show_phone, status, is_available, views, contacts_count) VALUES
+INSERT INTO phong_tro (ma_chu_tro, tieu_de, loai_phong, tinh_thanh, quan_huyen, dia_chi, gia_thue, tien_coc, dien_tich, mo_ta, ten_lien_he, sdt_lien_he, email_lien_he, hien_sdt, trang_thai, con_phong, luot_xem, so_lien_he) VALUES
 (2, N'Phòng trọ cao cấp gần ĐH Bách Khoa',
  N'Phòng trọ', N'Hà Nội', N'Hai Bà Trưng', N'15 Tạ Quang Bửu, Hai Bà Trưng, Hà Nội',
  3500000, 7000000, 25, N'Phòng mới xây, đầy đủ nội thất, gần trường đại học, an ninh tốt.',
@@ -104,9 +102,9 @@ INSERT INTO rooms (employer_id, title, type, city, district, address, price, dep
 GO
 
 -- ------------------------------------------------------------
--- ROOM IMAGES
+-- ANH_PHONG
 -- ------------------------------------------------------------
-INSERT INTO room_images (room_id, url, is_cover, sort_order) VALUES
+INSERT INTO anh_phong (ma_phong, duong_dan, la_anh_bia, thu_tu) VALUES
 (1, 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400&h=250&fit=crop', 1, 0),
 (2, 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400&h=250&fit=crop', 1, 0),
 (3, 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400&h=250&fit=crop', 1, 0),
@@ -119,44 +117,44 @@ INSERT INTO room_images (room_id, url, is_cover, sort_order) VALUES
 GO
 
 -- ------------------------------------------------------------
--- ROOM AMENITIES
+-- TIEN_ICH_PHONG
 -- ------------------------------------------------------------
 -- Phòng 1: wifi, ac, wc, bed, wardrobe
-INSERT INTO room_amenities VALUES (1,1),(1,2),(1,3),(1,11),(1,12);
+INSERT INTO tien_ich_phong VALUES (1,1),(1,2),(1,3),(1,11),(1,12);
 -- Phòng 2: wifi, ac, wc, fridge, washer, kitchen, elevator, balcony, bed, wardrobe
-INSERT INTO room_amenities VALUES (2,1),(2,2),(2,3),(2,4),(2,5),(2,6),(2,9),(2,10),(2,11),(2,12);
+INSERT INTO tien_ich_phong VALUES (2,1),(2,2),(2,3),(2,4),(2,5),(2,6),(2,9),(2,10),(2,11),(2,12);
 -- Phòng 3: wifi, parking
-INSERT INTO room_amenities VALUES (3,1),(3,7);
+INSERT INTO tien_ich_phong VALUES (3,1),(3,7);
 -- Phòng 4: wifi, ac, wc, fridge, washer, kitchen, parking, security, bed, wardrobe
-INSERT INTO room_amenities VALUES (4,1),(4,2),(4,3),(4,4),(4,5),(4,6),(4,7),(4,8),(4,11),(4,12);
+INSERT INTO tien_ich_phong VALUES (4,1),(4,2),(4,3),(4,4),(4,5),(4,6),(4,7),(4,8),(4,11),(4,12);
 -- Phòng 5: wifi, ac, wc, fridge, elevator, balcony, bed
-INSERT INTO room_amenities VALUES (5,1),(5,2),(5,3),(5,4),(5,9),(5,10),(5,11);
+INSERT INTO tien_ich_phong VALUES (5,1),(5,2),(5,3),(5,4),(5,9),(5,10),(5,11);
 -- Phòng 6: wifi, wc, security, bed
-INSERT INTO room_amenities VALUES (6,1),(6,3),(6,8),(6,11);
+INSERT INTO tien_ich_phong VALUES (6,1),(6,3),(6,8),(6,11);
 -- Phòng 7: wifi, ac, wc, fridge, washer, kitchen, security, elevator, bed, wardrobe
-INSERT INTO room_amenities VALUES (7,1),(7,2),(7,3),(7,4),(7,5),(7,6),(7,8),(7,9),(7,11),(7,12);
+INSERT INTO tien_ich_phong VALUES (7,1),(7,2),(7,3),(7,4),(7,5),(7,6),(7,8),(7,9),(7,11),(7,12);
 -- Phòng 8: wifi, security
-INSERT INTO room_amenities VALUES (8,1),(8,8);
+INSERT INTO tien_ich_phong VALUES (8,1),(8,8);
 -- Phòng 9: wifi, ac, wc, bed, wardrobe, balcony
-INSERT INTO room_amenities VALUES (9,1),(9,2),(9,3),(9,11),(9,12),(9,10);
+INSERT INTO tien_ich_phong VALUES (9,1),(9,2),(9,3),(9,11),(9,12),(9,10);
 GO
 
 -- ------------------------------------------------------------
--- FAVORITES
+-- YEU_THICH
 -- ------------------------------------------------------------
-INSERT INTO favorites (user_id, room_id) VALUES
+INSERT INTO yeu_thich (ma_nd, ma_phong) VALUES
 (4, 1), (4, 4), (5, 2), (5, 5);
 GO
 
 -- ------------------------------------------------------------
--- CONVERSATIONS & MESSAGES
+-- CUOC_TRO_CHUYEN & TIN_NHAN
 -- ------------------------------------------------------------
-INSERT INTO conversations (user_id, employer_id, room_id) VALUES
+INSERT INTO cuoc_tro_chuyen (ma_nd, ma_chu_tro, ma_phong) VALUES
 (4, 2, 1),
 (5, 3, 5);
 GO
 
-INSERT INTO messages (conversation_id, sender_id, content, is_read) VALUES
+INSERT INTO tin_nhan (ma_ctc, ma_nguoi_gui, noi_dung, da_doc) VALUES
 (1, 4, N'Chào anh, phòng còn trống không ạ?', 1),
 (1, 2, N'Chào bạn, phòng vẫn còn trống nhé. Bạn muốn xem phòng lúc nào?', 1),
 (1, 4, N'Anh cho em xem phòng vào chiều thứ 7 được không ạ?', 0),
@@ -165,9 +163,9 @@ INSERT INTO messages (conversation_id, sender_id, content, is_read) VALUES
 GO
 
 -- ------------------------------------------------------------
--- NOTIFICATIONS
+-- THONG_BAO
 -- ------------------------------------------------------------
-INSERT INTO notifications (user_id, icon, content, is_read) VALUES
+INSERT INTO thong_bao (ma_nd, bieu_tuong, noi_dung, da_doc) VALUES
 (2, N'📞', N'Nguyễn Văn A vừa xem số điện thoại của bạn', 0),
 (2, N'❤️', N'Có người lưu tin "Phòng trọ cao cấp"', 0),
 (2, N'✅', N'Tin đăng của bạn đã được duyệt', 1),

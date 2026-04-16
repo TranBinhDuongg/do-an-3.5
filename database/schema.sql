@@ -10,178 +10,178 @@ USE doan35;
 GO
 
 -- ------------------------------------------------------------
--- 1. USERS
+-- 1. NGUOI_DUNG (người dùng)
 -- ------------------------------------------------------------
-CREATE TABLE users (
-    id         INT IDENTITY(1,1) PRIMARY KEY,
-    name       NVARCHAR(100)  NOT NULL,
-    username   NVARCHAR(150)  NOT NULL UNIQUE,
-    phone      NVARCHAR(20),
-    password   NVARCHAR(255)  NOT NULL,
-    role       NVARCHAR(10)   NOT NULL DEFAULT 'user'
-                              CHECK (role IN ('user','employer','admin')),
-    avatar_url NVARCHAR(500),
-    is_active  BIT            NOT NULL DEFAULT 1,
-    created_at DATETIME2      NOT NULL DEFAULT GETDATE(),
-    updated_at DATETIME2      NOT NULL DEFAULT GETDATE()
+CREATE TABLE nguoi_dung (
+    ma_nd          INT IDENTITY(1,1) PRIMARY KEY,
+    ho_ten         NVARCHAR(100)  NOT NULL,
+    tai_khoan      NVARCHAR(150)  NOT NULL UNIQUE,
+    dien_thoai     NVARCHAR(20),
+    mat_khau       NVARCHAR(255)  NOT NULL,
+    vai_tro        NVARCHAR(10)   NOT NULL DEFAULT 'user'
+                                  CHECK (vai_tro IN ('user','employer','admin')),
+    anh_dai_dien   NVARCHAR(500),
+    con_hoat_dong  BIT            NOT NULL DEFAULT 1,
+    ngay_tao       DATETIME2      NOT NULL DEFAULT GETDATE(),
+    ngay_cap_nhat  DATETIME2      NOT NULL DEFAULT GETDATE()
 );
 GO
 
 -- ------------------------------------------------------------
--- 2. PACKAGES (gói đăng tin)
+-- 2. GOI_DANG_TIN (gói đăng tin)
 -- ------------------------------------------------------------
-CREATE TABLE packages (
-    id            INT IDENTITY(1,1) PRIMARY KEY,
-    name          NVARCHAR(100)  NOT NULL,
-    price         DECIMAL(12,0)  NOT NULL,
-    duration_days INT            NOT NULL,
-    post_limit    INT            NOT NULL DEFAULT 1,
-    is_featured   BIT            NOT NULL DEFAULT 0,
-    description   NVARCHAR(MAX),
-    created_at    DATETIME2      NOT NULL DEFAULT GETDATE()
+CREATE TABLE goi_dang_tin (
+    ma_goi        INT IDENTITY(1,1) PRIMARY KEY,
+    ten_goi       NVARCHAR(100)  NOT NULL,
+    gia           DECIMAL(12,0)  NOT NULL,
+    so_ngay       INT            NOT NULL,
+    gioi_han_tin  INT            NOT NULL DEFAULT 1,
+    noi_bat       BIT            NOT NULL DEFAULT 0,
+    mo_ta         NVARCHAR(MAX),
+    ngay_tao      DATETIME2      NOT NULL DEFAULT GETDATE()
 );
 GO
 
 -- ------------------------------------------------------------
--- 3. USER PACKAGES
+-- 3. NGUOI_DUNG_GOI (người dùng - gói)
 -- ------------------------------------------------------------
-CREATE TABLE user_packages (
-    id         INT IDENTITY(1,1) PRIMARY KEY,
-    user_id    INT       NOT NULL,
-    package_id INT       NOT NULL,
-    started_at DATETIME2 NOT NULL DEFAULT GETDATE(),
-    expires_at DATETIME2 NOT NULL,
-    is_active  BIT       NOT NULL DEFAULT 1,
-    FOREIGN KEY (user_id)    REFERENCES users(id),
-    FOREIGN KEY (package_id) REFERENCES packages(id)
+CREATE TABLE nguoi_dung_goi (
+    ma            INT IDENTITY(1,1) PRIMARY KEY,
+    ma_nd         INT       NOT NULL,
+    ma_goi        INT       NOT NULL,
+    bat_dau       DATETIME2 NOT NULL DEFAULT GETDATE(),
+    het_han       DATETIME2 NOT NULL,
+    con_hieu_luc  BIT       NOT NULL DEFAULT 1,
+    FOREIGN KEY (ma_nd)  REFERENCES nguoi_dung(ma_nd),
+    FOREIGN KEY (ma_goi) REFERENCES goi_dang_tin(ma_goi)
 );
 GO
 
 -- ------------------------------------------------------------
--- 4. ROOMS (tin đăng phòng trọ)
+-- 4. PHONG_TRO (tin đăng phòng trọ)
 -- ------------------------------------------------------------
-CREATE TABLE rooms (
-    id             INT IDENTITY(1,1) PRIMARY KEY,
-    employer_id    INT            NOT NULL,
-    title          NVARCHAR(200)  NOT NULL,
-    type           NVARCHAR(50)   NOT NULL
-                                  CHECK (type IN (N'Phòng trọ',N'Chung cư mini',N'Nhà nguyên căn',N'Studio',N'Ký túc xá',N'Căn hộ dịch vụ')),
-    city           NVARCHAR(100)  NOT NULL,
-    district       NVARCHAR(100),
-    address        NVARCHAR(300)  NOT NULL,
-    price          DECIMAL(12,0)  NOT NULL,
-    deposit        DECIMAL(12,0),
-    area           DECIMAL(6,1)   NOT NULL,
-    description    NVARCHAR(MAX),
-    contact_name   NVARCHAR(100)  NOT NULL,
-    contact_phone  NVARCHAR(20)   NOT NULL,
-    contact_email  NVARCHAR(150),
-    show_phone     BIT            NOT NULL DEFAULT 1,
-    status         NVARCHAR(20)   NOT NULL DEFAULT 'pending'
-                                  CHECK (status IN ('pending','approved','rejected','paused')),
-    is_available   BIT            NOT NULL DEFAULT 1,
-    is_featured    BIT            NOT NULL DEFAULT 0,
-    views          INT            NOT NULL DEFAULT 0,
-    contacts_count INT            NOT NULL DEFAULT 0,
-    created_at     DATETIME2      NOT NULL DEFAULT GETDATE(),
-    updated_at     DATETIME2      NOT NULL DEFAULT GETDATE(),
-    FOREIGN KEY (employer_id) REFERENCES users(id)
+CREATE TABLE phong_tro (
+    ma_phong      INT IDENTITY(1,1) PRIMARY KEY,
+    ma_chu_tro    INT            NOT NULL,
+    tieu_de       NVARCHAR(200)  NOT NULL,
+    loai_phong    NVARCHAR(50)   NOT NULL
+                                 CHECK (loai_phong IN (N'Phòng trọ',N'Chung cư mini',N'Nhà nguyên căn',N'Studio',N'Ký túc xá',N'Căn hộ dịch vụ')),
+    tinh_thanh    NVARCHAR(100)  NOT NULL,
+    quan_huyen    NVARCHAR(100),
+    dia_chi       NVARCHAR(300)  NOT NULL,
+    gia_thue      DECIMAL(12,0)  NOT NULL,
+    tien_coc      DECIMAL(12,0),
+    dien_tich     DECIMAL(6,1)   NOT NULL,
+    mo_ta         NVARCHAR(MAX),
+    ten_lien_he   NVARCHAR(100)  NOT NULL,
+    sdt_lien_he   NVARCHAR(20)   NOT NULL,
+    email_lien_he NVARCHAR(150),
+    hien_sdt      BIT            NOT NULL DEFAULT 1,
+    trang_thai    NVARCHAR(20)   NOT NULL DEFAULT 'pending'
+                                 CHECK (trang_thai IN ('pending','approved','rejected','paused')),
+    con_phong     BIT            NOT NULL DEFAULT 1,
+    noi_bat       BIT            NOT NULL DEFAULT 0,
+    luot_xem      INT            NOT NULL DEFAULT 0,
+    so_lien_he    INT            NOT NULL DEFAULT 0,
+    ngay_tao      DATETIME2      NOT NULL DEFAULT GETDATE(),
+    ngay_cap_nhat DATETIME2      NOT NULL DEFAULT GETDATE(),
+    FOREIGN KEY (ma_chu_tro) REFERENCES nguoi_dung(ma_nd)
 );
 GO
 
--- Trigger tự cập nhật updated_at
-CREATE TRIGGER trg_rooms_updated
-ON rooms AFTER UPDATE AS
-    UPDATE rooms SET updated_at = GETDATE()
-    WHERE id IN (SELECT id FROM inserted);
+-- Trigger tự cập nhật ngay_cap_nhat
+CREATE TRIGGER trg_cap_nhat_phong
+ON phong_tro AFTER UPDATE AS
+    UPDATE phong_tro SET ngay_cap_nhat = GETDATE()
+    WHERE ma_phong IN (SELECT ma_phong FROM inserted);
 GO
 
 -- ------------------------------------------------------------
--- 5. ROOM IMAGES
+-- 5. ANH_PHONG (ảnh phòng)
 -- ------------------------------------------------------------
-CREATE TABLE room_images (
-    id         INT IDENTITY(1,1) PRIMARY KEY,
-    room_id    INT           NOT NULL,
-    url        NVARCHAR(500) NOT NULL,
-    is_cover   BIT           NOT NULL DEFAULT 0,
-    sort_order INT           NOT NULL DEFAULT 0,
-    FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE
-);
-GO
-
--- ------------------------------------------------------------
--- 6. AMENITIES
--- ------------------------------------------------------------
-CREATE TABLE amenities (
-    id       INT IDENTITY(1,1) PRIMARY KEY,
-    key_name NVARCHAR(50)  NOT NULL UNIQUE,
-    label    NVARCHAR(100) NOT NULL,
-    icon     NVARCHAR(10)
+CREATE TABLE anh_phong (
+    ma_anh    INT IDENTITY(1,1) PRIMARY KEY,
+    ma_phong  INT           NOT NULL,
+    duong_dan NVARCHAR(500) NOT NULL,
+    la_anh_bia BIT          NOT NULL DEFAULT 0,
+    thu_tu    INT           NOT NULL DEFAULT 0,
+    FOREIGN KEY (ma_phong) REFERENCES phong_tro(ma_phong) ON DELETE CASCADE
 );
 GO
 
 -- ------------------------------------------------------------
--- 7. ROOM AMENITIES
+-- 6. TIEN_ICH (tiện ích)
 -- ------------------------------------------------------------
-CREATE TABLE room_amenities (
-    room_id    INT NOT NULL,
-    amenity_id INT NOT NULL,
-    PRIMARY KEY (room_id, amenity_id),
-    FOREIGN KEY (room_id)    REFERENCES rooms(id)     ON DELETE CASCADE,
-    FOREIGN KEY (amenity_id) REFERENCES amenities(id)
+CREATE TABLE tien_ich (
+    ma_tien_ich   INT IDENTITY(1,1) PRIMARY KEY,
+    ma_khoa       NVARCHAR(50)  NOT NULL UNIQUE,
+    ten_hien_thi  NVARCHAR(100) NOT NULL,
+    bieu_tuong    NVARCHAR(10)
 );
 GO
 
 -- ------------------------------------------------------------
--- 8. FAVORITES
+-- 7. TIEN_ICH_PHONG (tiện ích phòng)
 -- ------------------------------------------------------------
-CREATE TABLE favorites (
-    user_id    INT       NOT NULL,
-    room_id    INT       NOT NULL,
-    created_at DATETIME2 NOT NULL DEFAULT GETDATE(),
-    PRIMARY KEY (user_id, room_id),
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (room_id) REFERENCES rooms(id)
+CREATE TABLE tien_ich_phong (
+    ma_phong    INT NOT NULL,
+    ma_tien_ich INT NOT NULL,
+    PRIMARY KEY (ma_phong, ma_tien_ich),
+    FOREIGN KEY (ma_phong)    REFERENCES phong_tro(ma_phong) ON DELETE CASCADE,
+    FOREIGN KEY (ma_tien_ich) REFERENCES tien_ich(ma_tien_ich)
 );
 GO
 
 -- ------------------------------------------------------------
--- 9. CONVERSATIONS & MESSAGES
+-- 8. YEU_THICH (yêu thích)
 -- ------------------------------------------------------------
-CREATE TABLE conversations (
-    id          INT IDENTITY(1,1) PRIMARY KEY,
-    user_id     INT       NOT NULL,
-    employer_id INT       NOT NULL,
-    room_id     INT,
-    created_at  DATETIME2 NOT NULL DEFAULT GETDATE(),
-    FOREIGN KEY (user_id)     REFERENCES users(id),
-    FOREIGN KEY (employer_id) REFERENCES users(id),
-    FOREIGN KEY (room_id)     REFERENCES rooms(id)
-);
-GO
-
-CREATE TABLE messages (
-    id              INT IDENTITY(1,1) PRIMARY KEY,
-    conversation_id INT           NOT NULL,
-    sender_id       INT           NOT NULL,
-    content         NVARCHAR(MAX) NOT NULL,
-    is_read         BIT           NOT NULL DEFAULT 0,
-    created_at      DATETIME2     NOT NULL DEFAULT GETDATE(),
-    FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE,
-    FOREIGN KEY (sender_id)       REFERENCES users(id)
+CREATE TABLE yeu_thich (
+    ma_nd     INT       NOT NULL,
+    ma_phong  INT       NOT NULL,
+    ngay_tao  DATETIME2 NOT NULL DEFAULT GETDATE(),
+    PRIMARY KEY (ma_nd, ma_phong),
+    FOREIGN KEY (ma_nd)   REFERENCES nguoi_dung(ma_nd),
+    FOREIGN KEY (ma_phong) REFERENCES phong_tro(ma_phong)
 );
 GO
 
 -- ------------------------------------------------------------
--- 10. NOTIFICATIONS
+-- 9. CUOC_TRO_CHUYEN & TIN_NHAN
 -- ------------------------------------------------------------
-CREATE TABLE notifications (
-    id         INT IDENTITY(1,1) PRIMARY KEY,
-    user_id    INT           NOT NULL,
-    icon       NVARCHAR(10),
-    content    NVARCHAR(MAX) NOT NULL,
-    is_read    BIT           NOT NULL DEFAULT 0,
-    created_at DATETIME2     NOT NULL DEFAULT GETDATE(),
-    FOREIGN KEY (user_id) REFERENCES users(id)
+CREATE TABLE cuoc_tro_chuyen (
+    ma_ctc     INT IDENTITY(1,1) PRIMARY KEY,
+    ma_nd      INT       NOT NULL,
+    ma_chu_tro INT       NOT NULL,
+    ma_phong   INT,
+    ngay_tao   DATETIME2 NOT NULL DEFAULT GETDATE(),
+    FOREIGN KEY (ma_nd)      REFERENCES nguoi_dung(ma_nd),
+    FOREIGN KEY (ma_chu_tro) REFERENCES nguoi_dung(ma_nd),
+    FOREIGN KEY (ma_phong)   REFERENCES phong_tro(ma_phong)
+);
+GO
+
+CREATE TABLE tin_nhan (
+    ma_tn         INT IDENTITY(1,1) PRIMARY KEY,
+    ma_ctc        INT           NOT NULL,
+    ma_nguoi_gui  INT           NOT NULL,
+    noi_dung      NVARCHAR(MAX) NOT NULL,
+    da_doc        BIT           NOT NULL DEFAULT 0,
+    ngay_tao      DATETIME2     NOT NULL DEFAULT GETDATE(),
+    FOREIGN KEY (ma_ctc)       REFERENCES cuoc_tro_chuyen(ma_ctc) ON DELETE CASCADE,
+    FOREIGN KEY (ma_nguoi_gui) REFERENCES nguoi_dung(ma_nd)
+);
+GO
+
+-- ------------------------------------------------------------
+-- 10. THONG_BAO (thông báo)
+-- ------------------------------------------------------------
+CREATE TABLE thong_bao (
+    ma_tb      INT IDENTITY(1,1) PRIMARY KEY,
+    ma_nd      INT           NOT NULL,
+    bieu_tuong NVARCHAR(10),
+    noi_dung   NVARCHAR(MAX) NOT NULL,
+    da_doc     BIT           NOT NULL DEFAULT 0,
+    ngay_tao   DATETIME2     NOT NULL DEFAULT GETDATE(),
+    FOREIGN KEY (ma_nd) REFERENCES nguoi_dung(ma_nd)
 );
 GO

@@ -1,7 +1,7 @@
 USE doan35;
 GO
 
--- Cập nhật password plain text để test
-UPDATE users SET password = 'pass1234'
-WHERE username IN ('admin', 'minh', 'lan', 'hung', 'mai');
+-- Cập nhật mat_khau plain text để test
+UPDATE nguoi_dung SET mat_khau = 'pass1234'
+WHERE tai_khoan IN ('admin', 'minh', 'lan', 'hung', 'mai');
 GO
