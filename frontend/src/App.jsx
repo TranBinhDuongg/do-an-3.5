@@ -12,6 +12,7 @@ import AdminLogin from './pages/admin/Login';
 import AdminDashboard from './pages/admin/Dashboard';
 import Profile from './pages/Profile';
 import Message from './pages/user/Message';
+import Favorites from './pages/user/Favorites';
 import ChatBubble from './components/ChatBubble';
 
 const HIDE_CHAT_PATHS = ['/login', '/register', '/admin/login'];
@@ -47,7 +48,8 @@ export default function App() {
         <Route path="/login"       element={<Login      onLogin={login} />} />
         <Route path="/admin/login"     element={<AdminLogin onLogin={login} />} />
         <Route path="/admin/dashboard" element={<AdminDashboard user={user} onLogout={logout} />} />
-        <Route path="/profile" element={<Profile user={user} onLogin={login} onLogout={logout} />} />
+        <Route path="/profile"    element={<Profile   user={user} onLogin={login} onLogout={logout} />} />
+        <Route path="/favorites"  element={<Favorites user={user} onLogout={logout} />} />
         <Route path="/employer"       element={<EmployerHome user={user} onLogout={logout} />} />
         <Route path="/employer/rooms"   element={<Rooms    user={user} onLogout={logout} />} />
         <Route path="/employer/post"    element={<PostRoom user={user} onLogout={logout} />} />

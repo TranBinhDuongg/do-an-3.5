@@ -1,4 +1,5 @@
 const BASE = 'http://localhost:5000/api/rooms';
+const FAV_BASE = 'http://localhost:5000/api/favorites';
 
 export async function getHomeDataApi() {
   const res = await fetch(`${BASE}/home`);
@@ -15,4 +16,36 @@ export async function getRoomsApi(params = {}) {
   const data = await res.json();
   if (!res.ok) throw new Error(data.message);
   return data; // { rooms, total, page, totalPages }
+}
+
+function authHeader() {
+  const token = localStorage.getItem('token');
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+export async function getFavoritesApi() {
+  const res = await fetch(FAV_BASE, { headers: authHeader() });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message);
+  return data; // { rooms }
+}
+
+export async function addFavoriteApi(roomId) {
+  const res = await fetch(`${FAV_BASE}/${roomId}`, {
+    method: 'POST',
+    headers: authHeader(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message);
+  return data;
+}
+
+export async function removeFavoriteApi(roomId) {
+  const res = await fetch(`${FAV_BASE}/${roomId}`, {
+    method: 'DELETE',
+    headers: authHeader(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message);
+  return data;
 }

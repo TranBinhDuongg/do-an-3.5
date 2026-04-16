@@ -66,17 +66,27 @@ export default function Search({ user, onLogout }) {
           <div className="search-nav-links">
             <Link to="/" className="search-nav-link">Trang chủ</Link>
             <Link to="/search" className="search-nav-link active">Tìm phòng</Link>
+            <Link to="/favorites" className="search-nav-link">Yêu thích</Link>
           </div>
           <div className="search-nav-auth">
             {user ? (
               <div className="search-nav-user">
                 <button className="search-nav-avatar-btn" onClick={() => setMenuOpen(!menuOpen)}>
-                  <div className="search-nav-avatar">{user.name?.charAt(0)}</div>
-                  <span>{user.name}</span> <span>▾</span>
+                  <div className="search-nav-avatar">
+                    {user.avatar_url
+                      ? <img src={user.avatar_url} alt="avatar" />
+                      : user.name?.charAt(0)}
+                  </div>
+                  <div className="search-nav-user-info">
+                    <span className="search-nav-user-name">{user.name}</span>
+                    <span className="search-nav-user-role">Người thuê</span>
+                  </div>
+                  <span>▾</span>
                 </button>
                 {menuOpen && (
                   <div className="search-nav-dropdown">
                     <Link to="/profile" className="search-nav-drop-item" onClick={() => setMenuOpen(false)}>👤 Hồ sơ</Link>
+                    <Link to="/favorites" className="search-nav-drop-item" onClick={() => setMenuOpen(false)}>❤️ Yêu thích</Link>
                     <hr className="search-nav-drop-hr" />
                     <button className="search-nav-drop-logout" onClick={() => { onLogout(); setMenuOpen(false); navigate('/login'); }}>🚪 Đăng xuất</button>
                   </div>
