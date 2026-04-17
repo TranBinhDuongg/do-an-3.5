@@ -12,6 +12,7 @@ const allRooms = [
 export default function Rooms({ user, onLogout }) {
   const [tab, setTab] = useState('all');
   const [menuOpen, setMenuOpen] = useState(false);
+  const [notiOpen, setNotiOpen] = useState(false);
   const navigate = useNavigate();
 
   const filtered = tab === 'all' ? allRooms
@@ -29,9 +30,30 @@ export default function Rooms({ user, onLogout }) {
             <Link to="/employer/pricing" className="emp-nav-link emp-nav-link-pricing">💎 Mua gói</Link>
           </div>
           <div className="emp-nav-right">
+            <div className="emp-noti-wrap">
+              <button className="emp-noti-btn" onClick={() => { setNotiOpen(!notiOpen); setMenuOpen(false); }}>
+                🔔
+              </button>
+              {notiOpen && (
+                <div className="emp-noti-dropdown">
+                  <div className="emp-noti-header">
+                    <strong>Thông báo</strong>
+                    <button>Đánh dấu đã đọc</button>
+                  </div>
+                  <div className="emp-noti-item">
+                    <span className="emp-noti-icon">📋</span>
+                    <div><p>Chưa có thông báo mới</p></div>
+                  </div>
+                </div>
+              )}
+            </div>
             <div className="emp-user-wrap">
-              <button className="emp-user-btn" onClick={() => setMenuOpen(!menuOpen)}>
-                <div className="emp-avatar">{user?.name?.charAt(0) || 'C'}</div>
+              <button className="emp-user-btn" onClick={() => { setMenuOpen(!menuOpen); setNotiOpen(false); }}>
+                <div className="emp-avatar">
+                  {user?.avatar_url
+                    ? <img src={user.avatar_url} alt="avatar" />
+                    : (user?.name?.charAt(0) || 'C')}
+                </div>
                 <div className="emp-user-info">
                   <span className="emp-user-name">{user?.name || 'Chủ trọ'}</span>
                   <span className="emp-user-role">Chủ trọ</span>
@@ -40,7 +62,10 @@ export default function Rooms({ user, onLogout }) {
               </button>
               {menuOpen && (
                 <div className="emp-user-dropdown">
-                  <Link to="/employer" className="emp-drop-item" onClick={() => setMenuOpen(false)}>🏠 Tổng quan</Link>
+                  <Link to="/profile" className="emp-drop-item" onClick={() => setMenuOpen(false)}>👤 Hồ sơ</Link>
+                  <Link to="/employer/settings" className="emp-drop-item" onClick={() => setMenuOpen(false)}>⚙️ Cài đặt</Link>
+                  <hr className="emp-drop-hr" />
+                  <Link to="/" className="emp-drop-item" onClick={() => setMenuOpen(false)}>🔍 Xem trang người thuê</Link>
                   <hr className="emp-drop-hr" />
                   <button className="emp-drop-logout" onClick={() => { onLogout?.(); setMenuOpen(false); navigate('/login'); }}>🚪 Đăng xuất</button>
                 </div>

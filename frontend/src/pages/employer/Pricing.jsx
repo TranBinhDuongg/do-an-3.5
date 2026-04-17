@@ -86,6 +86,7 @@ const plans = [
 export default function Pricing({ user, onLogout }) {
   const [selected, setSelected] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [notiOpen, setNotiOpen] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
 
@@ -111,14 +112,42 @@ export default function Pricing({ user, onLogout }) {
             <Link to="/employer/pricing" className="pricing-nav-link active pricing-nav-link-gold">💎 Mua gói</Link>
           </div>
           <div className="pricing-nav-right">
+            <div className="emp-noti-wrap">
+              <button className="emp-noti-btn" onClick={() => { setNotiOpen(!notiOpen); setMenuOpen(false); }}>
+                🔔
+              </button>
+              {notiOpen && (
+                <div className="emp-noti-dropdown">
+                  <div className="emp-noti-header">
+                    <strong>Thông báo</strong>
+                    <button>Đánh dấu đã đọc</button>
+                  </div>
+                  <div className="emp-noti-item">
+                    <span className="emp-noti-icon">📋</span>
+                    <div><p>Chưa có thông báo mới</p></div>
+                  </div>
+                </div>
+              )}
+            </div>
             <div className="pricing-user-wrap">
-              <button className="pricing-user-btn" onClick={() => setMenuOpen(!menuOpen)}>
-                <div className="pricing-avatar">{user?.name?.charAt(0) || 'C'}</div>
-                <span>{user?.name || 'Chủ trọ'}</span> <span>▾</span>
+              <button className="pricing-user-btn" onClick={() => { setMenuOpen(!menuOpen); setNotiOpen(false); }}>
+                <div className="pricing-avatar">
+                  {user?.avatar_url
+                    ? <img src={user.avatar_url} alt="avatar" />
+                    : (user?.name?.charAt(0) || 'C')}
+                </div>
+                <div className="emp-user-info">
+                  <span className="emp-user-name">{user?.name || 'Chủ trọ'}</span>
+                  <span className="emp-user-role">Chủ trọ</span>
+                </div>
+                <span>▾</span>
               </button>
               {menuOpen && (
                 <div className="pricing-dropdown">
-                  <Link to="/employer" className="pricing-drop-item" onClick={() => setMenuOpen(false)}>🏠 Tổng quan</Link>
+                  <Link to="/profile" className="pricing-drop-item" onClick={() => setMenuOpen(false)}>👤 Hồ sơ</Link>
+                  <Link to="/employer/settings" className="pricing-drop-item" onClick={() => setMenuOpen(false)}>⚙️ Cài đặt</Link>
+                  <hr className="pricing-drop-hr" />
+                  <Link to="/" className="pricing-drop-item" onClick={() => setMenuOpen(false)}>🔍 Xem trang người thuê</Link>
                   <hr className="pricing-drop-hr" />
                   <button className="pricing-drop-logout" onClick={() => { onLogout?.(); setMenuOpen(false); navigate('/login'); }}>🚪 Đăng xuất</button>
                 </div>
