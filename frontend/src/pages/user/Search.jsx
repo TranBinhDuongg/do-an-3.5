@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
-import { getRoomsApi } from '../../api/rooms';
+import { getRoomsApi, addFavoriteApi, removeFavoriteApi, checkFavoriteApi } from '../../api/rooms';
 import './Search.css';
 
 const FALLBACK_IMG = 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400&h=250&fit=crop';
@@ -236,11 +236,11 @@ export default function Search({ user, onLogout }) {
             </div>
           ) : viewMode === 'grid' ? (
             <div className="search-grid">
-              {results.map(room => <RoomCard key={room.id} room={room} />)}
+              {results.map(room => <RoomCard key={room.id} room={room} user={user} />)}
             </div>
           ) : (
             <div className="search-list">
-              {results.map(room => <RoomListItem key={room.id} room={room} />)}
+              {results.map(room => <RoomListItem key={room.id} room={room} user={user} />)}
             </div>
           )}
 
@@ -258,7 +258,24 @@ export default function Search({ user, onLogout }) {
   );
 }
 
-function RoomCard({ room }) {
+function RoomCard({ room, user }) {
+  const [saved, setSaved] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!user) return;
+    checkFavoriteApi(room.id).then(d => setSaved(d.saved)).catch(() => {});
+  }, [room.id, user]);
+
+  const toggleFav = async (e) => {
+    e.preventDefault();
+    if (!user) { navigate('/login'); return; }
+    try {
+      if (saved) { await removeFavoriteApi(room.id); setSaved(false); }
+      else        { await addFavoriteApi(room.id);    setSaved(true);  }
+    } catch (err) { console.error(err); }
+  };
+
   return (
     <Link to={`/room/${room.id}`} className="sc-card">
       <div className="sc-card-img">
@@ -266,7 +283,9 @@ function RoomCard({ room }) {
         <span className={`sc-badge ${room.available ? 'green' : 'red'}`}>
           {room.available ? 'Còn phòng' : 'Hết phòng'}
         </span>
-        <button className="sc-save" onClick={e => e.preventDefault()}>🤍</button>
+        <button className="sc-save" onClick={toggleFav} title={saved ? 'Bỏ yêu thích' : 'Thêm yêu thích'}>
+          {saved ? '❤️' : '🤍'}
+        </button>
       </div>
       <div className="sc-body">
         <h3 className="sc-title">{room.title}</h3>
@@ -284,7 +303,24 @@ function RoomCard({ room }) {
   );
 }
 
-function RoomListItem({ room }) {
+function RoomListItem({ room, user }) {
+  const [saved, setSaved] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!user) return;
+    checkFavoriteApi(room.id).then(d => setSaved(d.saved)).catch(() => {});
+  }, [room.id, user]);
+
+  const toggleFav = async (e) => {
+    e.preventDefault();
+    if (!user) { navigate('/login'); return; }
+    try {
+      if (saved) { await removeFavoriteApi(room.id); setSaved(false); }
+      else        { await addFavoriteApi(room.id);    setSaved(true);  }
+    } catch (err) { console.error(err); }
+  };
+
   return (
     <Link to={`/room/${room.id}`} className="sc-list-item">
       <div className="sc-list-img">
@@ -296,7 +332,9 @@ function RoomListItem({ room }) {
       <div className="sc-list-body">
         <div className="sc-list-top">
           <h3 className="sc-title">{room.title}</h3>
-          <button className="sc-save" onClick={e => e.preventDefault()}>🤍</button>
+          <button className="sc-save" onClick={toggleFav} title={saved ? 'Bỏ yêu thích' : 'Thêm yêu thích'}>
+            {saved ? '❤️' : '🤍'}
+          </button>
         </div>
         <p className="sc-addr">📍 {room.address}</p>
         <div className="sc-meta">

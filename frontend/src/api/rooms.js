@@ -49,3 +49,10 @@ export async function removeFavoriteApi(roomId) {
   if (!res.ok) throw new Error(data.message);
   return data;
 }
+
+export async function checkFavoriteApi(roomId) {
+  const res = await fetch(`${FAV_BASE}/check/${roomId}`, { headers: authHeader() });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message);
+  return data; // { saved: bool }
+}

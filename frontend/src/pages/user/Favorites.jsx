@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { getFavoritesApi, removeFavoriteApi } from '../../api/rooms';
 import './Favorites.css';
 
 const FALLBACK_IMG = 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400&h=250&fit=crop';
@@ -10,18 +11,29 @@ function formatPrice(p) {
   return p.toLocaleString('vi-VN') + ' đ/tháng';
 }
 
-// Dữ liệu mẫu — xóa khi kết nối API
-const MOCK_ROOMS = [];
-
 export default function Favorites({ user, onLogout }) {
-  const [rooms, setRooms] = useState(MOCK_ROOMS);
+  const [rooms, setRooms] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
 
-  const handleRemove = (roomId, e) => {
+  useEffect(() => {
+    if (!user) { setLoading(false); return; }
+    getFavoritesApi()
+      .then(d => setRooms(d.rooms))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [user]);
+
+  const handleRemove = async (roomId, e) => {
     e.preventDefault();
     e.stopPropagation();
-    setRooms(prev => prev.filter(r => r.id !== roomId));
+    try {
+      await removeFavoriteApi(roomId);
+      setRooms(prev => prev.filter(r => r.id !== roomId));
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   return (
@@ -82,7 +94,16 @@ export default function Favorites({ user, onLogout }) {
 
       {/* CONTENT */}
       <div className="fav-body">
-        {rooms.length === 0 ? (
+        {loading ? (
+          <div className="fav-empty"><span>⏳</span><h3>Đang tải...</h3></div>
+        ) : !user ? (
+          <div className="fav-empty">
+            <span>🔒</span>
+            <h3>Vui lòng đăng nhập</h3>
+            <p>Bạn cần đăng nhập để xem danh sách yêu thích.</p>
+            <Link to="/login" className="fav-empty-btn">Đăng nhập ngay</Link>
+          </div>
+        ) : rooms.length === 0 ? (
           <div className="fav-empty">
             <span>💔</span>
             <h3>Chưa có phòng yêu thích</h3>
