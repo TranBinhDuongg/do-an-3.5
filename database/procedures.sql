@@ -221,3 +221,93 @@ BEGIN
         (SELECT COUNT(*) FROM nguoi_dung WHERE vai_tro = 'user')        AS tong_nguoi_thue;
 END
 GO
+
+-- ============================================================
+-- EMPLOYER DASHBOARD PROCEDURES
+-- ============================================================
+
+-- Thống kê tổng quan cho chủ trọ
+CREATE OR ALTER PROCEDURE sp_ThongKeChuTro
+    @ma_nd INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT
+        COUNT(*) AS tong_tin,
+        SUM(CASE WHEN trang_thai = 'approved' AND con_phong = 1 THEN 1 ELSE 0 END) AS tin_dang,
+        SUM(CASE WHEN trang_thai = 'pending'  THEN 1 ELSE 0 END) AS cho_duyet,
+        SUM(CASE WHEN trang_thai = 'rejected' THEN 1 ELSE 0 END) AS bi_tu_choi,
+        SUM(CASE WHEN trang_thai = 'paused'   THEN 1 ELSE 0 END) AS tam_dung,
+        ISNULL(SUM(luot_xem), 0)   AS tong_luot_xem,
+        ISNULL(SUM(so_lien_he), 0) AS tong_lien_he,
+        ISNULL((SELECT COUNT(*) FROM yeu_thich yt
+                JOIN phong_tro pt ON yt.ma_phong = pt.ma_phong
+                WHERE pt.ma_chu_tro = @ma_nd), 0) AS tong_luu_tin
+    FROM phong_tro
+    WHERE ma_chu_tro = @ma_nd;
+END
+GO
+
+-- Lấy danh sách phòng của chủ trọ (dashboard)
+CREATE OR ALTER PROCEDURE sp_LayPhongChuTro
+    @ma_nd    INT,
+    @gioi_han INT = 5,
+    @bo_qua   INT = 0
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT
+        p.ma_phong, p.tieu_de, p.loai_phong, p.tinh_thanh, p.dia_chi,
+        p.gia_thue, p.dien_tich, p.con_phong, p.noi_bat,
+        p.trang_thai, p.luot_xem, p.so_lien_he, p.ngay_tao,
+        (SELECT COUNT(*) FROM yeu_thich yt WHERE yt.ma_phong = p.ma_phong) AS luot_luu,
+        (SELECT TOP 1 duong_dan FROM anh_phong ap WHERE ap.ma_phong = p.ma_phong AND ap.la_anh_bia = 1) AS anh_bia,
+        (SELECT TOP 1 duong_dan FROM anh_phong ap WHERE ap.ma_phong = p.ma_phong ORDER BY ap.thu_tu) AS anh_dau_tien
+    FROM phong_tro p
+    WHERE p.ma_chu_tro = @ma_nd
+    ORDER BY p.ngay_tao DESC
+    OFFSET @bo_qua ROWS FETCH NEXT @gioi_han ROWS ONLY;
+END
+GO
+
+-- Lấy thông báo của người dùng
+CREATE OR ALTER PROCEDURE sp_LayThongBao
+    @ma_nd    INT,
+    @gioi_han INT = 10
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT TOP (@gioi_han)
+        ma_tb, bieu_tuong, noi_dung, da_doc, ngay_tao
+    FROM thong_bao
+    WHERE ma_nd = @ma_nd
+    ORDER BY ngay_tao DESC;
+END
+GO
+
+-- Đánh dấu tất cả thông báo đã đọc
+CREATE OR ALTER PROCEDURE sp_DocTatCaThongBao
+    @ma_nd INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    UPDATE thong_bao SET da_doc = 1 WHERE ma_nd = @ma_nd AND da_doc = 0;
+END
+GO
+
+-- Lấy gói đăng tin hiện tại của chủ trọ
+CREATE OR ALTER PROCEDURE sp_LayGoiHienTai
+    @ma_nd INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT TOP 1
+        ndg.ma, g.ten_goi, g.gia, g.so_ngay, g.gioi_han_tin,
+        ndg.bat_dau, ndg.het_han, ndg.con_hieu_luc,
+        DATEDIFF(DAY, GETDATE(), ndg.het_han) AS ngay_con_lai
+    FROM nguoi_dung_goi ndg
+    JOIN goi_dang_tin g ON ndg.ma_goi = g.ma_goi
+    WHERE ndg.ma_nd = @ma_nd AND ndg.con_hieu_luc = 1
+    ORDER BY ndg.het_han DESC;
+END
+GO

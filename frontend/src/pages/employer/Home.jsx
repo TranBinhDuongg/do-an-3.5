@@ -1,39 +1,49 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { getDashboardApi, readAllNotificationsApi } from '../../api/employer';
 import './Home.css';
 
-const myRooms = [
-  { id: 1, title: 'Phòng trọ cao cấp gần ĐH Bách Khoa', address: '15 Tạ Quang Bửu, Hai Bà Trưng, Hà Nội', price: 3500000, area: 25, type: 'Phòng trọ', available: true, views: 142, contacts: 8, saved: 12, image: 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400&h=250&fit=crop', postedAt: '2 ngày trước' },
-  { id: 2, title: 'Chung cư mini full nội thất, ban công view đẹp', address: '88 Láng Hạ, Đống Đa, Hà Nội', price: 5500000, area: 35, type: 'Chung cư mini', available: true, views: 89, contacts: 3, saved: 7, image: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400&h=250&fit=crop', postedAt: '5 ngày trước' },
-  { id: 3, title: 'Phòng trọ giá rẻ, gần KCN Thăng Long', address: '5 Phạm Văn Đồng, Bắc Từ Liêm, Hà Nội', price: 1800000, area: 18, type: 'Phòng trọ', available: false, views: 56, contacts: 0, saved: 3, image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400&h=250&fit=crop', postedAt: '10 ngày trước' },
-  { id: 4, title: 'Nhà nguyên căn 3 phòng ngủ, sân vườn rộng', address: '22 Nguyễn Trãi, Thanh Xuân, Hà Nội', price: 12000000, area: 80, type: 'Nhà nguyên căn', available: true, views: 210, contacts: 15, saved: 20, image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400&h=250&fit=crop', postedAt: '1 ngày trước' },
-];
-
-const notifications = [
-  { id: 1, icon: '📞', text: 'Nguyễn Văn A vừa xem số điện thoại của bạn', time: '5 phút trước', unread: true },
-  { id: 2, icon: '❤️', text: 'Có người lưu tin "Phòng trọ cao cấp gần ĐH Bách Khoa"', time: '1 giờ trước', unread: true },
-  { id: 3, icon: '👁️', text: 'Tin đăng của bạn đạt 200 lượt xem', time: '3 giờ trước', unread: false },
-  { id: 4, icon: '✅', text: 'Tin đăng "Nhà nguyên căn 3 phòng ngủ" đã được duyệt', time: '1 ngày trước', unread: false },
-];
+const STATUS_LABEL = {
+  approved: { text: 'Đã duyệt',  cls: 'approved' },
+  pending:  { text: 'Chờ duyệt', cls: 'pending'  },
+  rejected: { text: 'Từ chối',   cls: 'rejected' },
+  paused:   { text: 'Tạm dừng',  cls: 'paused'   },
+};
 
 export default function EmployerHome({ user, onLogout }) {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [notiOpen, setNotiOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('all');
+  const [menuOpen, setMenuOpen]   = useState(false);
+  const [notiOpen, setNotiOpen]   = useState(false);
+  const [loading, setLoading]     = useState(true);
+  const [data, setData]           = useState(null);
+  const [error, setError]         = useState('');
   const navigate = useNavigate();
 
-  const stats = [
-    { icon: '🏠', label: 'Tin đang đăng', value: 3, color: 'blue', sub: '+1 tuần này' },
-    { icon: '👁️', label: 'Lượt xem hôm nay', value: 128, color: 'green', sub: '+24 so với hôm qua' },
-    { icon: '📞', label: 'Liên hệ mới', value: 7, color: 'orange', sub: 'Trong 7 ngày qua' },
-    { icon: '❤️', label: 'Lượt lưu tin', value: 42, color: 'red', sub: 'Tổng cộng' },
-  ];
+  useEffect(() => {
+    getDashboardApi()
+      .then(setData)
+      .catch(e => setError(e.message))
+      .finally(() => setLoading(false));
+  }, []);
 
-  const filtered = activeTab === 'all' ? myRooms
-    : activeTab === 'available' ? myRooms.filter(r => r.available)
-    : myRooms.filter(r => !r.available);
+  const handleReadAll = async () => {
+    try {
+      await readAllNotificationsApi();
+      setData(prev => ({
+        ...prev,
+        notifications: prev.notifications.map(n => ({ ...n, unread: false })),
+      }));
+    } catch {}
+  };
 
-  const unreadCount = notifications.filter(n => n.unread).length;
+  const stats = data ? [
+    { icon: '🏠', label: 'Tin đang đăng',   value: data.stats.tin_dang,      color: 'blue',   sub: `${data.stats.tong_tin} tổng cộng` },
+    { icon: '👁️', label: 'Tổng lượt xem',   value: data.stats.tong_luot_xem, color: 'green',  sub: 'Tất cả tin đăng' },
+    { icon: '📞', label: 'Tổng liên hệ',    value: data.stats.tong_lien_he,  color: 'orange', sub: 'Tất cả tin đăng' },
+    { icon: '❤️', label: 'Lượt lưu tin',    value: data.stats.tong_luu_tin,  color: 'red',    sub: 'Tổng cộng' },
+  ] : [];
+
+  const unreadCount = data?.notifications?.filter(n => n.unread).length || 0;
+  const goi = data?.goi;
 
   return (
     <div className="emp-page">
@@ -41,15 +51,12 @@ export default function EmployerHome({ user, onLogout }) {
       <nav className="emp-nav">
         <div className="emp-nav-inner">
           <Link to="/" className="emp-nav-logo">🏠 PhòngTrọ<span>VN</span></Link>
-
           <div className="emp-nav-links">
             <Link to="/employer"         className="emp-nav-link active">Tổng quan</Link>
             <Link to="/employer/rooms"   className="emp-nav-link">Tin đăng</Link>
             <Link to="/employer/pricing" className="emp-nav-link emp-nav-link-pricing">💎 Mua gói</Link>
           </div>
-
           <div className="emp-nav-right">
-            {/* Notification bell */}
             <div className="emp-noti-wrap">
               <button className="emp-noti-btn" onClick={() => { setNotiOpen(!notiOpen); setMenuOpen(false); }}>
                 🔔
@@ -59,28 +66,21 @@ export default function EmployerHome({ user, onLogout }) {
                 <div className="emp-noti-dropdown">
                   <div className="emp-noti-header">
                     <strong>Thông báo</strong>
-                    <button>Đánh dấu đã đọc</button>
+                    {unreadCount > 0 && <button onClick={handleReadAll}>Đánh dấu đã đọc</button>}
                   </div>
-                  {notifications.map(n => (
+                  {data?.notifications?.length ? data.notifications.map(n => (
                     <div key={n.id} className={`emp-noti-item ${n.unread ? 'unread' : ''}`}>
                       <span className="emp-noti-icon">{n.icon}</span>
-                      <div>
-                        <p>{n.text}</p>
-                        <span>{n.time}</span>
-                      </div>
+                      <div><p>{n.text}</p><span>{n.time}</span></div>
                     </div>
-                  ))}
+                  )) : <p className="emp-noti-empty">Không có thông báo</p>}
                 </div>
               )}
             </div>
-
-            {/* User menu */}
             <div className="emp-user-wrap">
               <button className="emp-user-btn" onClick={() => { setMenuOpen(!menuOpen); setNotiOpen(false); }}>
                 <div className="emp-avatar">
-                  {user?.avatar_url
-                    ? <img src={user.avatar_url} alt="avatar" />
-                    : (user?.name?.charAt(0) || 'C')}
+                  {user?.avatar_url ? <img src={user.avatar_url} alt="avatar" /> : (user?.name?.charAt(0) || 'C')}
                 </div>
                 <div className="emp-user-info">
                   <span className="emp-user-name">{user?.name || 'Chủ trọ'}</span>
@@ -91,7 +91,6 @@ export default function EmployerHome({ user, onLogout }) {
               {menuOpen && (
                 <div className="emp-user-dropdown">
                   <Link to="/profile" className="emp-drop-item" onClick={() => setMenuOpen(false)}>👤 Hồ sơ</Link>
-                  <Link to="/employer/settings" className="emp-drop-item" onClick={() => setMenuOpen(false)}>⚙️ Cài đặt</Link>
                   <hr className="emp-drop-hr" />
                   <Link to="/" className="emp-drop-item" onClick={() => setMenuOpen(false)}>🔍 Xem trang người thuê</Link>
                   <hr className="emp-drop-hr" />
@@ -113,129 +112,174 @@ export default function EmployerHome({ user, onLogout }) {
           <Link to="/employer/post" className="emp-post-btn">+ Đăng tin mới</Link>
         </div>
 
-        {/* STATS */}
-        <div className="emp-stats-grid">
-          {stats.map(s => (
-            <div key={s.label} className={`emp-stat-card emp-stat-${s.color}`}>
-              <div className="emp-stat-top">
-                <span className="emp-stat-icon">{s.icon}</span>
-                <strong className="emp-stat-value">{s.value}</strong>
-              </div>
-              <p className="emp-stat-label">{s.label}</p>
-              <span className="emp-stat-sub">{s.sub}</span>
-            </div>
-          ))}
-        </div>
+        {error && <div className="emp-error">⚠️ {error}</div>}
 
-        <div className="emp-main-grid">
-          {/* LEFT: Room list */}
-          <div className="emp-rooms-section">
-            <div className="emp-section-header">
-              <h2>Tin đăng của tôi</h2>
-              <Link to="/employer/rooms" className="emp-see-all">Xem tất cả →</Link>
-            </div>
-
-            {/* Tabs */}
-            <div className="emp-tabs">
-              {[
-                { key: 'all', label: `Tất cả (${myRooms.length})` },
-                { key: 'available', label: `Còn phòng (${myRooms.filter(r => r.available).length})` },
-                { key: 'unavailable', label: `Hết phòng (${myRooms.filter(r => !r.available).length})` },
-              ].map(t => (
-                <button key={t.key} className={`emp-tab ${activeTab === t.key ? 'active' : ''}`}
-                  onClick={() => setActiveTab(t.key)}>{t.label}</button>
-              ))}
-            </div>
-
-            <div className="emp-room-list">
-              {filtered.map(room => (
-                <div key={room.id} className="emp-room-card">
-                  <img src={room.image} alt={room.title} className="emp-room-img" />
-                  <div className="emp-room-info">
-                    <div className="emp-room-top">
-                      <h3 className="emp-room-title">{room.title}</h3>
-                      <span className={`emp-room-status ${room.available ? 'available' : 'unavailable'}`}>
-                        {room.available ? '● Còn phòng' : '● Hết phòng'}
-                      </span>
-                    </div>
-                    <p className="emp-room-addr">📍 {room.address}</p>
-                    <div className="emp-room-meta">
-                      <span className="emp-room-price">{room.price.toLocaleString('vi-VN')}đ/tháng</span>
-                      <span className="emp-room-area">📐 {room.area} m²</span>
-                      <span className="emp-room-type">{room.type}</span>
-                    </div>
-                    <div className="emp-room-stats">
-                      <span>👁️ {room.views} lượt xem</span>
-                      <span>📞 {room.contacts} liên hệ</span>
-                      <span>❤️ {room.saved} lưu</span>
-                      <span>🕐 {room.postedAt}</span>
-                    </div>
+        {loading ? (
+          <div className="emp-loading">
+            <div className="emp-spinner" />
+            <p>Đang tải dữ liệu...</p>
+          </div>
+        ) : (
+          <>
+            {/* STATS */}
+            <div className="emp-stats-grid">
+              {stats.map(s => (
+                <div key={s.label} className={`emp-stat-card emp-stat-${s.color}`}>
+                  <div className="emp-stat-top">
+                    <span className="emp-stat-icon">{s.icon}</span>
+                    <strong className="emp-stat-value">{s.value.toLocaleString('vi-VN')}</strong>
                   </div>
-                  <div className="emp-room-actions">
-                    <Link to={`/room/${room.id}`} className="emp-btn-view">👁 Xem</Link>
-                    <button className="emp-btn-edit">✏️ Sửa</button>
-                    <button className={`emp-btn-toggle ${room.available ? '' : 'inactive'}`}>
-                      {room.available ? '⏸ Tạm dừng' : '▶ Kích hoạt'}
-                    </button>
-                    <button className="emp-btn-delete">🗑️</button>
-                  </div>
+                  <p className="emp-stat-label">{s.label}</p>
+                  <span className="emp-stat-sub">{s.sub}</span>
                 </div>
               ))}
             </div>
-          </div>
 
-          {/* RIGHT: Sidebar */}
-          <div className="emp-sidebar">
-            {/* Quick actions */}
-            <div className="emp-widget">
-              <h3 className="emp-widget-title">⚡ Thao tác nhanh</h3>
-              <div className="emp-quick-actions">
-                <Link to="/employer/post" className="emp-quick-btn blue">
-                  <span>📝</span> Đăng tin mới
-                </Link>
-                <Link to="/employer/rooms" className="emp-quick-btn green">
-                  <span>📋</span> Quản lý tin
-                </Link>
-                <Link to="/profile" className="emp-quick-btn purple">
-                  <span>👤</span> Hồ sơ chủ trọ
-                </Link>
-                <Link to="/" className="emp-quick-btn gray">
-                  <span>🔍</span> Xem trang thuê
-                </Link>
+            {/* STATUS SUMMARY */}
+            {data && (
+              <div className="emp-status-bar">
+                <div className="emp-status-item">
+                  <span className="emp-status-dot approved" />
+                  <span>Đã duyệt: <strong>{data.stats.tin_dang}</strong></span>
+                </div>
+                <div className="emp-status-item">
+                  <span className="emp-status-dot pending" />
+                  <span>Chờ duyệt: <strong>{data.stats.cho_duyet}</strong></span>
+                </div>
+                <div className="emp-status-item">
+                  <span className="emp-status-dot rejected" />
+                  <span>Từ chối: <strong>{data.stats.bi_tu_choi}</strong></span>
+                </div>
+                <div className="emp-status-item">
+                  <span className="emp-status-dot paused" />
+                  <span>Tạm dừng: <strong>{data.stats.tam_dung}</strong></span>
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* Notifications */}
-            <div className="emp-widget">
-              <div className="emp-widget-header">
-                <h3 className="emp-widget-title">🔔 Thông báo gần đây</h3>
-                {unreadCount > 0 && <span className="emp-unread-badge">{unreadCount} mới</span>}
-              </div>
-              <div className="emp-noti-list">
-                {notifications.map(n => (
-                  <div key={n.id} className={`emp-noti-row ${n.unread ? 'unread' : ''}`}>
-                    <span className="emp-noti-row-icon">{n.icon}</span>
-                    <div className="emp-noti-row-body">
-                      <p>{n.text}</p>
-                      <span>{n.time}</span>
-                    </div>
+            <div className="emp-main-grid">
+              {/* LEFT: Room list */}
+              <div className="emp-rooms-section">
+                <div className="emp-section-header">
+                  <h2>Tin đăng gần đây</h2>
+                  <Link to="/employer/rooms" className="emp-see-all">Xem tất cả →</Link>
+                </div>
+
+                {data?.rooms?.length === 0 ? (
+                  <div className="emp-empty">
+                    <p>🏠 Bạn chưa có tin đăng nào.</p>
+                    <Link to="/employer/post" className="emp-post-btn">Đăng tin ngay</Link>
                   </div>
-                ))}
+                ) : (
+                  <div className="emp-room-list">
+                    {data?.rooms?.map(room => (
+                      <div key={room.id} className="emp-room-card">
+                        <img
+                          src={room.image || 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400&h=250&fit=crop'}
+                          alt={room.title}
+                          className="emp-room-img"
+                        />
+                        <div className="emp-room-info">
+                          <div className="emp-room-top">
+                            <h3 className="emp-room-title">{room.title}</h3>
+                            <span className={`emp-room-status ${STATUS_LABEL[room.status]?.cls}`}>
+                              ● {STATUS_LABEL[room.status]?.text}
+                            </span>
+                          </div>
+                          <p className="emp-room-addr">📍 {room.address}</p>
+                          <div className="emp-room-meta">
+                            <span className="emp-room-price">{Number(room.price).toLocaleString('vi-VN')}đ/tháng</span>
+                            <span className="emp-room-area">📐 {room.area} m²</span>
+                            <span className="emp-room-type">{room.type}</span>
+                          </div>
+                          <div className="emp-room-stats">
+                            <span>👁️ {room.views}</span>
+                            <span>📞 {room.contacts}</span>
+                            <span>❤️ {room.saved}</span>
+                            <span>🕐 {room.postedAt}</span>
+                          </div>
+                        </div>
+                        <div className="emp-room-actions">
+                          <Link to="/employer/rooms" className="emp-btn-view">✏️ Quản lý</Link>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* RIGHT: Sidebar */}
+              <div className="emp-sidebar">
+                {/* Gói đăng tin */}
+                <div className={`emp-widget emp-goi-widget ${!goi ? 'no-goi' : ''}`}>
+                  <h3 className="emp-widget-title">💎 Gói đăng tin</h3>
+                  {goi ? (
+                    <div className="emp-goi-info">
+                      <p className="emp-goi-name">{goi.tenGoi}</p>
+                      <div className="emp-goi-meta">
+                        <span>Còn <strong>{goi.ngayConLai}</strong> ngày</span>
+                        <span>Giới hạn: <strong>{goi.gioi_han_tin} tin</strong></span>
+                      </div>
+                      <div className="emp-goi-bar-wrap">
+                        <div
+                          className="emp-goi-bar"
+                          style={{ width: `${Math.max(0, Math.min(100, (goi.ngayConLai / 30) * 100))}%` }}
+                        />
+                      </div>
+                      <Link to="/employer/pricing" className="emp-goi-upgrade">Nâng cấp gói →</Link>
+                    </div>
+                  ) : (
+                    <div className="emp-goi-empty">
+                      <p>Bạn chưa có gói đăng tin nào.</p>
+                      <Link to="/employer/pricing" className="emp-post-btn" style={{ marginTop: 8, display: 'inline-block' }}>Mua gói ngay</Link>
+                    </div>
+                  )}
+                </div>
+
+                {/* Quick actions */}
+                <div className="emp-widget">
+                  <h3 className="emp-widget-title">⚡ Thao tác nhanh</h3>
+                  <div className="emp-quick-actions">
+                    <Link to="/employer/post"    className="emp-quick-btn blue">  <span>📝</span> Đăng tin mới</Link>
+                    <Link to="/employer/rooms"   className="emp-quick-btn green"> <span>📋</span> Quản lý tin</Link>
+                    <Link to="/profile"          className="emp-quick-btn purple"><span>👤</span> Hồ sơ chủ trọ</Link>
+                    <Link to="/"                 className="emp-quick-btn gray">  <span>🔍</span> Xem trang thuê</Link>
+                  </div>
+                </div>
+
+                {/* Notifications */}
+                <div className="emp-widget">
+                  <div className="emp-widget-header">
+                    <h3 className="emp-widget-title">🔔 Thông báo gần đây</h3>
+                    {unreadCount > 0 && <span className="emp-unread-badge">{unreadCount} mới</span>}
+                  </div>
+                  <div className="emp-noti-list">
+                    {data?.notifications?.length ? data.notifications.slice(0, 5).map(n => (
+                      <div key={n.id} className={`emp-noti-row ${n.unread ? 'unread' : ''}`}>
+                        <span className="emp-noti-row-icon">{n.icon}</span>
+                        <div className="emp-noti-row-body">
+                          <p>{n.text}</p>
+                          <span>{n.time}</span>
+                        </div>
+                      </div>
+                    )) : <p className="emp-noti-empty">Không có thông báo mới</p>}
+                  </div>
+                </div>
+
+                {/* Tips */}
+                <div className="emp-widget emp-tips">
+                  <h3 className="emp-widget-title">💡 Mẹo tăng hiệu quả</h3>
+                  <ul className="emp-tips-list">
+                    <li>Thêm nhiều ảnh chất lượng cao để tăng lượt xem</li>
+                    <li>Cập nhật giá thuê theo thị trường</li>
+                    <li>Phản hồi liên hệ nhanh để tăng tỷ lệ cho thuê</li>
+                    <li>Mô tả chi tiết tiện ích xung quanh</li>
+                  </ul>
+                </div>
               </div>
             </div>
-
-            {/* Tips */}
-            <div className="emp-widget emp-tips">
-              <h3 className="emp-widget-title">💡 Mẹo tăng hiệu quả</h3>
-              <ul className="emp-tips-list">
-                <li>Thêm nhiều ảnh chất lượng cao để tăng lượt xem</li>
-                <li>Cập nhật giá thuê theo thị trường</li>
-                <li>Phản hồi liên hệ nhanh để tăng tỷ lệ cho thuê</li>
-                <li>Mô tả chi tiết tiện ích xung quanh</li>
-              </ul>
-            </div>
-          </div>
-        </div>
+          </>
+        )}
       </div>
     </div>
   );
