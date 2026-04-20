@@ -21,3 +21,14 @@ export async function readAllNotificationsApi() {
   if (!res.ok) throw new Error(data.message);
   return data;
 }
+
+export async function postRoomApi(payload) {
+  const res = await fetch(`${BASE}/rooms`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeader() },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message);
+  return data; // { message, roomId }
+}

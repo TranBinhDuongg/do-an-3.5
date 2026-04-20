@@ -82,6 +82,69 @@ router.get('/dashboard', auth(['employer', 'admin']), async (req, res) => {
   }
 });
 
+// POST /api/employer/rooms  — đăng tin mới
+router.post('/rooms', auth(['employer', 'admin']), async (req, res) => {
+  const ma_nd = req.user.id;
+  const {
+    title, type, city, district, address,
+    price, deposit, area, description,
+    contactName, contactPhone, contactEmail, showPhone,
+    amenities = [],   // string[]  e.g. ['wifi','ac']
+    images    = [],   // string[]  base64 or URL
+  } = req.body;
+
+  // Basic validation
+  if (!title || !type || !city || !address || !price || !area || !contactName || !contactPhone)
+    return res.status(400).json({ message: 'Thiếu thông tin bắt buộc' });
+
+  try {
+    await poolConnect;
+
+    // 1. Insert phong_tro
+    const insertRes = await pool.request()
+      .input('ma_chu_tro',    sql.Int,          ma_nd)
+      .input('tieu_de',       sql.NVarChar(200), title)
+      .input('loai_phong',    sql.NVarChar(50),  type)
+      .input('tinh_thanh',    sql.NVarChar(100), city)
+      .input('quan_huyen',    sql.NVarChar(100), district || null)
+      .input('dia_chi',       sql.NVarChar(300), address)
+      .input('gia_thue',      sql.Decimal(12,0), parseFloat(price))
+      .input('tien_coc',      sql.Decimal(12,0), deposit ? parseFloat(deposit) : null)
+      .input('dien_tich',     sql.Decimal(6,1),  parseFloat(area))
+      .input('mo_ta',         sql.NVarChar(sql.MAX), description || null)
+      .input('ten_lien_he',   sql.NVarChar(100), contactName)
+      .input('sdt_lien_he',   sql.NVarChar(20),  contactPhone)
+      .input('email_lien_he', sql.NVarChar(150), contactEmail || null)
+      .input('hien_sdt',      sql.Bit,           showPhone ? 1 : 0)
+      .execute('sp_DangTinPhong');
+
+    const ma_phong = insertRes.recordset[0].ma_phong;
+
+    // 2. Insert ảnh
+    for (let i = 0; i < images.length; i++) {
+      await pool.request()
+        .input('ma_phong',   sql.Int,           ma_phong)
+        .input('duong_dan',  sql.NVarChar(500),  images[i])
+        .input('la_anh_bia', sql.Bit,            i === 0 ? 1 : 0)
+        .input('thu_tu',     sql.Int,            i)
+        .execute('sp_ThemAnhPhong');
+    }
+
+    // 3. Insert tiện ích
+    for (const key of amenities) {
+      await pool.request()
+        .input('ma_phong', sql.Int,          ma_phong)
+        .input('ma_khoa',  sql.NVarChar(50), key)
+        .execute('sp_ThemTienIchPhong');
+    }
+
+    return res.status(201).json({ message: 'Đăng tin thành công, đang chờ duyệt', roomId: ma_phong });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Lỗi server' });
+  }
+});
+
 // POST /api/employer/notifications/read-all
 router.post('/notifications/read-all', auth(['employer', 'admin']), async (req, res) => {
   try {

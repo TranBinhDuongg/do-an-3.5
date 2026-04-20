@@ -233,3 +233,6 @@
 .pr-noti-item span:first-child { font-size: 18px; flex-shrink: 0; }
 .pr-noti-item p    { font-size: 13px; color: #374151; margin-bottom: 2px; line-height: 1.4; }
 .pr-noti-item span { font-size: 11px; color: #94a3b8; }
+
+.pr-btn-submit:disabled { background: #86efac; cursor: not-allowed; }
+.pr-submit-error { color: #dc2626; font-size: 13px; text-align: right; margin-top: 8px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 10px 14px; }

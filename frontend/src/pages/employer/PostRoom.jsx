@@ -1,12 +1,9 @@
 ﻿import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { postRoomApi } from '../../api/employer';
 import './PostRoom.css';
 
-const notifications = [
-  { id: 1, icon: '📞', text: 'Nguyễn Văn A vừa xem số điện thoại của bạn', time: '5 phút trước', unread: true },
-  { id: 2, icon: '❤️', text: 'Có người lưu tin "Phòng trọ cao cấp"', time: '1 giờ trước', unread: true },
-  { id: 3, icon: '✅', text: 'Tin đăng của bạn đã được duyệt', time: '3 giờ trước', unread: false },
-];
+const notifications = [];
 
 const STEPS = ['Thông tin cơ bản', 'Tiện ích & Ảnh', 'Liên hệ & Xác nhận'];
 
@@ -42,10 +39,12 @@ export default function PostRoom({ user, onLogout }) {
   const [form, setForm] = useState(initForm);
   const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
   const [notiOpen, setNotiOpen] = useState(false);
   const [previewImgs, setPreviewImgs] = useState([]);
-  const unreadCount = notifications.filter(n => n.unread).length;
+  const unreadCount = 0;
 
   const set = (k, v) => { setForm(p => ({ ...p, [k]: v })); setErrors(p => ({ ...p, [k]: '' })); };
 
@@ -54,7 +53,7 @@ export default function PostRoom({ user, onLogout }) {
   );
 
   const handleImages = (e) => {
-    const files = Array.from(e.target.files);
+    const files = Array.from(e.target.files).slice(0, 10);
     setPreviewImgs(files.map(f => URL.createObjectURL(f)));
     set('images', files);
   };
@@ -80,10 +79,46 @@ export default function PostRoom({ user, onLogout }) {
   const next = () => { if (validateStep()) setStep(s => s + 1); };
   const prev = () => setStep(s => s - 1);
 
-  const handleSubmit = (e) => {
+  // Convert File to base64
+  const toBase64 = (file) => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateStep()) return;
-    setSuccess(true);
+    setSubmitting(true);
+    setSubmitError('');
+    try {
+      // Convert images to base64
+      const imageData = await Promise.all(form.images.map(f => toBase64(f)));
+
+      await postRoomApi({
+        title:        form.title,
+        type:         form.type,
+        city:         form.city,
+        district:     form.district,
+        address:      form.address,
+        price:        form.price,
+        deposit:      form.deposit,
+        area:         form.area,
+        description:  form.description,
+        contactName:  form.name,
+        contactPhone: form.phone,
+        contactEmail: form.email,
+        showPhone:    form.showPhone,
+        amenities:    form.amenities,
+        images:       imageData,
+      });
+      setSuccess(true);
+    } catch (err) {
+      setSubmitError(err.message || 'Đăng tin thất bại, vui lòng thử lại');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (success) return (
@@ -383,9 +418,12 @@ export default function PostRoom({ user, onLogout }) {
                 {step < STEPS.length - 1 ? (
                   <button type="button" className="pr-btn-next" onClick={next}>Tiếp theo →</button>
                 ) : (
-                  <button type="submit" className="pr-btn-submit">🚀 Đăng tin ngay</button>
+                  <button type="submit" className="pr-btn-submit" disabled={submitting}>
+                    {submitting ? '⏳ Đang đăng...' : '🚀 Đăng tin ngay'}
+                  </button>
                 )}
               </div>
+              {submitError && <p className="pr-submit-error">{submitError}</p>}
             </div>
 
             {/* SIDEBAR TIPS */}
