@@ -173,3 +173,121 @@ router.delete('/rooms/:id', async (req, res) => {
 });
 
 module.exports = router;
+
+// ═══════════════════════════════════════════════════════════
+// USER MANAGEMENT
+// ═══════════════════════════════════════════════════════════
+
+function formatUser(u) {
+  return {
+    id:       u.ma_nd,
+    name:     u.ho_ten,
+    username: u.tai_khoan,
+    phone:    u.dien_thoai,
+    role:     u.vai_tro,
+    active:   u.con_hoat_dong,
+    avatar:   u.anh_dai_dien || null,
+    rooms:    u.so_tin ?? 0,
+    joinedAt: u.ngay_tao,
+  };
+}
+
+// ─────────────────────────────────────────────
+// GET /api/admin/users
+// Query: role, keyword, page
+// ─────────────────────────────────────────────
+router.get('/users', async (req, res) => {
+  const { role, keyword, page = 1 } = req.query;
+  const limit  = 10;
+  const offset = (parseInt(page) - 1) * limit;
+
+  try {
+    await poolConnect;
+    const result = await pool.request()
+      .input('vai_tro',  sql.NVarChar(10),  role    || null)
+      .input('tu_khoa',  sql.NVarChar(200), keyword || null)
+      .input('gioi_han', sql.Int,           limit)
+      .input('bo_qua',   sql.Int,           offset)
+      .execute('sp_AdminLayDanhSachNguoiDung');
+
+    const users = result.recordset.map(formatUser);
+    const total = result.recordset[0]?.tong_so ?? 0;
+
+    return res.json({ users, total, page: parseInt(page), totalPages: Math.ceil(total / limit) });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Lỗi server' });
+  }
+});
+
+// ─────────────────────────────────────────────
+// GET /api/admin/users/stats
+// ─────────────────────────────────────────────
+router.get('/users/stats', async (req, res) => {
+  try {
+    await poolConnect;
+    const result = await pool.request().execute('sp_AdminThongKeNguoiDung');
+    const s = result.recordset[0];
+    return res.json({
+      all:      s.tong_so,
+      user:     s.nguoi_thue,
+      employer: s.chu_tro,
+      admin:    s.quan_tri,
+      active:   s.hoat_dong,
+      locked:   s.bi_khoa,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Lỗi server' });
+  }
+});
+
+// ─────────────────────────────────────────────
+// GET /api/admin/users/:id
+// ─────────────────────────────────────────────
+router.get('/users/:id', async (req, res) => {
+  const ma_nd = parseInt(req.params.id);
+  try {
+    await poolConnect;
+    const result = await pool.request()
+      .input('ma_nd', sql.Int, ma_nd)
+      .execute('sp_AdminChiTietNguoiDung');
+
+    if (!result.recordset.length)
+      return res.status(404).json({ message: 'Không tìm thấy người dùng' });
+
+    return res.json({ user: formatUser(result.recordset[0]) });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Lỗi server' });
+  }
+});
+
+// ─────────────────────────────────────────────
+// PATCH /api/admin/users/:id/status
+// Body: { active: true | false }
+// ─────────────────────────────────────────────
+router.patch('/users/:id/status', async (req, res) => {
+  const ma_nd = parseInt(req.params.id);
+  const { active } = req.body;
+
+  if (typeof active !== 'boolean')
+    return res.status(400).json({ message: 'Giá trị active không hợp lệ' });
+
+  // Không cho khóa chính mình
+  if (ma_nd === req.user.id)
+    return res.status(400).json({ message: 'Không thể khóa tài khoản của chính mình' });
+
+  try {
+    await poolConnect;
+    await pool.request()
+      .input('ma_nd',        sql.Int, ma_nd)
+      .input('con_hoat_dong', sql.Bit, active ? 1 : 0)
+      .execute('sp_AdminCapNhatTrangThaiNguoiDung');
+
+    return res.json({ message: active ? 'Đã mở khóa tài khoản' : 'Đã khóa tài khoản' });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Lỗi server' });
+  }
+});

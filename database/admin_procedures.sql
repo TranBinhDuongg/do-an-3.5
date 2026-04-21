@@ -111,3 +111,77 @@ BEGIN
     DELETE FROM phong_tro WHERE ma_phong = @ma_phong;
 END
 GO
+
+-- ============================================================
+-- Stored Procedures cho Admin quản lý người dùng
+-- ============================================================
+
+-- ── 6. Danh sách người dùng (filter + phân trang) ──────────
+CREATE OR ALTER PROCEDURE sp_AdminLayDanhSachNguoiDung
+    @vai_tro  NVARCHAR(10)  = NULL,
+    @tu_khoa  NVARCHAR(200) = NULL,
+    @gioi_han INT           = 10,
+    @bo_qua   INT           = 0
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT
+        n.ma_nd, n.ho_ten, n.tai_khoan, n.dien_thoai,
+        n.vai_tro, n.con_hoat_dong, n.anh_dai_dien, n.ngay_tao,
+        (SELECT COUNT(*) FROM phong_tro p WHERE p.ma_chu_tro = n.ma_nd) AS so_tin,
+        COUNT(*) OVER() AS tong_so
+    FROM nguoi_dung n
+    WHERE
+        (@vai_tro IS NULL OR n.vai_tro = @vai_tro)
+        AND (@tu_khoa IS NULL
+             OR n.ho_ten    LIKE N'%' + @tu_khoa + N'%'
+             OR n.tai_khoan LIKE N'%' + @tu_khoa + N'%'
+             OR n.dien_thoai LIKE N'%' + @tu_khoa + N'%')
+    ORDER BY n.ngay_tao DESC
+    OFFSET @bo_qua ROWS FETCH NEXT @gioi_han ROWS ONLY;
+END
+GO
+
+-- ── 7. Thống kê người dùng ──────────────────────────────────
+CREATE OR ALTER PROCEDURE sp_AdminThongKeNguoiDung
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT
+        COUNT(*)                                              AS tong_so,
+        SUM(CASE WHEN vai_tro = 'user'     THEN 1 ELSE 0 END) AS nguoi_thue,
+        SUM(CASE WHEN vai_tro = 'employer' THEN 1 ELSE 0 END) AS chu_tro,
+        SUM(CASE WHEN vai_tro = 'admin'    THEN 1 ELSE 0 END) AS quan_tri,
+        SUM(CASE WHEN con_hoat_dong = 1    THEN 1 ELSE 0 END) AS hoat_dong,
+        SUM(CASE WHEN con_hoat_dong = 0    THEN 1 ELSE 0 END) AS bi_khoa
+    FROM nguoi_dung;
+END
+GO
+
+-- ── 8. Chi tiết người dùng ──────────────────────────────────
+CREATE OR ALTER PROCEDURE sp_AdminChiTietNguoiDung
+    @ma_nd INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT
+        n.*,
+        (SELECT COUNT(*) FROM phong_tro p WHERE p.ma_chu_tro = n.ma_nd) AS so_tin
+    FROM nguoi_dung n
+    WHERE n.ma_nd = @ma_nd;
+END
+GO
+
+-- ── 9. Khóa / mở khóa tài khoản ────────────────────────────
+CREATE OR ALTER PROCEDURE sp_AdminCapNhatTrangThaiNguoiDung
+    @ma_nd         INT,
+    @con_hoat_dong BIT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    UPDATE nguoi_dung
+    SET con_hoat_dong = @con_hoat_dong,
+        ngay_cap_nhat = GETDATE()
+    WHERE ma_nd = @ma_nd;
+END
+GO

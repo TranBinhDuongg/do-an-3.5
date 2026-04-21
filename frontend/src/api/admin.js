@@ -50,3 +50,33 @@ export async function adminDeleteRoomApi(id) {
     headers: authHeader(),
   }));
 }
+
+// ── User Management ──────────────────────────────────────────
+
+// Lấy danh sách người dùng
+// params: { role, keyword, page }
+export async function adminGetUsersApi(params = {}) {
+  const qs = new URLSearchParams(
+    Object.fromEntries(Object.entries(params).filter(([, v]) => v !== '' && v != null))
+  ).toString();
+  return handle(await fetch(`${BASE}/users?${qs}`, { headers: authHeader() }));
+}
+
+// Thống kê người dùng
+export async function adminGetUserStatsApi() {
+  return handle(await fetch(`${BASE}/users/stats`, { headers: authHeader() }));
+}
+
+// Chi tiết người dùng
+export async function adminGetUserDetailApi(id) {
+  return handle(await fetch(`${BASE}/users/${id}`, { headers: authHeader() }));
+}
+
+// Khóa / mở khóa tài khoản
+export async function adminUpdateUserStatusApi(id, active) {
+  return handle(await fetch(`${BASE}/users/${id}/status`, {
+    method: 'PATCH',
+    headers: authHeader(),
+    body: JSON.stringify({ active }),
+  }));
+}
