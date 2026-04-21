@@ -12,6 +12,7 @@ import AdminLogin from './pages/admin/Login';
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminRooms from './pages/admin/Rooms';
 import AdminUsers from './pages/admin/Users';
+import AdminReports from './pages/admin/Reports';
 import Profile from './pages/Profile';
 import Message from './pages/user/Message';
 import Favorites from './pages/user/Favorites';
@@ -52,6 +53,7 @@ export default function App() {
         <Route path="/admin/dashboard" element={<AdminDashboard user={user} onLogout={logout} />} />
         <Route path="/admin/rooms"     element={<AdminRooms     user={user} onLogout={logout} />} />
         <Route path="/admin/users"     element={<AdminUsers     user={user} onLogout={logout} />} />
+        <Route path="/admin/reports"   element={<AdminReports   user={user} onLogout={logout} />} />
         <Route path="/profile"    element={<Profile   user={user} onLogin={login} onLogout={logout} />} />
         <Route path="/favorites"  element={<Favorites user={user} onLogout={logout} />} />
         <Route path="/employer"       element={<EmployerHome user={user} onLogout={logout} />} />
