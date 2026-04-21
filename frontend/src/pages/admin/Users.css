@@ -1,0 +1,136 @@
+/* ── Stats row ── */
+.au-stats-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.au-stat-card {
+  flex: 1;
+  background: #fff;
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  border-left: 4px solid;
+}
+.au-stat-all      { border-color: #64748b; }
+.au-stat-user     { border-color: #3b82f6; }
+.au-stat-employer { border-color: #f97316; }
+.au-stat-active   { border-color: #22c55e; }
+.au-stat-locked   { border-color: #ef4444; }
+
+.au-stat-icon { font-size: 1.5rem; }
+.au-stat-card div { display: flex; flex-direction: column; }
+.au-stat-card strong { font-size: 1.5rem; font-weight: 700; color: #1e293b; line-height: 1.2; }
+.au-stat-card span  { font-size: 0.75rem; color: #64748b; }
+
+/* ── Table cells ── */
+.au-user-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.au-avatar {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: #e0f2fe;
+  color: #0284c7;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 0.85rem;
+  flex-shrink: 0;
+}
+.au-td-username { color: #64748b; font-size: 0.85rem; }
+.au-td-rooms    { text-align: center; }
+.au-rooms-count {
+  background: #eff6ff;
+  color: #3b82f6;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+/* ── Role badge ── */
+.au-role-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.au-role-user     { background: #eff6ff; color: #2563eb; }
+.au-role-employer { background: #fff7ed; color: #ea580c; }
+.au-role-admin    { background: #fdf4ff; color: #9333ea; }
+
+/* ── Status ── */
+.au-status {
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.au-active { color: #16a34a; }
+.au-locked { color: #dc2626; }
+
+/* ── Action buttons ── */
+.au-btn-lock {
+  padding: 4px 8px;
+  background: #fff7ed;
+  color: #ea580c;
+  border: 1px solid #fed7aa;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  transition: all 0.18s;
+}
+.au-btn-lock:hover { background: #ffedd5; }
+
+.au-btn-unlock {
+  padding: 4px 8px;
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  transition: all 0.18s;
+}
+.au-btn-unlock:hover { background: #dcfce7; }
+
+/* ── Modal ── */
+.au-modal { width: 420px; }
+
+.au-modal-profile {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 4px 0 18px;
+  border-bottom: 1px solid #f1f5f9;
+  margin-bottom: 16px;
+}
+.au-modal-avatar {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem; font-weight: 700;
+  flex-shrink: 0;
+}
+.au-modal-profile > div {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.au-modal-profile strong { font-size: 1rem; color: #1e293b; }
+.au-modal-profile > div span { font-size: 0.82rem; color: #94a3b8; }
+
+.au-modal-btn {
+  padding: 8px 20px;
+  font-size: 0.9rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
