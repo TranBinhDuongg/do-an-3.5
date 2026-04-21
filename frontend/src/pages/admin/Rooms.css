@@ -1,0 +1,168 @@
+/* ── Stats row ── */
+.ar-stats-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.ar-stat-pill {
+  flex: 1;
+  background: #fff;
+  border-radius: 10px;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  border-top: 3px solid;
+}
+.ar-stat-all      { border-color: #64748b; }
+.ar-stat-pending  { border-color: #f97316; }
+.ar-stat-approved { border-color: #22c55e; }
+.ar-stat-rejected { border-color: #ef4444; }
+.ar-stat-num { font-size: 1.6rem; font-weight: 700; color: #1e293b; }
+.ar-stat-lbl { font-size: 0.78rem; color: #64748b; margin-top: 2px; }
+
+/* ── Toolbar ── */
+.ar-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.ar-tabs { display: flex; gap: 4px; }
+.ar-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.ar-tab:hover { background: #e0f2fe; color: #0284c7; border-color: #bae6fd; }
+.ar-tab.active { background: #0ea5e9; color: #fff; border-color: #0ea5e9; }
+.ar-tab-count {
+  background: rgba(255,255,255,0.25);
+  border-radius: 20px;
+  padding: 1px 7px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.ar-tab:not(.active) .ar-tab-count { background: #e2e8f0; color: #475569; }
+
+.ar-search {
+  padding: 8px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  width: 260px;
+  outline: none;
+  transition: border 0.18s;
+}
+.ar-search:focus { border-color: #0ea5e9; }
+
+/* ── Table extras ── */
+.ar-td-idx   { color: #94a3b8; font-size: 0.82rem; width: 36px; }
+.ar-td-price { font-weight: 600; color: #0ea5e9; white-space: nowrap; }
+.ar-empty    { text-align: center; padding: 40px; color: #94a3b8; font-size: 0.9rem; }
+
+/* ── Status badge ── */
+.ar-status {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.ar-status-pending  { background: #fff7ed; color: #ea580c; }
+.ar-status-approved { background: #f0fdf4; color: #16a34a; }
+.ar-status-rejected { background: #fef2f2; color: #dc2626; }
+
+/* ── Detail button ── */
+.ar-btn-detail {
+  padding: 4px 10px;
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.18s;
+}
+.ar-btn-detail:hover { background: #e0f2fe; color: #0284c7; border-color: #bae6fd; }
+
+/* ── Modal ── */
+.ar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15,23,42,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+.ar-modal {
+  background: #fff;
+  border-radius: 14px;
+  width: 480px;
+  max-width: 95vw;
+  box-shadow: 0 8px 40px rgba(0,0,0,.18);
+  overflow: hidden;
+}
+.ar-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  border-bottom: 1px solid #e2e8f0;
+}
+.ar-modal-header h2 { font-size: 1rem; color: #1e293b; margin: 0; }
+.ar-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: #94a3b8;
+  line-height: 1;
+}
+.ar-modal-close:hover { color: #ef4444; }
+.ar-modal-body { padding: 20px 24px; }
+.ar-modal-img {
+  width: 100%;
+  height: 120px;
+  background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  margin-bottom: 18px;
+}
+.ar-modal-rows { display: flex; flex-direction: column; gap: 10px; }
+.ar-modal-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.88rem;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f1f5f9;
+}
+.ar-modal-row:last-child { border-bottom: none; }
+.ar-modal-row span:first-child { color: #64748b; }
+.ar-modal-row strong { color: #1e293b; }
+.ar-modal-price { color: #0ea5e9; font-size: 1rem; }
+.ar-modal-footer {
+  display: flex;
+  gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid #e2e8f0;
+  justify-content: flex-end;
+}
+.ar-modal-btn { padding: 8px 20px; font-size: 0.9rem; border-radius: 8px; }
