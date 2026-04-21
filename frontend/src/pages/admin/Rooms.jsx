@@ -1,5 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import {
+  adminGetRoomsApi,
+  adminGetRoomStatsApi,
+  adminGetRoomDetailApi,
+  adminUpdateRoomStatusApi,
+  adminDeleteRoomApi,
+} from '../../api/admin';
 import './Dashboard.css';
 import './Rooms.css';
 
@@ -10,52 +17,113 @@ const NAV = [
   { path: '/admin/reports',   icon: '📋', label: 'Báo cáo' },
 ];
 
-const ROOMS = [
-  { id: 1, title: 'Phòng trọ cao cấp gần ĐH Bách Khoa', employer: 'Nguyễn Văn Minh', city: 'Hà Nội', price: 3500000, type: 'Phòng trọ', status: 'pending',  submittedAt: '21/04/2026' },
-  { id: 2, title: 'Studio trung tâm quận 1',             employer: 'Trần Thị Lan',    city: 'TP. HCM', price: 8000000, type: 'Studio',    status: 'approved', submittedAt: '20/04/2026' },
-  { id: 3, title: 'Nhà nguyên căn 3PN sân vườn',         employer: 'Nguyễn Văn Minh', city: 'Hà Nội', price: 12000000, type: 'Nhà nguyên căn', status: 'pending', submittedAt: '20/04/2026' },
-  { id: 4, title: 'Chung cư mini full nội thất',          employer: 'Lê Văn Nam',      city: 'Đà Nẵng', price: 5500000, type: 'Chung cư mini', status: 'rejected', submittedAt: '19/04/2026' },
-  { id: 5, title: 'Phòng trọ giá rẻ gần KCN Tân Bình',  employer: 'Phạm Thị Hoa',    city: 'TP. HCM', price: 2200000, type: 'Phòng trọ', status: 'approved', submittedAt: '19/04/2026' },
-  { id: 6, title: 'Căn hộ dịch vụ cao cấp Cầu Giấy',    employer: 'Hoàng Minh Tuấn', city: 'Hà Nội', price: 9500000, type: 'Căn hộ dịch vụ', status: 'pending', submittedAt: '18/04/2026' },
-  { id: 7, title: 'Phòng trọ sạch sẽ gần bệnh viện',    employer: 'Vũ Thị Mai',      city: 'Hải Phòng', price: 1800000, type: 'Phòng trọ', status: 'approved', submittedAt: '18/04/2026' },
-  { id: 8, title: 'Nhà trọ 5 phòng hẻm yên tĩnh',       employer: 'Đặng Văn Hùng',   city: 'Cần Thơ', price: 1500000, type: 'Phòng trọ', status: 'rejected', submittedAt: '17/04/2026' },
-];
-
 const TABS = [
   { key: 'all',      label: 'Tất cả' },
   { key: 'pending',  label: 'Chờ duyệt' },
   { key: 'approved', label: 'Đã duyệt' },
   { key: 'rejected', label: 'Từ chối' },
+  { key: 'paused',   label: 'Tạm dừng' },
 ];
 
-const STATUS_LABEL = { pending: 'Chờ duyệt', approved: 'Đã duyệt', rejected: 'Từ chối' };
+const STATUS_LABEL = {
+  pending:  'Chờ duyệt',
+  approved: 'Đã duyệt',
+  rejected: 'Từ chối',
+  paused:   'Tạm dừng',
+};
 
 export default function AdminRooms({ user, onLogout }) {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [tab, setTab]           = useState('all');
-  const [search, setSearch]     = useState('');
-  const [statusMap, setStatusMap] = useState({});
-  const [detail, setDetail]     = useState(null);
 
-  const getStatus = (r) => statusMap[r.id] ?? r.status;
+  // Filter state
+  const [tab,     setTab]     = useState('all');
+  const [search,  setSearch]  = useState('');
+  const [page,    setPage]    = useState(1);
 
-  const filtered = ROOMS.filter(r => {
-    const matchTab = tab === 'all' || getStatus(r) === tab;
-    const matchSearch = r.title.toLowerCase().includes(search.toLowerCase()) ||
-                        r.employer.toLowerCase().includes(search.toLowerCase());
-    return matchTab && matchSearch;
-  });
+  // Data state
+  const [rooms,      setRooms]      = useState([]);
+  const [stats,      setStats]      = useState({ all: 0, pending: 0, approved: 0, rejected: 0, paused: 0 });
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading,    setLoading]    = useState(false);
+  const [error,      setError]      = useState('');
 
-  const counts = {
-    all:      ROOMS.length,
-    pending:  ROOMS.filter(r => getStatus(r) === 'pending').length,
-    approved: ROOMS.filter(r => getStatus(r) === 'approved').length,
-    rejected: ROOMS.filter(r => getStatus(r) === 'rejected').length,
+  // Detail modal
+  const [detail,        setDetail]        = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+
+  // Action loading per row
+  const [actionLoading, setActionLoading] = useState({});
+
+  // ── Fetch list ──
+  const fetchRooms = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const params = { page };
+      if (tab !== 'all') params.status = tab;
+      if (search.trim()) params.keyword = search.trim();
+      const [listData, statsData] = await Promise.all([
+        adminGetRoomsApi(params),
+        adminGetRoomStatsApi(),
+      ]);
+      setRooms(listData.rooms);
+      setTotalPages(listData.totalPages);
+      setStats(statsData);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [tab, search, page]);
+
+  useEffect(() => { fetchRooms(); }, [fetchRooms]);
+
+  // Reset page khi đổi tab/search
+  useEffect(() => { setPage(1); }, [tab, search]);
+
+  // ── Open detail modal ──
+  const openDetail = async (room) => {
+    setDetail(room); // hiện modal ngay với data cơ bản
+    setDetailLoading(true);
+    try {
+      const { room: full } = await adminGetRoomDetailApi(room.id);
+      setDetail(full);
+    } catch {
+      // giữ data cơ bản nếu lỗi
+    } finally {
+      setDetailLoading(false);
+    }
   };
 
-  const approve = (id) => { setStatusMap(p => ({ ...p, [id]: 'approved' })); setDetail(null); };
-  const reject  = (id) => { setStatusMap(p => ({ ...p, [id]: 'rejected' })); setDetail(null); };
+  // ── Update status ──
+  const updateStatus = async (id, status) => {
+    setActionLoading(p => ({ ...p, [id]: true }));
+    try {
+      await adminUpdateRoomStatusApi(id, status);
+      await fetchRooms();
+      if (detail?.id === id) setDetail(null);
+    } catch (e) {
+      alert(e.message);
+    } finally {
+      setActionLoading(p => ({ ...p, [id]: false }));
+    }
+  };
+
+  // ── Delete ──
+  const deleteRoom = async (id) => {
+    if (!confirm('Xác nhận xóa tin đăng này?')) return;
+    setActionLoading(p => ({ ...p, [id]: true }));
+    try {
+      await adminDeleteRoomApi(id);
+      await fetchRooms();
+      if (detail?.id === id) setDetail(null);
+    } catch (e) {
+      alert(e.message);
+    } finally {
+      setActionLoading(p => ({ ...p, [id]: false }));
+    }
+  };
 
   return (
     <div className="adm-layout">
@@ -105,7 +173,7 @@ export default function AdminRooms({ user, onLogout }) {
           <div className="ar-stats-row">
             {TABS.map(t => (
               <div key={t.key} className={`ar-stat-pill ar-stat-${t.key}`}>
-                <span className="ar-stat-num">{counts[t.key]}</span>
+                <span className="ar-stat-num">{stats[t.key] ?? 0}</span>
                 <span className="ar-stat-lbl">{t.label}</span>
               </div>
             ))}
@@ -120,7 +188,7 @@ export default function AdminRooms({ user, onLogout }) {
                     className={`ar-tab ${tab === t.key ? 'active' : ''}`}
                     onClick={() => setTab(t.key)}>
                     {t.label}
-                    <span className="ar-tab-count">{counts[t.key]}</span>
+                    <span className="ar-tab-count">{stats[t.key] ?? 0}</span>
                   </button>
                 ))}
               </div>
@@ -131,6 +199,9 @@ export default function AdminRooms({ user, onLogout }) {
                 onChange={e => setSearch(e.target.value)}
               />
             </div>
+
+            {/* ERROR */}
+            {error && <p className="ar-error">⚠️ {error}</p>}
 
             {/* TABLE */}
             <div className="adm-table-wrap">
@@ -149,38 +220,59 @@ export default function AdminRooms({ user, onLogout }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.length === 0 && (
+                  {loading && (
+                    <tr><td colSpan={9} className="ar-empty">⏳ Đang tải...</td></tr>
+                  )}
+                  {!loading && rooms.length === 0 && (
                     <tr><td colSpan={9} className="ar-empty">Không có tin đăng nào</td></tr>
                   )}
-                  {filtered.map((r, i) => {
-                    const st = getStatus(r);
-                    return (
-                      <tr key={r.id}>
-                        <td className="ar-td-idx">{i + 1}</td>
-                        <td className="adm-td-title">{r.title}</td>
-                        <td>{r.employer}</td>
-                        <td><span className="adm-type-badge">{r.type}</span></td>
-                        <td>{r.city}</td>
-                        <td className="ar-td-price">{r.price.toLocaleString('vi-VN')}đ</td>
-                        <td className="adm-td-time">{r.submittedAt}</td>
-                        <td><span className={`ar-status ar-status-${st}`}>{STATUS_LABEL[st]}</span></td>
-                        <td>
-                          <div className="adm-action-btns">
-                            <button className="ar-btn-detail" onClick={() => setDetail(r)}>👁 Chi tiết</button>
-                            {st === 'pending' && (
-                              <>
-                                <button className="adm-btn-approve" onClick={() => approve(r.id)}>✓</button>
-                                <button className="adm-btn-reject"  onClick={() => reject(r.id)}>✕</button>
-                              </>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                  {!loading && rooms.map((r, i) => (
+                    <tr key={r.id}>
+                      <td className="ar-td-idx">{(page - 1) * 10 + i + 1}</td>
+                      <td className="adm-td-title">{r.title}</td>
+                      <td>{r.employer}</td>
+                      <td><span className="adm-type-badge">{r.type}</span></td>
+                      <td>{r.city}</td>
+                      <td className="ar-td-price">{Number(r.price).toLocaleString('vi-VN')}đ</td>
+                      <td className="adm-td-time">{r.postedAt}</td>
+                      <td><span className={`ar-status ar-status-${r.status}`}>{STATUS_LABEL[r.status]}</span></td>
+                      <td>
+                        <div className="adm-action-btns">
+                          <button className="ar-btn-detail" onClick={() => openDetail(r)}
+                            disabled={actionLoading[r.id]}>
+                            👁
+                          </button>
+                          {r.status === 'pending' && (
+                            <>
+                              <button className="adm-btn-approve"
+                                disabled={actionLoading[r.id]}
+                                onClick={() => updateStatus(r.id, 'approved')}>✓</button>
+                              <button className="adm-btn-reject"
+                                disabled={actionLoading[r.id]}
+                                onClick={() => updateStatus(r.id, 'rejected')}>✕</button>
+                            </>
+                          )}
+                          <button className="ar-btn-delete"
+                            disabled={actionLoading[r.id]}
+                            onClick={() => deleteRoom(r.id)}>🗑</button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
+
+            {/* PAGINATION */}
+            {totalPages > 1 && (
+              <div className="ar-pagination">
+                <button disabled={page === 1} onClick={() => setPage(p => p - 1)}>‹ Trước</button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                  <button key={p} className={page === p ? 'active' : ''} onClick={() => setPage(p)}>{p}</button>
+                ))}
+                <button disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>Sau ›</button>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -194,24 +286,54 @@ export default function AdminRooms({ user, onLogout }) {
               <button className="ar-modal-close" onClick={() => setDetail(null)}>✕</button>
             </div>
             <div className="ar-modal-body">
-              <div className="ar-modal-img">🏠</div>
-              <div className="ar-modal-rows">
-                <div className="ar-modal-row"><span>Tiêu đề</span><strong>{detail.title}</strong></div>
-                <div className="ar-modal-row"><span>Chủ trọ</span><strong>{detail.employer}</strong></div>
-                <div className="ar-modal-row"><span>Loại phòng</span><strong>{detail.type}</strong></div>
-                <div className="ar-modal-row"><span>Thành phố</span><strong>{detail.city}</strong></div>
-                <div className="ar-modal-row"><span>Giá/tháng</span><strong className="ar-modal-price">{detail.price.toLocaleString('vi-VN')}đ</strong></div>
-                <div className="ar-modal-row"><span>Ngày đăng</span><strong>{detail.submittedAt}</strong></div>
-                <div className="ar-modal-row">
-                  <span>Trạng thái</span>
-                  <span className={`ar-status ar-status-${getStatus(detail)}`}>{STATUS_LABEL[getStatus(detail)]}</span>
-                </div>
-              </div>
+              {detailLoading
+                ? <p className="ar-empty">⏳ Đang tải...</p>
+                : (
+                  <>
+                    <div className="ar-modal-img">
+                      {detail.image
+                        ? <img src={detail.image} alt={detail.title} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 10 }} />
+                        : '🏠'}
+                    </div>
+                    <div className="ar-modal-rows">
+                      <div className="ar-modal-row"><span>Tiêu đề</span><strong>{detail.title}</strong></div>
+                      <div className="ar-modal-row"><span>Chủ trọ</span><strong>{detail.employer}</strong></div>
+                      <div className="ar-modal-row"><span>Loại phòng</span><strong>{detail.type}</strong></div>
+                      <div className="ar-modal-row"><span>Địa chỉ</span><strong>{detail.address}</strong></div>
+                      <div className="ar-modal-row"><span>Thành phố</span><strong>{detail.city}</strong></div>
+                      <div className="ar-modal-row"><span>Giá/tháng</span><strong className="ar-modal-price">{Number(detail.price).toLocaleString('vi-VN')}đ</strong></div>
+                      {detail.deposit && <div className="ar-modal-row"><span>Tiền cọc</span><strong>{Number(detail.deposit).toLocaleString('vi-VN')}đ</strong></div>}
+                      <div className="ar-modal-row"><span>Diện tích</span><strong>{detail.area} m²</strong></div>
+                      {detail.contactPhone && <div className="ar-modal-row"><span>Liên hệ</span><strong>{detail.contactName} — {detail.contactPhone}</strong></div>}
+                      <div className="ar-modal-row">
+                        <span>Trạng thái</span>
+                        <span className={`ar-status ar-status-${detail.status}`}>{STATUS_LABEL[detail.status]}</span>
+                      </div>
+                    </div>
+                  </>
+                )
+              }
             </div>
-            {getStatus(detail) === 'pending' && (
+            {!detailLoading && (
               <div className="ar-modal-footer">
-                <button className="adm-btn-reject ar-modal-btn" onClick={() => reject(detail.id)}>✕ Từ chối</button>
-                <button className="adm-btn-approve ar-modal-btn" onClick={() => approve(detail.id)}>✓ Duyệt tin</button>
+                {detail.status === 'pending' && (
+                  <>
+                    <button className="adm-btn-reject ar-modal-btn"
+                      onClick={() => updateStatus(detail.id, 'rejected')}>✕ Từ chối</button>
+                    <button className="adm-btn-approve ar-modal-btn"
+                      onClick={() => updateStatus(detail.id, 'approved')}>✓ Duyệt tin</button>
+                  </>
+                )}
+                {detail.status === 'approved' && (
+                  <button className="ar-btn-pause ar-modal-btn"
+                    onClick={() => updateStatus(detail.id, 'paused')}>⏸ Tạm dừng</button>
+                )}
+                {detail.status === 'paused' && (
+                  <button className="adm-btn-approve ar-modal-btn"
+                    onClick={() => updateStatus(detail.id, 'approved')}>▶ Kích hoạt lại</button>
+                )}
+                <button className="ar-btn-delete-modal ar-modal-btn"
+                  onClick={() => deleteRoom(detail.id)}>🗑 Xóa</button>
               </div>
             )}
           </div>
