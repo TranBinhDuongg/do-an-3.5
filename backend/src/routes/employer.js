@@ -145,6 +145,78 @@ router.post('/rooms', auth(['employer', 'admin']), async (req, res) => {
   }
 });
 
+// GET /api/employer/rooms — danh sách phòng của chủ trọ
+router.get('/rooms', auth(['employer', 'admin']), async (req, res) => {
+  const ma_nd = req.user.id;
+  const { status } = req.query; // 'pending' | 'approved' | 'rejected' | 'paused' | undefined
+  try {
+    await poolConnect;
+    const result = await pool.request()
+      .input('ma_nd',      sql.Int,          ma_nd)
+      .input('trang_thai', sql.NVarChar(20), status || null)
+      .execute('sp_LayPhongChuTroFilter');
+
+    const rooms = result.recordset.map(r => ({
+      id:        r.ma_phong,
+      title:     r.tieu_de,
+      type:      r.loai_phong,
+      city:      r.tinh_thanh,
+      address:   r.dia_chi,
+      price:     r.gia_thue,
+      area:      r.dien_tich,
+      available: r.con_phong,
+      featured:  r.noi_bat,
+      status:    r.trang_thai,
+      views:     r.luot_xem,
+      contacts:  r.so_lien_he,
+      saved:     r.luot_luu,
+      image:     r.anh_bia || r.anh_dau_tien || null,
+      postedAt:  timeAgo(r.ngay_tao),
+    }));
+    return res.json({ rooms });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Lỗi server' });
+  }
+});
+
+// PATCH /api/employer/rooms/:id/status — đổi trạng thái (pause/activate)
+router.patch('/rooms/:id/status', auth(['employer', 'admin']), async (req, res) => {
+  const ma_phong = parseInt(req.params.id);
+  const { status } = req.body;
+  const allowed = ['approved', 'paused'];
+  if (!allowed.includes(status))
+    return res.status(400).json({ message: 'Trạng thái không hợp lệ' });
+  try {
+    await poolConnect;
+    await pool.request()
+      .input('ma_phong',   sql.Int,          ma_phong)
+      .input('ma_chu_tro', sql.Int,          req.user.id)
+      .input('trang_thai', sql.NVarChar(20), status)
+      .execute('sp_CapNhatTrangThaiPhong');
+    return res.json({ message: 'Cập nhật thành công' });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Lỗi server' });
+  }
+});
+
+// DELETE /api/employer/rooms/:id — xóa tin
+router.delete('/rooms/:id', auth(['employer', 'admin']), async (req, res) => {
+  const ma_phong = parseInt(req.params.id);
+  try {
+    await poolConnect;
+    await pool.request()
+      .input('ma_phong',   sql.Int, ma_phong)
+      .input('ma_chu_tro', sql.Int, req.user.id)
+      .execute('sp_XoaPhong');
+    return res.json({ message: 'Đã xóa tin đăng' });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Lỗi server' });
+  }
+});
+
 // POST /api/employer/notifications/read-all
 router.post('/notifications/read-all', auth(['employer', 'admin']), async (req, res) => {
   try {

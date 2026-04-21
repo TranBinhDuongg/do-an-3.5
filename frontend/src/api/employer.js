@@ -32,3 +32,32 @@ export async function postRoomApi(payload) {
   if (!res.ok) throw new Error(data.message);
   return data; // { message, roomId }
 }
+
+export async function getRoomsEmployerApi(status) {
+  const qs = status ? `?status=${status}` : '';
+  const res = await fetch(`${BASE}/rooms${qs}`, { headers: authHeader() });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message);
+  return data; // { rooms }
+}
+
+export async function updateRoomStatusApi(roomId, status) {
+  const res = await fetch(`${BASE}/rooms/${roomId}/status`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...authHeader() },
+    body: JSON.stringify({ status }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message);
+  return data;
+}
+
+export async function deleteRoomApi(roomId) {
+  const res = await fetch(`${BASE}/rooms/${roomId}`, {
+    method: 'DELETE',
+    headers: authHeader(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message);
+  return data;
+}

@@ -1,26 +1,80 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { getRoomsEmployerApi, updateRoomStatusApi, deleteRoomApi } from '../../api/employer';
 import './Home.css';
+import './Rooms.css';
 
-const allRooms = [
-  { id: 1, title: 'Phòng trọ cao cấp gần ĐH Bách Khoa', address: '15 Tạ Quang Bửu, Hai Bà Trưng, Hà Nội', price: 3500000, area: 25, type: 'Phòng trọ', available: true, views: 142, contacts: 8, image: 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400&h=250&fit=crop', postedAt: '2 ngày trước' },
-  { id: 2, title: 'Chung cư mini full nội thất, ban công view đẹp', address: '88 Láng Hạ, Đống Đa, Hà Nội', price: 5500000, area: 35, type: 'Chung cư mini', available: true, views: 89, contacts: 3, image: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400&h=250&fit=crop', postedAt: '5 ngày trước' },
-  { id: 3, title: 'Phòng trọ giá rẻ, gần KCN Thăng Long', address: '5 Phạm Văn Đồng, Bắc Từ Liêm, Hà Nội', price: 1800000, area: 18, type: 'Phòng trọ', available: false, views: 56, contacts: 0, image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400&h=250&fit=crop', postedAt: '10 ngày trước' },
-  { id: 4, title: 'Nhà nguyên căn 3 phòng ngủ, sân vườn rộng', address: '22 Nguyễn Trãi, Thanh Xuân, Hà Nội', price: 12000000, area: 80, type: 'Nhà nguyên căn', available: true, views: 210, contacts: 15, image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400&h=250&fit=crop', postedAt: '1 ngày trước' },
+const STATUS_LABEL = {
+  approved: { text: 'Đã duyệt',  cls: 'approved' },
+  pending:  { text: 'Chờ duyệt', cls: 'pending'  },
+  rejected: { text: 'Từ chối',   cls: 'rejected' },
+  paused:   { text: 'Tạm dừng',  cls: 'paused'   },
+};
+
+const TABS = [
+  { key: 'all',      label: 'Tất cả',    status: undefined },
+  { key: 'approved', label: 'Đã duyệt',  status: 'approved' },
+  { key: 'pending',  label: 'Chờ duyệt', status: 'pending'  },
+  { key: 'paused',   label: 'Tạm dừng',  status: 'paused'   },
+  { key: 'rejected', label: 'Từ chối',   status: 'rejected' },
 ];
 
 export default function Rooms({ user, onLogout }) {
-  const [tab, setTab] = useState('all');
+  const [tab, setTab]         = useState('all');
+  const [rooms, setRooms]     = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError]     = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
-  const [notiOpen, setNotiOpen] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(null); // roomId to delete
   const navigate = useNavigate();
 
-  const filtered = tab === 'all' ? allRooms
-    : tab === 'available' ? allRooms.filter(r => r.available)
-    : allRooms.filter(r => !r.available);
+  const fetchRooms = async (status) => {
+    setLoading(true);
+    setError('');
+    try {
+      const data = await getRoomsEmployerApi(status);
+      setRooms(data.rooms);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const t = TABS.find(t => t.key === tab);
+    fetchRooms(t?.status);
+  }, [tab]);
+
+  const handleToggleStatus = async (room) => {
+    const newStatus = room.status === 'paused' ? 'approved' : 'paused';
+    try {
+      await updateRoomStatusApi(room.id, newStatus);
+      setRooms(prev => prev.map(r => r.id === room.id ? { ...r, status: newStatus } : r));
+    } catch (e) {
+      alert('Lỗi: ' + e.message);
+    }
+  };
+
+  const handleDelete = async (roomId) => {
+    try {
+      await deleteRoomApi(roomId);
+      setRooms(prev => prev.filter(r => r.id !== roomId));
+      setConfirmDelete(null);
+    } catch (e) {
+      alert('Lỗi: ' + e.message);
+    }
+  };
+
+  // Count by status from full list (only accurate on 'all' tab)
+  const counts = rooms.reduce((acc, r) => {
+    acc[r.status] = (acc[r.status] || 0) + 1;
+    return acc;
+  }, {});
 
   return (
     <div className="emp-page">
+      {/* NAVBAR */}
       <nav className="emp-nav">
         <div className="emp-nav-inner">
           <Link to="/" className="emp-nav-logo">🏠 PhòngTrọ<span>VN</span></Link>
@@ -30,25 +84,8 @@ export default function Rooms({ user, onLogout }) {
             <Link to="/employer/pricing" className="emp-nav-link emp-nav-link-pricing">💎 Mua gói</Link>
           </div>
           <div className="emp-nav-right">
-            <div className="emp-noti-wrap">
-              <button className="emp-noti-btn" onClick={() => { setNotiOpen(!notiOpen); setMenuOpen(false); }}>
-                🔔
-              </button>
-              {notiOpen && (
-                <div className="emp-noti-dropdown">
-                  <div className="emp-noti-header">
-                    <strong>Thông báo</strong>
-                    <button>Đánh dấu đã đọc</button>
-                  </div>
-                  <div className="emp-noti-item">
-                    <span className="emp-noti-icon">📋</span>
-                    <div><p>Chưa có thông báo mới</p></div>
-                  </div>
-                </div>
-              )}
-            </div>
             <div className="emp-user-wrap">
-              <button className="emp-user-btn" onClick={() => { setMenuOpen(!menuOpen); setNotiOpen(false); }}>
+              <button className="emp-user-btn" onClick={() => setMenuOpen(!menuOpen)}>
                 <div className="emp-avatar">
                   {user?.avatar_url
                     ? <img src={user.avatar_url} alt="avatar" />
@@ -63,11 +100,10 @@ export default function Rooms({ user, onLogout }) {
               {menuOpen && (
                 <div className="emp-user-dropdown">
                   <Link to="/profile" className="emp-drop-item" onClick={() => setMenuOpen(false)}>👤 Hồ sơ</Link>
-                  <Link to="/employer/settings" className="emp-drop-item" onClick={() => setMenuOpen(false)}>⚙️ Cài đặt</Link>
                   <hr className="emp-drop-hr" />
                   <Link to="/" className="emp-drop-item" onClick={() => setMenuOpen(false)}>🔍 Xem trang người thuê</Link>
                   <hr className="emp-drop-hr" />
-                  <button className="emp-drop-logout" onClick={() => { onLogout?.(); setMenuOpen(false); navigate('/login'); }}>🚪 Đăng xuất</button>
+                  <button className="emp-drop-logout" onClick={() => { onLogout?.(); navigate('/login'); }}>🚪 Đăng xuất</button>
                 </div>
               )}
             </div>
@@ -84,54 +120,99 @@ export default function Rooms({ user, onLogout }) {
           <Link to="/employer/post" className="emp-post-btn">+ Đăng tin mới</Link>
         </div>
 
+        {error && <div className="emp-error">⚠️ {error}</div>}
+
         <div className="emp-rooms-section">
+          {/* TABS */}
           <div className="emp-tabs">
-            {[
-              { key: 'all',         label: `Tất cả (${allRooms.length})` },
-              { key: 'available',   label: `Còn phòng (${allRooms.filter(r => r.available).length})` },
-              { key: 'unavailable', label: `Hết phòng (${allRooms.filter(r => !r.available).length})` },
-            ].map(t => (
-              <button key={t.key} className={`emp-tab ${tab === t.key ? 'active' : ''}`}
-                onClick={() => setTab(t.key)}>{t.label}</button>
+            {TABS.map(t => (
+              <button key={t.key}
+                className={`emp-tab ${tab === t.key ? 'active' : ''}`}
+                onClick={() => setTab(t.key)}>
+                {t.label}
+                {tab === 'all' && t.key !== 'all' && counts[t.status] > 0 && (
+                  <span className={`rooms-tab-badge ${t.key}`}>{counts[t.status]}</span>
+                )}
+              </button>
             ))}
           </div>
 
-          <div className="emp-room-list">
-            {filtered.map(room => (
-              <div key={room.id} className="emp-room-card">
-                <img src={room.image} alt={room.title} className="emp-room-img" />
-                <div className="emp-room-info">
-                  <div className="emp-room-top">
-                    <h3 className="emp-room-title">{room.title}</h3>
-                    <span className={`emp-room-status ${room.available ? 'available' : 'unavailable'}`}>
-                      {room.available ? '● Còn phòng' : '● Hết phòng'}
-                    </span>
+          {loading ? (
+            <div className="emp-loading">
+              <div className="emp-spinner" />
+              <p>Đang tải...</p>
+            </div>
+          ) : rooms.length === 0 ? (
+            <div className="rooms-empty">
+              <p>🏠 Không có tin đăng nào.</p>
+              <Link to="/employer/post" className="emp-post-btn">Đăng tin ngay</Link>
+            </div>
+          ) : (
+            <div className="emp-room-list">
+              {rooms.map(room => (
+                <div key={room.id} className="emp-room-card">
+                  <img
+                    src={room.image || 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400&h=250&fit=crop'}
+                    alt={room.title}
+                    className="emp-room-img"
+                  />
+                  <div className="emp-room-info">
+                    <div className="emp-room-top">
+                      <h3 className="emp-room-title">{room.title}</h3>
+                      <span className={`emp-room-status ${STATUS_LABEL[room.status]?.cls}`}>
+                        ● {STATUS_LABEL[room.status]?.text}
+                      </span>
+                    </div>
+                    <p className="emp-room-addr">📍 {room.address}, {room.city}</p>
+                    <div className="emp-room-meta">
+                      <span className="emp-room-price">{Number(room.price).toLocaleString('vi-VN')}đ/tháng</span>
+                      <span className="emp-room-area">📐 {room.area} m²</span>
+                      <span className="emp-room-type">{room.type}</span>
+                    </div>
+                    <div className="emp-room-stats">
+                      <span>👁️ {room.views} lượt xem</span>
+                      <span>📞 {room.contacts} liên hệ</span>
+                      <span>❤️ {room.saved} lưu</span>
+                      <span>🕐 {room.postedAt}</span>
+                    </div>
                   </div>
-                  <p className="emp-room-addr">📍 {room.address}</p>
-                  <div className="emp-room-meta">
-                    <span className="emp-room-price">{room.price.toLocaleString('vi-VN')}đ/tháng</span>
-                    <span className="emp-room-area">📐 {room.area} m²</span>
-                    <span className="emp-room-type">{room.type}</span>
-                  </div>
-                  <div className="emp-room-stats">
-                    <span>👁️ {room.views} lượt xem</span>
-                    <span>📞 {room.contacts} liên hệ</span>
-                    <span>🕐 {room.postedAt}</span>
+
+                  <div className="emp-room-actions">
+                    {/* Chỉ cho pause/activate nếu đã duyệt hoặc đang tạm dừng */}
+                    {(room.status === 'approved' || room.status === 'paused') && (
+                      <button
+                        className={`emp-btn-toggle ${room.status === 'paused' ? 'inactive' : ''}`}
+                        onClick={() => handleToggleStatus(room)}>
+                        {room.status === 'paused' ? '▶ Kích hoạt' : '⏸ Tạm dừng'}
+                      </button>
+                    )}
+                    <button
+                      className="emp-btn-delete"
+                      onClick={() => setConfirmDelete(room.id)}
+                      title="Xóa tin">
+                      🗑️
+                    </button>
                   </div>
                 </div>
-                <div className="emp-room-actions">
-                  <Link to={`/room/${room.id}`} className="emp-btn-view">👁 Xem</Link>
-                  <button className="emp-btn-edit">✏️ Sửa</button>
-                  <button className={`emp-btn-toggle ${room.available ? '' : 'inactive'}`}>
-                    {room.available ? '⏸ Tạm dừng' : '▶ Kích hoạt'}
-                  </button>
-                  <button className="emp-btn-delete">🗑️</button>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
+
+      {/* CONFIRM DELETE MODAL */}
+      {confirmDelete && (
+        <div className="rooms-modal-overlay" onClick={() => setConfirmDelete(null)}>
+          <div className="rooms-modal" onClick={e => e.stopPropagation()}>
+            <h3>Xác nhận xóa</h3>
+            <p>Bạn có chắc muốn xóa tin đăng này? Hành động này không thể hoàn tác.</p>
+            <div className="rooms-modal-actions">
+              <button className="rooms-modal-cancel" onClick={() => setConfirmDelete(null)}>Hủy</button>
+              <button className="rooms-modal-confirm" onClick={() => handleDelete(confirmDelete)}>Xóa</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

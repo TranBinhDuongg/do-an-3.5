@@ -1,0 +1,60 @@
+/* Tab badges */
+.rooms-tab-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 18px; height: 18px; border-radius: 99px;
+  font-size: 10px; font-weight: 700; padding: 0 5px;
+  margin-left: 6px;
+}
+.rooms-tab-badge.approved { background: #dcfce7; color: #16a34a; }
+.rooms-tab-badge.pending  { background: #fef9c3; color: #a16207; }
+.rooms-tab-badge.paused   { background: #f1f5f9; color: #64748b; }
+.rooms-tab-badge.rejected { background: #fee2e2; color: #dc2626; }
+
+/* Empty state */
+.rooms-empty {
+  text-align: center; padding: 60px 0;
+  color: #64748b; display: flex; flex-direction: column;
+  align-items: center; gap: 16px;
+}
+.rooms-empty p { font-size: 15px; }
+
+/* Toggle / delete buttons */
+.emp-btn-toggle {
+  font-size: 12px; font-weight: 600; padding: 6px 10px;
+  border-radius: 8px; border: none; cursor: pointer;
+  background: #fef9c3; color: #a16207; transition: background 0.15s;
+  white-space: nowrap;
+}
+.emp-btn-toggle:hover { background: #fde68a; }
+.emp-btn-toggle.inactive { background: #f0fdf4; color: #16a34a; }
+.emp-btn-toggle.inactive:hover { background: #dcfce7; }
+
+.emp-btn-delete {
+  font-size: 16px; padding: 6px 8px;
+  border-radius: 8px; border: none; cursor: pointer;
+  background: #fef2f2; transition: background 0.15s;
+}
+.emp-btn-delete:hover { background: #fee2e2; }
+
+/* Confirm modal */
+.rooms-modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.4); z-index: 500;
+  display: flex; align-items: center; justify-content: center;
+}
+.rooms-modal {
+  background: #fff; border-radius: 14px; padding: 28px 32px;
+  max-width: 380px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+}
+.rooms-modal h3 { font-size: 17px; font-weight: 700; color: #1e293b; margin-bottom: 10px; }
+.rooms-modal p  { font-size: 14px; color: #64748b; line-height: 1.6; margin-bottom: 24px; }
+.rooms-modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+.rooms-modal-cancel {
+  padding: 9px 20px; border: 1.5px solid #e2e8f0; border-radius: 8px;
+  background: #fff; font-size: 14px; font-weight: 600; color: #475569; cursor: pointer;
+}
+.rooms-modal-confirm {
+  padding: 9px 20px; border: none; border-radius: 8px;
+  background: #ef4444; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer;
+}
+.rooms-modal-confirm:hover { background: #dc2626; }
