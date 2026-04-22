@@ -90,6 +90,46 @@ router.post('/register', async (req, res) => {
   }
 });
 
+// POST /api/auth/forgot-password/verify  — xác minh tài khoản + SĐT
+router.post('/forgot-password/verify', async (req, res) => {
+  const { username, phone } = req.body;
+  if (!username || !phone)
+    return res.status(400).json({ message: 'Vui lòng nhập tên tài khoản và số điện thoại' });
+  try {
+    await poolConnect;
+    const result = await pool.request()
+      .input('tai_khoan',  sql.NVarChar, username)
+      .input('dien_thoai', sql.NVarChar, phone)
+      .execute('sp_XacMinhQuenMatKhau');
+    const user = result.recordset[0];
+    if (!user) return res.status(404).json({ message: 'Thông tin không khớp với bất kỳ tài khoản nào' });
+    return res.json({ message: 'Xác minh thành công', userId: user.ma_nd, name: user.ho_ten });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Lỗi server' });
+  }
+});
+
+// POST /api/auth/forgot-password/reset  — đặt lại mật khẩu
+router.post('/forgot-password/reset', async (req, res) => {
+  const { userId, password } = req.body;
+  if (!userId || !password)
+    return res.status(400).json({ message: 'Thiếu thông tin' });
+  if (password.length < 6)
+    return res.status(400).json({ message: 'Mật khẩu phải có ít nhất 6 ký tự' });
+  try {
+    await poolConnect;
+    await pool.request()
+      .input('ma_nd',        sql.Int,      userId)
+      .input('mat_khau_moi', sql.NVarChar, password)
+      .execute('sp_DatLaiMatKhau');
+    return res.json({ message: 'Đặt lại mật khẩu thành công' });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Lỗi server' });
+  }
+});
+
 // GET /api/auth/me
 const auth = require('../middleware/auth');
 router.get('/me', auth(), async (req, res) => {

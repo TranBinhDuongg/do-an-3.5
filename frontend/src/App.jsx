@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import './App.css';
 import Login from './pages/user/Login';
 import Register from './pages/user/Register';
+import ForgotPassword from './pages/user/ForgotPassword';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 import Home from './pages/user/Home';
@@ -23,7 +24,7 @@ import ChatBubble from './components/ChatBubble';
 
 function ChatBubbleWrapper() {
   const { pathname } = useLocation();
-  if (pathname.startsWith('/admin') || ['/login', '/register', '/terms', '/privacy'].includes(pathname)) return null;
+  if (pathname.startsWith('/admin') || ['/login', '/register', '/forgot-password', '/terms', '/privacy'].includes(pathname)) return null;
   return <ChatBubble />;
 }
 
@@ -49,10 +50,11 @@ export default function App() {
         <Route path="/"       element={<Home   user={user} onLogout={logout} />} />
         <Route path="/search"   element={<Search  user={user} onLogout={logout} />} />
         <Route path="/message"  element={<Message user={user} onLogout={logout} />} />
-        <Route path="/login"       element={<Login      onLogin={login} />} />
-        <Route path="/register"    element={<Register   onLogin={login} />} />
-        <Route path="/terms"       element={<Terms />} />
-        <Route path="/privacy"     element={<Privacy />} />
+        <Route path="/login"           element={<Login          onLogin={login} />} />
+        <Route path="/register"        element={<Register       onLogin={login} />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/terms"           element={<Terms />} />
+        <Route path="/privacy"         element={<Privacy />} />
         <Route path="/admin/login"     element={<AdminLogin onLogin={login} />} />
         <Route path="/admin/dashboard" element={<AdminDashboard user={user} onLogout={logout} />} />
         <Route path="/admin/rooms"     element={<AdminRooms     user={user} onLogout={logout} />} />

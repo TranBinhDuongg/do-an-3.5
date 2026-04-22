@@ -490,3 +490,33 @@ BEGIN
     FROM nguoi_dung WHERE vai_tro!='admin' ORDER BY ngay_tao DESC;
 END
 GO
+
+-- ============================================================
+-- FORGOT PASSWORD
+-- ============================================================
+
+-- Bước 1: Xác minh tài khoản + SĐT
+CREATE OR ALTER PROCEDURE sp_XacMinhQuenMatKhau
+    @tai_khoan NVARCHAR(150), @dien_thoai NVARCHAR(20)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT ma_nd, ho_ten, tai_khoan
+    FROM nguoi_dung
+    WHERE tai_khoan = @tai_khoan
+      AND dien_thoai = @dien_thoai
+      AND con_hoat_dong = 1;
+END
+GO
+
+-- Bước 2: Đặt mật khẩu mới theo ma_nd
+CREATE OR ALTER PROCEDURE sp_DatLaiMatKhau
+    @ma_nd INT, @mat_khau_moi NVARCHAR(255)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    UPDATE nguoi_dung
+    SET mat_khau = @mat_khau_moi, ngay_cap_nhat = GETDATE()
+    WHERE ma_nd = @ma_nd;
+END
+GO

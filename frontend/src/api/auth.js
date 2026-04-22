@@ -22,6 +22,28 @@ export async function registerApi(name, username, password, phone, role = 'user'
   return data; // { token, user }
 }
 
+export async function forgotPasswordVerifyApi(username, phone) {
+  const res = await fetch(`${BASE}/auth/forgot-password/verify`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, phone }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || 'Xác minh thất bại');
+  return data; // { userId, name }
+}
+
+export async function forgotPasswordResetApi(userId, password) {
+  const res = await fetch(`${BASE}/auth/forgot-password/reset`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId, password }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || 'Đặt lại mật khẩu thất bại');
+  return data;
+}
+
 export async function getProfileApi() {
   const token = localStorage.getItem('token');
   const res = await fetch(`${BASE}/profile`, {
