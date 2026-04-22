@@ -14,6 +14,11 @@ async function handle(res) {
   return data;
 }
 
+// Lấy dữ liệu tổng quan dashboard
+export async function adminGetDashboardApi() {
+  return handle(await fetch(`${BASE}/dashboard`, { headers: authHeader() }));
+}
+
 // Lấy danh sách tin đăng (có filter + phân trang)
 // params: { status, keyword, city, type, page }
 export async function adminGetRoomsApi(params = {}) {

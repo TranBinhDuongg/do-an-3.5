@@ -67,6 +67,7 @@ export default function Search({ user, onLogout }) {
             <Link to="/" className="search-nav-link">Trang chủ</Link>
             <Link to="/search" className="search-nav-link active">Tìm phòng</Link>
             <Link to="/favorites" className="search-nav-link">Yêu thích</Link>
+            <Link to="/message" className="search-nav-link">Tin nhắn</Link>
           </div>
           <div className="search-nav-auth">
             {user ? (

@@ -41,6 +41,50 @@ function formatRoom(r) {
 }
 
 // ─────────────────────────────────────────────
+// GET /api/admin/dashboard
+// Tổng quan: stats + pending rooms + recent users
+// ─────────────────────────────────────────────
+router.get('/dashboard', async (req, res) => {
+  try {
+    await poolConnect;
+    const result = await pool.request().execute('sp_AdminTongQuan');
+
+    const s = result.recordsets[0][0];
+    const stats = {
+      totalUsers:    s.tong_nguoi_dung,
+      newUsersToday: s.nguoi_dung_hom_nay,
+      totalRooms:    s.tong_tin_dang,
+      newRoomsToday: s.tin_dang_hom_nay,
+      pending:       s.cho_duyet,
+      rejected7days: s.tu_choi_7_ngay,
+    };
+
+    const pendingRooms = result.recordsets[1].map(r => ({
+      id:          r.ma_phong,
+      title:       r.tieu_de,
+      type:        r.loai_phong,
+      city:        r.tinh_thanh,
+      price:       r.gia_thue,
+      employer:    r.ten_chu_tro,
+      submittedAt: timeAgo(r.ngay_tao),
+    }));
+
+    const recentUsers = result.recordsets[2].map(u => ({
+      id:       u.ma_nd,
+      name:     u.ho_ten,
+      username: u.tai_khoan,
+      role:     u.vai_tro,
+      joinedAt: timeAgo(u.ngay_tao),
+    }));
+
+    return res.json({ stats, pendingRooms, recentUsers });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Lỗi server' });
+  }
+});
+
+// ─────────────────────────────────────────────
 // GET /api/admin/rooms
 // Query: status, keyword, city, type, page
 // ─────────────────────────────────────────────

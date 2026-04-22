@@ -80,6 +80,7 @@ export default function Message({ user, onLogout }) {
           <div className="msg-nav-links">
             <Link to="/"        className="msg-nav-link">Trang chủ</Link>
             <Link to="/search"  className="msg-nav-link">Tìm phòng</Link>
+            <Link to="/favorites" className="msg-nav-link">Yêu thích</Link>
             <Link to="/message" className="msg-nav-link active">Tin nhắn</Link>
           </div>
           <div className="msg-nav-right">

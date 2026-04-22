@@ -18,11 +18,9 @@ import Message from './pages/user/Message';
 import Favorites from './pages/user/Favorites';
 import ChatBubble from './components/ChatBubble';
 
-const HIDE_CHAT_PATHS = ['/login', '/register', '/admin/login'];
-
 function ChatBubbleWrapper() {
   const { pathname } = useLocation();
-  if (HIDE_CHAT_PATHS.includes(pathname)) return null;
+  if (pathname.startsWith('/admin') || pathname === '/login' || pathname === '/register') return null;
   return <ChatBubble />;
 }
 

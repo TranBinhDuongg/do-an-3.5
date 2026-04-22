@@ -46,6 +46,7 @@ export default function Favorites({ user, onLogout }) {
             <Link to="/" className="fav-nav-link">Trang chủ</Link>
             <Link to="/search" className="fav-nav-link">Tìm phòng</Link>
             <Link to="/favorites" className="fav-nav-link active">Yêu thích</Link>
+            <Link to="/message" className="fav-nav-link">Tin nhắn</Link>
           </div>
           <div className="fav-nav-auth">
             {user ? (

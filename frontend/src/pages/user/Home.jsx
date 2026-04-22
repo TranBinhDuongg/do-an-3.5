@@ -42,6 +42,7 @@ export default function Home({ user, onLogout }) {
             <Link to="/" className="home-nav-link active">Trang chủ</Link>
             <Link to="/search" className="home-nav-link">Tìm phòng</Link>
             <Link to="/favorites" className="home-nav-link">Yêu thích</Link>
+            <Link to="/message" className="home-nav-link">Tin nhắn</Link>
           </div>
           <div className="home-nav-auth">
             {user ? (
