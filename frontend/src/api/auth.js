@@ -11,6 +11,17 @@ export async function loginApi(username, password, role) {
   return data; // { token, user }
 }
 
+export async function registerApi(name, username, password, phone, role = 'user') {
+  const res = await fetch(`${BASE}/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, username, password, phone, role }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || 'Đăng ký thất bại');
+  return data; // { token, user }
+}
+
 export async function getProfileApi() {
   const token = localStorage.getItem('token');
   const res = await fetch(`${BASE}/profile`, {

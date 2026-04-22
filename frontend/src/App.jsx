@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import './App.css';
 import Login from './pages/user/Login';
+import Register from './pages/user/Register';
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
 import Home from './pages/user/Home';
 import Search from './pages/user/Search';
 import EmployerHome from './pages/employer/Home';
@@ -20,7 +23,7 @@ import ChatBubble from './components/ChatBubble';
 
 function ChatBubbleWrapper() {
   const { pathname } = useLocation();
-  if (pathname.startsWith('/admin') || pathname === '/login' || pathname === '/register') return null;
+  if (pathname.startsWith('/admin') || ['/login', '/register', '/terms', '/privacy'].includes(pathname)) return null;
   return <ChatBubble />;
 }
 
@@ -47,6 +50,9 @@ export default function App() {
         <Route path="/search"   element={<Search  user={user} onLogout={logout} />} />
         <Route path="/message"  element={<Message user={user} onLogout={logout} />} />
         <Route path="/login"       element={<Login      onLogin={login} />} />
+        <Route path="/register"    element={<Register   onLogin={login} />} />
+        <Route path="/terms"       element={<Terms />} />
+        <Route path="/privacy"     element={<Privacy />} />
         <Route path="/admin/login"     element={<AdminLogin onLogin={login} />} />
         <Route path="/admin/dashboard" element={<AdminDashboard user={user} onLogout={logout} />} />
         <Route path="/admin/rooms"     element={<AdminRooms     user={user} onLogout={logout} />} />

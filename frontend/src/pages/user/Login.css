@@ -371,3 +371,21 @@
   color: #60a5fa;
   font-weight: 700;
 }
+
+/* Responsive */
+@media (max-width: 900px) {
+  .login-page {
+    flex-direction: column;
+  }
+
+  .login-left {
+    display: none;
+  }
+
+  .login-right {
+    width: 100%;
+    min-height: 100vh;
+    padding: 32px 24px;
+    box-sizing: border-box;
+  }
+}
