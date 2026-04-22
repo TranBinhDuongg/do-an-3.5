@@ -80,3 +80,29 @@ export async function adminUpdateUserStatusApi(id, active) {
     body: JSON.stringify({ active }),
   }));
 }
+
+// ── Reports ──────────────────────────────────────────────────
+
+export async function adminGetReportSummaryApi() {
+  return handle(await fetch(`${BASE}/reports/summary`, { headers: authHeader() }));
+}
+
+export async function adminGetRoomsByMonthApi(from, to) {
+  return handle(await fetch(`${BASE}/reports/rooms-by-month?from=${from}&to=${to}`, { headers: authHeader() }));
+}
+
+export async function adminGetUsersByMonthApi(from, to) {
+  return handle(await fetch(`${BASE}/reports/users-by-month?from=${from}&to=${to}`, { headers: authHeader() }));
+}
+
+export async function adminGetRoomTypesApi() {
+  return handle(await fetch(`${BASE}/reports/room-types`, { headers: authHeader() }));
+}
+
+export async function adminGetTopCitiesApi() {
+  return handle(await fetch(`${BASE}/reports/top-cities`, { headers: authHeader() }));
+}
+
+export async function adminGetTopEmployersApi() {
+  return handle(await fetch(`${BASE}/reports/top-employers`, { headers: authHeader() }));
+}

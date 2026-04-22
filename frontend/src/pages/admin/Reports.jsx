@@ -1,5 +1,13 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import {
+  adminGetReportSummaryApi,
+  adminGetRoomsByMonthApi,
+  adminGetUsersByMonthApi,
+  adminGetRoomTypesApi,
+  adminGetTopCitiesApi,
+  adminGetTopEmployersApi,
+} from '../../api/admin';
 import './Dashboard.css';
 import './Reports.css';
 
@@ -8,58 +16,6 @@ const NAV = [
   { path: '/admin/rooms',     icon: '🏠', label: 'Quản lý tin đăng' },
   { path: '/admin/users',     icon: '👥', label: 'Quản lý người dùng' },
   { path: '/admin/reports',   icon: '📋', label: 'Báo cáo' },
-];
-
-// Mỗi entry có date để filter theo range
-const MONTHLY_ROOMS = [
-  { month: 'T11/25', date: '2025-11-01', posted: 42, approved: 35, rejected: 4 },
-  { month: 'T12/25', date: '2025-12-01', posted: 58, approved: 49, rejected: 6 },
-  { month: 'T1/26',  date: '2026-01-01', posted: 63, approved: 54, rejected: 5 },
-  { month: 'T2/26',  date: '2026-02-01', posted: 71, approved: 60, rejected: 7 },
-  { month: 'T3/26',  date: '2026-03-01', posted: 85, approved: 72, rejected: 8 },
-  { month: 'T4/26',  date: '2026-04-01', posted: 94, approved: 80, rejected: 9 },
-];
-
-const MONTHLY_USERS = [
-  { month: 'T11/25', date: '2025-11-01', user: 120, employer: 18 },
-  { month: 'T12/25', date: '2025-12-01', user: 145, employer: 22 },
-  { month: 'T1/26',  date: '2026-01-01', user: 160, employer: 25 },
-  { month: 'T2/26',  date: '2026-02-01', user: 178, employer: 30 },
-  { month: 'T3/26',  date: '2026-03-01', user: 210, employer: 35 },
-  { month: 'T4/26',  date: '2026-04-01', user: 240, employer: 42 },
-];
-
-const ROOM_TYPES = [
-  { type: 'Phòng trọ',      count: 820, color: '#3b82f6' },
-  { type: 'Chung cư mini',  count: 340, color: '#8b5cf6' },
-  { type: 'Studio',         count: 280, color: '#06b6d4' },
-  { type: 'Nhà nguyên căn', count: 210, color: '#f97316' },
-  { type: 'Căn hộ dịch vụ', count: 130, color: '#ec4899' },
-  { type: 'Ký túc xá',      count: 52,  color: '#84cc16' },
-];
-
-const TOP_CITIES = [
-  { city: 'TP. Hồ Chí Minh', count: 680, pct: 37 },
-  { city: 'Hà Nội',           count: 520, pct: 28 },
-  { city: 'Đà Nẵng',          count: 210, pct: 11 },
-  { city: 'Cần Thơ',          count: 145, pct: 8  },
-  { city: 'Hải Phòng',        count: 120, pct: 7  },
-  { city: 'Khác',             count: 157, pct: 9  },
-];
-
-const TOP_EMPLOYERS = [
-  { name: 'Bùi Thị Hoa',     rooms: 8, views: 1240, contacts: 86 },
-  { name: 'Trần Thị Lan',     rooms: 6, views: 980,  contacts: 72 },
-  { name: 'Nguyễn Văn Minh',  rooms: 5, views: 870,  contacts: 65 },
-  { name: 'Phạm Thị Dung',    rooms: 4, views: 640,  contacts: 48 },
-  { name: 'Lê Văn Nam',       rooms: 3, views: 510,  contacts: 39 },
-];
-
-const SUMMARY = [
-  { icon: '🏠', label: 'Tổng tin đăng',    value: '1,832', sub: '+94 tháng này',  color: 'blue'   },
-  { icon: '👥', label: 'Tổng người dùng',  value: '5,240', sub: '+240 tháng này', color: 'green'  },
-  { icon: '👁', label: 'Lượt xem',         value: '48,320', sub: 'Tháng 4/2026',  color: 'purple' },
-  { icon: '📞', label: 'Lượt liên hệ',     value: '3,180', sub: 'Tháng 4/2026',  color: 'orange' },
 ];
 
 const PRESETS = [
@@ -73,19 +29,61 @@ function toInputDate(d) {
 }
 
 export default function AdminReports({ user, onLogout }) {
-  const navigate  = useNavigate();
+  const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const today   = new Date('2026-04-21');
+  const today     = new Date();
   const default6m = new Date(today); default6m.setMonth(default6m.getMonth() - 6);
 
-  const [fromDate, setFromDate] = useState(toInputDate(default6m));
-  const [toDate,   setToDate]   = useState(toInputDate(today));
+  const [fromDate,     setFromDate]     = useState(toInputDate(default6m));
+  const [toDate,       setToDate]       = useState(toInputDate(today));
   const [activePreset, setActivePreset] = useState('6 tháng');
 
+  const [summary,      setSummary]      = useState(null);
+  const [roomsByMonth, setRoomsByMonth] = useState([]);
+  const [usersByMonth, setUsersByMonth] = useState([]);
+  const [roomTypes,    setRoomTypes]    = useState([]);
+  const [topCities,    setTopCities]    = useState([]);
+  const [topEmployers, setTopEmployers] = useState([]);
+  const [chartLoading, setChartLoading] = useState(false);
+
+  // Static data — load once
+  useEffect(() => {
+    Promise.all([
+      adminGetReportSummaryApi(),
+      adminGetRoomTypesApi(),
+      adminGetTopCitiesApi(),
+      adminGetTopEmployersApi(),
+    ]).then(([sum, types, cities, employers]) => {
+      setSummary(sum);
+      setRoomTypes(types.data);
+      setTopCities(cities.data);
+      setTopEmployers(employers.data);
+    }).catch(console.error);
+  }, []);
+
+  // Chart data — reload on date change
+  const fetchCharts = useCallback(async () => {
+    setChartLoading(true);
+    try {
+      const [rooms, users] = await Promise.all([
+        adminGetRoomsByMonthApi(fromDate, toDate),
+        adminGetUsersByMonthApi(fromDate, toDate),
+      ]);
+      setRoomsByMonth(rooms.data);
+      setUsersByMonth(users.data);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setChartLoading(false);
+    }
+  }, [fromDate, toDate]);
+
+  useEffect(() => { fetchCharts(); }, [fetchCharts]);
+
   const applyPreset = (preset) => {
-    const end   = new Date(today);
-    const start = new Date(today);
+    const end   = new Date();
+    const start = new Date();
     start.setDate(start.getDate() - preset.days);
     setFromDate(toInputDate(start));
     setToDate(toInputDate(end));
@@ -95,21 +93,25 @@ export default function AdminReports({ user, onLogout }) {
   const handleFromChange = (v) => { setFromDate(v); setActivePreset(''); };
   const handleToChange   = (v) => { setToDate(v);   setActivePreset(''); };
 
-  const roomData = useMemo(() =>
-    MONTHLY_ROOMS.filter(d => d.date >= fromDate && d.date <= toDate),
-    [fromDate, toDate]);
+  const maxPosted  = Math.max(...roomsByMonth.map(d => d.posted), 1);
+  const maxUsers   = Math.max(...usersByMonth.map(d => d.user + d.employer), 1);
+  const totalTypes = roomTypes.reduce((s, t) => s + t.count, 0);
 
-  const userData = useMemo(() =>
-    MONTHLY_USERS.filter(d => d.date >= fromDate && d.date <= toDate),
-    [fromDate, toDate]);
+  const SUMMARY_CARDS = summary ? [
+    { icon: '🏠', label: 'Tổng tin đăng',   value: summary.totalRooms?.toLocaleString('vi-VN'),    sub: `+${summary.newRoomsMonth} tháng này`, color: 'blue'   },
+    { icon: '👥', label: 'Tổng người dùng', value: summary.totalUsers?.toLocaleString('vi-VN'),    sub: `+${summary.newUsersMonth} tháng này`, color: 'green'  },
+    { icon: '👁', label: 'Lượt xem',        value: summary.totalViews?.toLocaleString('vi-VN'),    sub: 'Tổng cộng',                           color: 'purple' },
+    { icon: '📞', label: 'Lượt liên hệ',    value: summary.totalContacts?.toLocaleString('vi-VN'), sub: 'Tổng cộng',                           color: 'orange' },
+  ] : [];
 
-  const maxPosted = Math.max(...roomData.map(d => d.posted), 1);
-  const maxUsers  = Math.max(...userData.map(d => d.user + d.employer), 1);
-  const totalTypes = ROOM_TYPES.reduce((s, t) => s + t.count, 0);
+  const emptyChart = (
+    <span style={{ color: '#94a3b8', fontSize: '0.85rem', margin: 'auto' }}>
+      {chartLoading ? '⏳ Đang tải...' : 'Không có dữ liệu trong khoảng này'}
+    </span>
+  );
 
   return (
     <div className="adm-layout">
-      {/* SIDEBAR */}
       <aside className="adm-sidebar">
         <div className="adm-sidebar-logo"><span>🏠</span><span>PhòngTrọ<b>VN</b></span></div>
         <p className="adm-sidebar-role">Quản trị viên</p>
@@ -126,7 +128,6 @@ export default function AdminReports({ user, onLogout }) {
         </button>
       </aside>
 
-      {/* MAIN */}
       <div className="adm-main">
         <header className="adm-topbar">
           <div>
@@ -151,21 +152,26 @@ export default function AdminReports({ user, onLogout }) {
 
         <div className="adm-body">
 
-          {/* SUMMARY STATS */}
+          {/* SUMMARY */}
           <div className="adm-stats-grid" style={{ marginBottom: 24 }}>
-            {SUMMARY.map(s => (
-              <div key={s.label} className={`adm-stat-card adm-stat-${s.color}`}>
-                <div className="adm-stat-top">
-                  <span className="adm-stat-icon">{s.icon}</span>
-                  <strong className="adm-stat-value">{s.value}</strong>
-                </div>
-                <p className="adm-stat-label">{s.label}</p>
-                <span className="adm-stat-sub">{s.sub}</span>
-              </div>
-            ))}
+            {SUMMARY_CARDS.length === 0
+              ? Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="adm-stat-card adm-stat-blue rp-skeleton"></div>
+                ))
+              : SUMMARY_CARDS.map(s => (
+                  <div key={s.label} className={`adm-stat-card adm-stat-${s.color}`}>
+                    <div className="adm-stat-top">
+                      <span className="adm-stat-icon">{s.icon}</span>
+                      <strong className="adm-stat-value">{s.value}</strong>
+                    </div>
+                    <p className="adm-stat-label">{s.label}</p>
+                    <span className="adm-stat-sub">{s.sub}</span>
+                  </div>
+                ))
+            }
           </div>
 
-          {/* DATE RANGE + PRESETS */}
+          {/* DATE RANGE */}
           <div className="rp-period-row">
             <span className="rp-period-label">Khoảng thời gian:</span>
             {PRESETS.map(p => (
@@ -184,111 +190,91 @@ export default function AdminReports({ user, onLogout }) {
               onChange={e => handleToChange(e.target.value)} />
           </div>
 
-          {/* ROW 1: 2 bar charts */}
+          {/* CHARTS ROW */}
           <div className="rp-grid-2">
-
-            {/* Tin đăng theo tháng */}
             <div className="adm-card">
-              <div className="adm-card-header">
-                <h2>🏠 Tin đăng theo tháng</h2>
-              </div>
+              <div className="adm-card-header"><h2>🏠 Tin đăng theo tháng</h2></div>
               <div className="rp-legend">
                 <span className="rp-dot" style={{ background: '#3b82f6' }}></span>Đã đăng
                 <span className="rp-dot" style={{ background: '#22c55e' }}></span>Được duyệt
                 <span className="rp-dot" style={{ background: '#ef4444' }}></span>Từ chối
               </div>
               <div className="rp-bar-chart">
-                {roomData.length === 0
-                  ? <span style={{ color: '#94a3b8', fontSize: '0.85rem', margin: 'auto' }}>Không có dữ liệu trong khoảng này</span>
-                  : roomData.map(d => (
-                    <div key={d.month} className="rp-bar-group">
-                      <div className="rp-bars">
-                        <div className="rp-bar-wrap">
-                          <span className="rp-bar-val">{d.posted}</span>
-                          <div className="rp-bar" style={{ height: `${(d.posted   / maxPosted) * 100}%`, background: '#3b82f6' }} title={`Đã đăng: ${d.posted}`}></div>
-                        </div>
-                        <div className="rp-bar-wrap">
-                          <span className="rp-bar-val">{d.approved}</span>
-                          <div className="rp-bar" style={{ height: `${(d.approved / maxPosted) * 100}%`, background: '#22c55e' }} title={`Được duyệt: ${d.approved}`}></div>
-                        </div>
-                        <div className="rp-bar-wrap">
-                          <span className="rp-bar-val">{d.rejected}</span>
-                          <div className="rp-bar" style={{ height: `${(d.rejected / maxPosted) * 100}%`, background: '#ef4444' }} title={`Từ chối: ${d.rejected}`}></div>
-                        </div>
+                {roomsByMonth.length === 0 ? emptyChart : roomsByMonth.map(d => (
+                  <div key={d.month} className="rp-bar-group">
+                    <div className="rp-bars">
+                      <div className="rp-bar-wrap">
+                        <span className="rp-bar-val">{d.posted}</span>
+                        <div className="rp-bar" style={{ height: `${(d.posted   / maxPosted) * 100}%`, background: '#3b82f6' }} title={`Đã đăng: ${d.posted}`}></div>
                       </div>
-                      <span className="rp-bar-label">{d.month}</span>
+                      <div className="rp-bar-wrap">
+                        <span className="rp-bar-val">{d.approved}</span>
+                        <div className="rp-bar" style={{ height: `${(d.approved / maxPosted) * 100}%`, background: '#22c55e' }} title={`Được duyệt: ${d.approved}`}></div>
+                      </div>
+                      <div className="rp-bar-wrap">
+                        <span className="rp-bar-val">{d.rejected}</span>
+                        <div className="rp-bar" style={{ height: `${(d.rejected / maxPosted) * 100}%`, background: '#ef4444' }} title={`Từ chối: ${d.rejected}`}></div>
+                      </div>
                     </div>
-                  ))
-                }
+                    <span className="rp-bar-label">{d.month}</span>
+                  </div>
+                ))}
               </div>
             </div>
 
-            {/* Người dùng mới theo tháng */}
             <div className="adm-card">
-              <div className="adm-card-header">
-                <h2>👥 Người dùng mới theo tháng</h2>
-              </div>
+              <div className="adm-card-header"><h2>👥 Người dùng mới theo tháng</h2></div>
               <div className="rp-legend">
                 <span className="rp-dot" style={{ background: '#3b82f6' }}></span>Người thuê
                 <span className="rp-dot" style={{ background: '#f97316' }}></span>Chủ trọ
               </div>
               <div className="rp-bar-chart">
-                {userData.length === 0
-                  ? <span style={{ color: '#94a3b8', fontSize: '0.85rem', margin: 'auto' }}>Không có dữ liệu trong khoảng này</span>
-                  : userData.map(d => (
-                    <div key={d.month} className="rp-bar-group">
-                      <div className="rp-bars">
-                        <div className="rp-bar-wrap">
-                          <span className="rp-bar-val">{d.user}</span>
-                          <div className="rp-bar" style={{ height: `${(d.user     / maxUsers) * 100}%`, background: '#3b82f6' }} title={`Người thuê: ${d.user}`}></div>
-                        </div>
-                        <div className="rp-bar-wrap">
-                          <span className="rp-bar-val">{d.employer}</span>
-                          <div className="rp-bar" style={{ height: `${(d.employer / maxUsers) * 100}%`, background: '#f97316' }} title={`Chủ trọ: ${d.employer}`}></div>
-                        </div>
+                {usersByMonth.length === 0 ? emptyChart : usersByMonth.map(d => (
+                  <div key={d.month} className="rp-bar-group">
+                    <div className="rp-bars">
+                      <div className="rp-bar-wrap">
+                        <span className="rp-bar-val">{d.user}</span>
+                        <div className="rp-bar" style={{ height: `${(d.user     / maxUsers) * 100}%`, background: '#3b82f6' }} title={`Người thuê: ${d.user}`}></div>
                       </div>
-                      <span className="rp-bar-label">{d.month}</span>
+                      <div className="rp-bar-wrap">
+                        <span className="rp-bar-val">{d.employer}</span>
+                        <div className="rp-bar" style={{ height: `${(d.employer / maxUsers) * 100}%`, background: '#f97316' }} title={`Chủ trọ: ${d.employer}`}></div>
+                      </div>
                     </div>
-                  ))
-                }
+                    <span className="rp-bar-label">{d.month}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
 
-          {/* ROW 2: loại phòng + thành phố */}
+          {/* TYPE + CITY */}
           <div className="rp-grid-2">
-
-            {/* Phân bổ loại phòng */}
             <div className="adm-card">
-              <div className="adm-card-header">
-                <h2>🏷 Phân bổ loại phòng</h2>
-              </div>
+              <div className="adm-card-header"><h2>🏷 Phân bổ loại phòng</h2></div>
               <div className="rp-type-list">
-                {ROOM_TYPES.map(t => (
+                {roomTypes.map(t => (
                   <div key={t.type} className="rp-type-row">
                     <div className="rp-type-info">
                       <span className="rp-type-dot" style={{ background: t.color }}></span>
                       <span className="rp-type-name">{t.type}</span>
                     </div>
                     <div className="rp-type-bar-wrap">
-                      <div className="rp-type-bar" style={{ width: `${(t.count / totalTypes) * 100}%`, background: t.color }}></div>
+                      <div className="rp-type-bar" style={{ width: `${totalTypes ? (t.count / totalTypes) * 100 : 0}%`, background: t.color }}></div>
                     </div>
                     <div className="rp-type-meta">
                       <span>{t.count}</span>
-                      <span className="rp-type-pct">{Math.round((t.count / totalTypes) * 100)}%</span>
+                      <span className="rp-type-pct">{totalTypes ? Math.round((t.count / totalTypes) * 100) : 0}%</span>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Top thành phố */}
             <div className="adm-card">
-              <div className="adm-card-header">
-                <h2>📍 Tin đăng theo thành phố</h2>
-              </div>
+              <div className="adm-card-header"><h2>📍 Tin đăng theo thành phố</h2></div>
               <div className="rp-type-list">
-                {TOP_CITIES.map((c, i) => (
+                {topCities.map((c, i) => (
                   <div key={c.city} className="rp-type-row">
                     <div className="rp-type-info">
                       <span className="rp-rank">{i + 1}</span>
@@ -307,11 +293,9 @@ export default function AdminReports({ user, onLogout }) {
             </div>
           </div>
 
-          {/* ROW 3: top chủ trọ */}
+          {/* TOP EMPLOYERS */}
           <div className="adm-card">
-            <div className="adm-card-header">
-              <h2>🏆 Top chủ trọ hoạt động</h2>
-            </div>
+            <div className="adm-card-header"><h2>🏆 Top chủ trọ hoạt động</h2></div>
             <div className="adm-table-wrap">
               <table className="adm-table">
                 <thead>
@@ -325,26 +309,25 @@ export default function AdminReports({ user, onLogout }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {TOP_EMPLOYERS.map((e, i) => (
+                  {topEmployers.length === 0 && (
+                    <tr><td colSpan={6} className="ar-empty">⏳ Đang tải...</td></tr>
+                  )}
+                  {topEmployers.map((e, i) => (
                     <tr key={e.name}>
-                      <td>
-                        <span className={`rp-rank-badge rp-rank-${i + 1}`}>
-                          {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
-                        </span>
-                      </td>
+                      <td><span className="rp-rank-badge">{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}</span></td>
                       <td>
                         <div className="au-user-cell">
-                          <div className="au-avatar">{e.name.charAt(0)}</div>
+                          <div className="au-avatar">{e.name?.charAt(0)}</div>
                           <span>{e.name}</span>
                         </div>
                       </td>
                       <td><span className="au-rooms-count">{e.rooms} tin</span></td>
-                      <td>{e.views.toLocaleString('vi-VN')}</td>
+                      <td>{Number(e.views).toLocaleString('vi-VN')}</td>
                       <td>{e.contacts}</td>
                       <td>
                         <div className="rp-contact-rate">
-                          <div className="rp-contact-bar" style={{ width: `${Math.round((e.contacts / e.views) * 100)}%` }}></div>
-                          <span>{Math.round((e.contacts / e.views) * 100)}%</span>
+                          <div className="rp-contact-bar" style={{ width: `${e.views > 0 ? Math.round((e.contacts / e.views) * 100) : 0}%` }}></div>
+                          <span>{e.views > 0 ? Math.round((e.contacts / e.views) * 100) : 0}%</span>
                         </div>
                       </td>
                     </tr>

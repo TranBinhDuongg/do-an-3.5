@@ -185,3 +185,106 @@ BEGIN
     WHERE ma_nd = @ma_nd;
 END
 GO
+
+-- ============================================================
+-- Stored Procedures cho Admin báo cáo
+-- ============================================================
+
+-- ── 10. Tổng quan báo cáo ───────────────────────────────────
+CREATE OR ALTER PROCEDURE sp_AdminBaoCaoTongQuan
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @thang_dau DATETIME2 = DATEADD(DAY, 1 - DAY(GETDATE()), CAST(GETDATE() AS DATE));
+    SELECT
+        (SELECT COUNT(*) FROM phong_tro)                                          AS tong_tin,
+        (SELECT COUNT(*) FROM nguoi_dung)                                         AS tong_nguoi_dung,
+        (SELECT ISNULL(SUM(luot_xem), 0) FROM phong_tro)                          AS tong_luot_xem,
+        (SELECT ISNULL(SUM(so_lien_he), 0) FROM phong_tro)                        AS tong_lien_he,
+        (SELECT COUNT(*) FROM phong_tro WHERE ngay_tao >= @thang_dau)             AS tin_moi_thang,
+        (SELECT COUNT(*) FROM nguoi_dung WHERE ngay_tao >= @thang_dau)            AS user_moi_thang;
+END
+GO
+
+-- ── 11. Tin đăng theo tháng ─────────────────────────────────
+CREATE OR ALTER PROCEDURE sp_AdminThongKeTinDangTheoThang
+    @tu_ngay  DATE,
+    @den_ngay DATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT
+        FORMAT(DATEFROMPARTS(YEAR(ngay_tao), MONTH(ngay_tao), 1), 'T M/yy') AS thang_label,
+        CAST(DATEFROMPARTS(YEAR(ngay_tao), MONTH(ngay_tao), 1) AS VARCHAR(10)) AS thang_date,
+        COUNT(*)                                                               AS tong_dang,
+        SUM(CASE WHEN trang_thai = 'approved' THEN 1 ELSE 0 END)              AS duoc_duyet,
+        SUM(CASE WHEN trang_thai = 'rejected' THEN 1 ELSE 0 END)              AS tu_choi
+    FROM phong_tro
+    WHERE CAST(ngay_tao AS DATE) BETWEEN @tu_ngay AND @den_ngay
+    GROUP BY YEAR(ngay_tao), MONTH(ngay_tao)
+    ORDER BY YEAR(ngay_tao), MONTH(ngay_tao);
+END
+GO
+
+-- ── 12. Người dùng mới theo tháng ──────────────────────────
+CREATE OR ALTER PROCEDURE sp_AdminThongKeNguoiDungTheoThang
+    @tu_ngay  DATE,
+    @den_ngay DATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT
+        FORMAT(DATEFROMPARTS(YEAR(ngay_tao), MONTH(ngay_tao), 1), 'T M/yy') AS thang_label,
+        CAST(DATEFROMPARTS(YEAR(ngay_tao), MONTH(ngay_tao), 1) AS VARCHAR(10)) AS thang_date,
+        SUM(CASE WHEN vai_tro = 'user'     THEN 1 ELSE 0 END) AS nguoi_thue,
+        SUM(CASE WHEN vai_tro = 'employer' THEN 1 ELSE 0 END) AS chu_tro
+    FROM nguoi_dung
+    WHERE CAST(ngay_tao AS DATE) BETWEEN @tu_ngay AND @den_ngay
+    GROUP BY YEAR(ngay_tao), MONTH(ngay_tao)
+    ORDER BY YEAR(ngay_tao), MONTH(ngay_tao);
+END
+GO
+
+-- ── 13. Phân bổ loại phòng ──────────────────────────────────
+CREATE OR ALTER PROCEDURE sp_AdminThongKeLoaiPhong
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT loai_phong, COUNT(*) AS so_luong
+    FROM phong_tro
+    GROUP BY loai_phong
+    ORDER BY so_luong DESC;
+END
+GO
+
+-- ── 14. Top thành phố ───────────────────────────────────────
+CREATE OR ALTER PROCEDURE sp_AdminTopThanhPho
+    @gioi_han INT = 6
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT TOP (@gioi_han) tinh_thanh, COUNT(*) AS so_luong
+    FROM phong_tro
+    GROUP BY tinh_thanh
+    ORDER BY so_luong DESC;
+END
+GO
+
+-- ── 15. Top chủ trọ ─────────────────────────────────────────
+CREATE OR ALTER PROCEDURE sp_AdminTopChuTro
+    @gioi_han INT = 5
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT TOP (@gioi_han)
+        n.ho_ten,
+        COUNT(p.ma_phong)          AS so_tin,
+        ISNULL(SUM(p.luot_xem), 0) AS tong_luot_xem,
+        ISNULL(SUM(p.so_lien_he), 0) AS tong_lien_he
+    FROM nguoi_dung n
+    JOIN phong_tro p ON p.ma_chu_tro = n.ma_nd
+    WHERE n.vai_tro = 'employer'
+    GROUP BY n.ma_nd, n.ho_ten
+    ORDER BY tong_luot_xem DESC;
+END
+GO
