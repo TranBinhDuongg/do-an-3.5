@@ -127,7 +127,7 @@
 }
 
 /* ── Body ── */
-.adm-body { padding: 28px 32px; }
+.adm-body { padding: 28px 32px; overflow-x: hidden; }
 
 /* ── Stats ── */
 .adm-stats-grid {
@@ -178,8 +178,8 @@
 .adm-see-all:hover { text-decoration: underline; }
 
 /* ── Table ── */
-.adm-table-wrap { overflow-x: auto; }
-.adm-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.adm-table-wrap { overflow-x: auto; max-width: 100%; }
+.adm-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 600px; }
 .adm-table th {
   text-align: left;
   padding: 8px 12px;
