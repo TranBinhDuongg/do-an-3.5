@@ -182,15 +182,6 @@ export default function Home({ user, onLogout }) {
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="home-cta">
-        <div className="home-container">
-          <h2>Bạn có phòng muốn cho thuê?</h2>
-          <p>Đăng tin miễn phí, tiếp cận hàng nghìn người thuê mỗi ngày</p>
-          <Link to="/post-room" className="home-cta-btn">Đăng tin ngay →</Link>
-        </div>
-      </section>
-
       {/* FOOTER */}
       <footer className="home-footer">
         <div className="home-container">

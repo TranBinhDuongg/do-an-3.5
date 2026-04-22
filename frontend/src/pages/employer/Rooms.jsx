@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { getRoomsEmployerApi, updateRoomStatusApi, deleteRoomApi } from '../../api/employer';
+import { getRoomsEmployerApi, updateRoomStatusApi, deleteRoomApi, getNotificationsApi, readAllNotificationsApi } from '../../api/employer';
 import './Home.css';
 import './Rooms.css';
 
@@ -25,8 +25,25 @@ export default function Rooms({ user, onLogout }) {
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
+  const [notiOpen, setNotiOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
   const [confirmDelete, setConfirmDelete] = useState(null); // roomId to delete
   const navigate = useNavigate();
+
+  useEffect(() => {
+    getNotificationsApi()
+      .then(d => setNotifications(d.notifications))
+      .catch(() => {});
+  }, []);
+
+  const unreadCount = notifications.filter(n => n.unread).length;
+
+  const handleReadAll = async () => {
+    try {
+      await readAllNotificationsApi();
+      setNotifications(prev => prev.map(n => ({ ...n, unread: false })));
+    } catch {}
+  };
 
   const fetchRooms = async (status) => {
     setLoading(true);
@@ -84,8 +101,28 @@ export default function Rooms({ user, onLogout }) {
             <Link to="/employer/pricing" className="emp-nav-link emp-nav-link-pricing">💎 Mua gói</Link>
           </div>
           <div className="emp-nav-right">
+            <div className="emp-noti-wrap">
+              <button className="emp-noti-btn" onClick={() => { setNotiOpen(!notiOpen); setMenuOpen(false); }}>
+                🔔
+                {unreadCount > 0 && <span className="emp-noti-dot">{unreadCount}</span>}
+              </button>
+              {notiOpen && (
+                <div className="emp-noti-dropdown">
+                  <div className="emp-noti-header">
+                    <strong>Thông báo</strong>
+                    {unreadCount > 0 && <button onClick={handleReadAll}>Đánh dấu đã đọc</button>}
+                  </div>
+                  {notifications.length ? notifications.map(n => (
+                    <div key={n.id} className={`emp-noti-item ${n.unread ? 'unread' : ''}`}>
+                      <span className="emp-noti-icon">{n.icon}</span>
+                      <div><p>{n.text}</p><span>{n.time}</span></div>
+                    </div>
+                  )) : <p className="emp-noti-empty">Không có thông báo</p>}
+                </div>
+              )}
+            </div>
             <div className="emp-user-wrap">
-              <button className="emp-user-btn" onClick={() => setMenuOpen(!menuOpen)}>
+              <button className="emp-user-btn" onClick={() => { setMenuOpen(!menuOpen); setNotiOpen(false); }}>
                 <div className="emp-avatar">
                   {user?.avatar_url
                     ? <img src={user.avatar_url} alt="avatar" />

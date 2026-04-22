@@ -12,6 +12,13 @@ export async function getDashboardApi() {
   return data; // { stats, rooms, notifications, goi }
 }
 
+export async function getNotificationsApi() {
+  const res = await fetch(`${BASE}/notifications`, { headers: authHeader() });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message);
+  return data; // { notifications }
+}
+
 export async function readAllNotificationsApi() {
   const res = await fetch(`${BASE}/notifications/read-all`, {
     method: 'POST',

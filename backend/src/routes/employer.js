@@ -217,6 +217,28 @@ router.delete('/rooms/:id', auth(['employer', 'admin']), async (req, res) => {
   }
 });
 
+// GET /api/employer/notifications
+router.get('/notifications', auth(['employer', 'admin']), async (req, res) => {
+  try {
+    await poolConnect;
+    const result = await pool.request()
+      .input('ma_nd',    sql.Int, req.user.id)
+      .input('gioi_han', sql.Int, 20)
+      .execute('sp_LayThongBao');
+    const notifications = result.recordset.map(n => ({
+      id:     n.ma_tb,
+      icon:   n.bieu_tuong || '🔔',
+      text:   n.noi_dung,
+      unread: !n.da_doc,
+      time:   timeAgo(n.ngay_tao),
+    }));
+    return res.json({ notifications });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Lỗi server' });
+  }
+});
+
 // POST /api/employer/notifications/read-all
 router.post('/notifications/read-all', auth(['employer', 'admin']), async (req, res) => {
   try {
