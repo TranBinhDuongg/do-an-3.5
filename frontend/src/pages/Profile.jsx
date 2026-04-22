@@ -72,7 +72,7 @@ export default function Profile({ user, onLogin, onLogout }) {
     const file = e.target.files[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) return showMsg('error', 'Vui lòng chọn file ảnh');
-    if (file.size > 2 * 1024 * 1024) return showMsg('error', 'Ảnh phải nhỏ hơn 2MB');
+    if (file.size > 4 * 1024 * 1024) return showMsg('error', 'Ảnh phải nhỏ hơn 4MB');
     const reader = new FileReader();
     reader.onload = (ev) => setAvatarPreview(ev.target.result);
     reader.readAsDataURL(file);
@@ -198,7 +198,7 @@ export default function Profile({ user, onLogin, onLogout }) {
                     : <div className="prof-avatar-placeholder">{initials}</div>}
                 </div>
                 <div className="prof-avatar-actions">
-                  <p className="prof-hint">Chọn ảnh JPG, PNG. Tối đa 2MB.</p>
+                  <p className="prof-hint">Chọn ảnh JPG, PNG. Tối đa 4MB.</p>
                   <input
                     ref={fileRef}
                     type="file"
