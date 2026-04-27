@@ -7,56 +7,36 @@ const FALLBACK_IMG = 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?
 const CITIES = ['Hà Nội', 'TP. Hồ Chí Minh', 'Đà Nẵng', 'Cần Thơ', 'Hải Phòng'];
 const TYPES  = ['Phòng trọ', 'Chung cư mini', 'Nhà nguyên căn', 'Studio', 'Ký túc xá', 'Căn hộ dịch vụ'];
 const PRICES = [
-  { label: 'Tất cả',      min: '',        max: '' },
-  { label: 'Dưới 2 triệu', min: '',       max: '2000000' },
+  { label: 'Tất cả',       min: '',        max: '' },
+  { label: 'Dưới 2 triệu', min: '',        max: '2000000' },
   { label: '2 – 4 triệu',  min: '2000000', max: '4000000' },
   { label: '4 – 6 triệu',  min: '4000000', max: '6000000' },
   { label: 'Trên 6 triệu', min: '6000000', max: '' },
 ];
 
-const mockNotifications = [
-  { id: 1, icon: '✅', text: 'Tin đăng "Phòng trọ 15 Tạ Quang Bửu" đã được duyệt.', time: '10 phút trước', unread: true },
-  { id: 2, icon: '💬', text: 'Chủ trọ Trần Văn B đã nhắn tin cho bạn.', time: '1 giờ trước', unread: true },
-  { id: 3, icon: '🏠', text: 'Có 5 phòng mới phù hợp với tìm kiếm của bạn.', time: 'Hôm qua', unread: false },
-];
-
 export default function Search({ user, onLogout }) {
   const [searchParams] = useSearchParams();
-  const [keyword, setKeyword] = useState(searchParams.get('keyword') || '');
-  const [city, setCity]       = useState(searchParams.get('city') || '');
-  const [type, setType]       = useState(searchParams.get('type') || '');
-  const [priceIdx, setPriceIdx] = useState(0);
-  const [minArea, setMinArea]   = useState('');
-  const [sort, setSort]         = useState('newest');
-  const [results, setResults]   = useState([]);
-  const [total, setTotal]       = useState(0);
-  const [page, setPage]         = useState(1);
+  const [keyword, setKeyword]     = useState(searchParams.get('keyword') || '');
+  const [city, setCity]           = useState(searchParams.get('city') || '');
+  const [type, setType]           = useState(searchParams.get('type') || '');
+  const [priceIdx, setPriceIdx]   = useState(0);
+  const [minArea, setMinArea]     = useState('');
+  const [sort, setSort]           = useState('newest');
+  const [results, setResults]     = useState([]);
+  const [total, setTotal]         = useState(0);
+  const [page, setPage]           = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [loading, setLoading]   = useState(false);
-  const [viewMode, setViewMode] = useState('grid');
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [notiOpen, setNotiOpen] = useState(false);
-  const [notifications, setNotifications] = useState(mockNotifications);
+  const [loading, setLoading]     = useState(false);
+  const [viewMode, setViewMode]   = useState('grid');
+  const [menuOpen, setMenuOpen]   = useState(false);
   const navigate = useNavigate();
-
-  const unreadCount = notifications.filter(n => n.unread).length;
-  const handleReadAll = () => setNotifications(prev => prev.map(n => ({ ...n, unread: false })));
 
   const priceFilter = PRICES[priceIdx];
 
   useEffect(() => {
     setLoading(true);
-    getRoomsApi({
-      keyword, city, type,
-      minPrice: priceFilter.min,
-      maxPrice: priceFilter.max,
-      minArea, sort, page,
-    })
-      .then(d => {
-        setResults(d.rooms);
-        setTotal(d.total);
-        setTotalPages(d.totalPages);
-      })
+    getRoomsApi({ keyword, city, type, minPrice: priceFilter.min, maxPrice: priceFilter.max, minArea, sort, page })
+      .then(d => { setResults(d.rooms); setTotal(d.total); setTotalPages(d.totalPages); })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [keyword, city, type, priceIdx, minArea, sort, page]);
@@ -82,34 +62,10 @@ export default function Search({ user, onLogout }) {
           <div className="search-nav-auth">
             {user ? (
               <div className="search-nav-user">
-                {/* Notification bell */}
-                <div className="search-noti-wrap">
-                  <button className="search-noti-btn" onClick={() => { setNotiOpen(!notiOpen); setMenuOpen(false); }}>
-                    🔔
-                    {unreadCount > 0 && <span className="search-noti-dot">{unreadCount}</span>}
-                  </button>
-                  {notiOpen && (
-                    <div className="search-noti-dropdown">
-                      <div className="search-noti-header">
-                        <strong>Thông báo</strong>
-                        {unreadCount > 0 && <button onClick={handleReadAll}>Đánh dấu đã đọc</button>}
-                      </div>
-                      {notifications.map(n => (
-                        <div key={n.id} className={`search-noti-item ${n.unread ? 'unread' : ''}`}>
-                          <span>{n.icon}</span>
-                          <div><p>{n.text}</p><span>{n.time}</span></div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                {/* Avatar + dropdown */}
                 <div className="search-nav-avatar-wrap">
-                  <button className="search-nav-avatar-btn" onClick={() => { setMenuOpen(!menuOpen); setNotiOpen(false); }}>
+                  <button className="search-nav-avatar-btn" onClick={() => setMenuOpen(!menuOpen)}>
                     <div className="search-nav-avatar">
-                      {user.avatar_url
-                        ? <img src={user.avatar_url} alt="avatar" />
-                        : user.name?.charAt(0)}
+                      {user.avatar_url ? <img src={user.avatar_url} alt="avatar" /> : user.name?.charAt(0)}
                     </div>
                     <div className="search-nav-user-info">
                       <span className="search-nav-user-name">{user.name}</span>
@@ -141,12 +97,8 @@ export default function Search({ user, onLogout }) {
         <div className="search-topbar-inner">
           <div className="search-topbar-input">
             <span>🔍</span>
-            <input
-              type="text"
-              placeholder="Tìm theo tên, địa chỉ, khu vực..."
-              value={keyword}
-              onChange={e => setKeyword(e.target.value)}
-            />
+            <input type="text" placeholder="Tìm theo tên, địa chỉ, khu vực..."
+              value={keyword} onChange={e => setKeyword(e.target.value)} />
             {keyword && <button className="search-clear-input" onClick={() => setKeyword('')}>✕</button>}
           </div>
           <select value={city} onChange={e => setCity(e.target.value)}>
@@ -167,12 +119,8 @@ export default function Search({ user, onLogout }) {
           <div className="search-filter-card">
             <div className="search-filter-header">
               <h3>🔧 Bộ lọc {activeCount > 0 && <span className="search-filter-count">{activeCount}</span>}</h3>
-              {activeCount > 0 && (
-                <button className="search-filter-clear" onClick={clearFilters}>Xóa tất cả</button>
-              )}
+              {activeCount > 0 && <button className="search-filter-clear" onClick={clearFilters}>Xóa tất cả</button>}
             </div>
-
-            {/* Loại phòng */}
             <div className="search-filter-group">
               <p className="search-filter-label">Loại phòng</p>
               <div className="search-filter-tags">
@@ -182,21 +130,16 @@ export default function Search({ user, onLogout }) {
                 ))}
               </div>
             </div>
-
-            {/* Mức giá */}
             <div className="search-filter-group">
               <p className="search-filter-label">Mức giá</p>
               {PRICES.map((p, i) => (
                 <label key={p.label} className="search-filter-radio">
-                  <input type="radio" name="price" value={i}
-                    checked={priceIdx === i}
+                  <input type="radio" name="price" checked={priceIdx === i}
                     onChange={() => { setPriceIdx(i); setPage(1); }} />
                   {p.label}
                 </label>
               ))}
             </div>
-
-            {/* Diện tích */}
             <div className="search-filter-group">
               <p className="search-filter-label">Diện tích tối thiểu</p>
               <div className="search-area-btns">
@@ -206,35 +149,26 @@ export default function Search({ user, onLogout }) {
                 ))}
               </div>
             </div>
-
-            {/* Tỉnh thành */}
             <div className="search-filter-group">
               <p className="search-filter-label">Tỉnh / Thành phố</p>
               {CITIES.map(c => (
                 <label key={c} className="search-filter-radio">
-                  <input type="radio" name="city" value={c}
-                    checked={city === c}
-                    onChange={e => setCity(e.target.value)} />
-                  {c}
+                  <input type="radio" name="city" value={c} checked={city === c}
+                    onChange={e => setCity(e.target.value)} />{c}
                 </label>
               ))}
               <label className="search-filter-radio">
-                <input type="radio" name="city" value=""
-                  checked={city === ''}
-                  onChange={() => setCity('')} />
-                Tất cả
+                <input type="radio" name="city" value="" checked={city === ''} onChange={() => setCity('')} />Tất cả
               </label>
             </div>
           </div>
         </aside>
 
-        {/* MAIN RESULTS */}
+        {/* MAIN */}
         <main className="search-main">
-          {/* Result header */}
           <div className="search-result-bar">
             <p className="search-result-count">
-              {loading ? 'Đang tìm...' : <>Tìm thấy <strong>{total}</strong> phòng
-              {keyword && <span> cho "<em>{keyword}</em>"</span>}</>}
+              {loading ? 'Đang tìm...' : <>Tìm thấy <strong>{total}</strong> phòng{keyword && <span> cho "<em>{keyword}</em>"</span>}</>}
             </p>
             <div className="search-result-controls">
               <select value={sort} onChange={e => { setSort(e.target.value); setPage(1); }} className="search-sort-select">
@@ -250,17 +184,15 @@ export default function Search({ user, onLogout }) {
             </div>
           </div>
 
-          {/* Active filter chips */}
           {activeCount > 0 && (
             <div className="search-active-filters">
-              {city       && <span className="search-chip">📍 {city} <button onClick={() => { setCity(''); setPage(1); }}>✕</button></span>}
-              {type       && <span className="search-chip">🏠 {type} <button onClick={() => { setType(''); setPage(1); }}>✕</button></span>}
+              {city      && <span className="search-chip">📍 {city} <button onClick={() => { setCity(''); setPage(1); }}>✕</button></span>}
+              {type      && <span className="search-chip">🏠 {type} <button onClick={() => { setType(''); setPage(1); }}>✕</button></span>}
               {priceIdx > 0 && <span className="search-chip">💰 {PRICES[priceIdx].label} <button onClick={() => { setPriceIdx(0); setPage(1); }}>✕</button></span>}
-              {minArea    && <span className="search-chip">📐 ≥ {minArea}m² <button onClick={() => { setMinArea(''); setPage(1); }}>✕</button></span>}
+              {minArea   && <span className="search-chip">📐 ≥ {minArea}m² <button onClick={() => { setMinArea(''); setPage(1); }}>✕</button></span>}
             </div>
           )}
 
-          {/* Results */}
           {!loading && results.length === 0 ? (
             <div className="search-empty">
               <span>🔍</span>
@@ -278,7 +210,6 @@ export default function Search({ user, onLogout }) {
             </div>
           )}
 
-          {/* Pagination */}
           {totalPages > 1 && (
             <div className="search-pagination">
               <button disabled={page <= 1} onClick={() => setPage(p => p - 1)}>← Trước</button>
@@ -295,31 +226,24 @@ export default function Search({ user, onLogout }) {
 function RoomCard({ room, user }) {
   const [saved, setSaved] = useState(false);
   const navigate = useNavigate();
-
   useEffect(() => {
     if (!user) return;
     checkFavoriteApi(room.id).then(d => setSaved(d.saved)).catch(() => {});
   }, [room.id, user]);
-
   const toggleFav = async (e) => {
     e.preventDefault();
     if (!user) { navigate('/login'); return; }
     try {
       if (saved) { await removeFavoriteApi(room.id); setSaved(false); }
-      else        { await addFavoriteApi(room.id);    setSaved(true);  }
-    } catch (err) { console.error(err); }
+      else        { await addFavoriteApi(room.id);    setSaved(true); }
+    } catch {}
   };
-
   return (
     <Link to={`/room/${room.id}`} className="sc-card">
       <div className="sc-card-img">
         <img src={room.image || FALLBACK_IMG} alt={room.title} />
-        <span className={`sc-badge ${room.available ? 'green' : 'red'}`}>
-          {room.available ? 'Còn phòng' : 'Hết phòng'}
-        </span>
-        <button className="sc-save" onClick={toggleFav} title={saved ? 'Bỏ yêu thích' : 'Thêm yêu thích'}>
-          {saved ? '❤️' : '🤍'}
-        </button>
+        <span className={`sc-badge ${room.available ? 'green' : 'red'}`}>{room.available ? 'Còn phòng' : 'Hết phòng'}</span>
+        <button className="sc-save" onClick={toggleFav}>{saved ? '❤️' : '🤍'}</button>
       </div>
       <div className="sc-body">
         <h3 className="sc-title">{room.title}</h3>
@@ -340,35 +264,28 @@ function RoomCard({ room, user }) {
 function RoomListItem({ room, user }) {
   const [saved, setSaved] = useState(false);
   const navigate = useNavigate();
-
   useEffect(() => {
     if (!user) return;
     checkFavoriteApi(room.id).then(d => setSaved(d.saved)).catch(() => {});
   }, [room.id, user]);
-
   const toggleFav = async (e) => {
     e.preventDefault();
     if (!user) { navigate('/login'); return; }
     try {
       if (saved) { await removeFavoriteApi(room.id); setSaved(false); }
-      else        { await addFavoriteApi(room.id);    setSaved(true);  }
-    } catch (err) { console.error(err); }
+      else        { await addFavoriteApi(room.id);    setSaved(true); }
+    } catch {}
   };
-
   return (
     <Link to={`/room/${room.id}`} className="sc-list-item">
       <div className="sc-list-img">
         <img src={room.image || FALLBACK_IMG} alt={room.title} />
-        <span className={`sc-badge ${room.available ? 'green' : 'red'}`}>
-          {room.available ? 'Còn phòng' : 'Hết phòng'}
-        </span>
+        <span className={`sc-badge ${room.available ? 'green' : 'red'}`}>{room.available ? 'Còn phòng' : 'Hết phòng'}</span>
       </div>
       <div className="sc-list-body">
         <div className="sc-list-top">
           <h3 className="sc-title">{room.title}</h3>
-          <button className="sc-save" onClick={toggleFav} title={saved ? 'Bỏ yêu thích' : 'Thêm yêu thích'}>
-            {saved ? '❤️' : '🤍'}
-          </button>
+          <button className="sc-save" onClick={toggleFav}>{saved ? '❤️' : '🤍'}</button>
         </div>
         <p className="sc-addr">📍 {room.address}</p>
         <div className="sc-meta">

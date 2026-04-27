@@ -25,6 +25,7 @@ app.use('/api/rooms',     require('./src/routes/rooms'));
 app.use('/api/favorites', require('./src/routes/favorites'));
 app.use('/api/employer', require('./src/routes/employer'));
 app.use('/api/admin',   require('./src/routes/admin'));
+app.use('/api/notifications', require('./src/routes/notifications'));
 
 // Health check
 app.get('/', (req, res) => res.json({ message: 'PhòngTrọVN API running' }));

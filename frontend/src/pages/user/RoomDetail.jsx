@@ -5,12 +5,6 @@ import './RoomDetail.css';
 
 const FALLBACK_IMG = 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=800&h=500&fit=crop';
 
-const mockNotifications = [
-  { id: 1, icon: '✅', text: 'Tin đăng "Phòng trọ 15 Tạ Quang Bửu" đã được duyệt.', time: '10 phút trước', unread: true },
-  { id: 2, icon: '💬', text: 'Chủ trọ Trần Văn B đã nhắn tin cho bạn.', time: '1 giờ trước', unread: true },
-  { id: 3, icon: '🏠', text: 'Có 5 phòng mới phù hợp với tìm kiếm của bạn.', time: 'Hôm qua', unread: false },
-];
-
 export default function RoomDetail({ user, onLogout }) {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -20,13 +14,8 @@ export default function RoomDetail({ user, onLogout }) {
   const [imgIdx, setImgIdx] = useState(0);
   const [saved, setSaved] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [notiOpen, setNotiOpen] = useState(false);
-  const [notifications, setNotifications] = useState(mockNotifications);
   const [showPhone, setShowPhone] = useState(false);
   const [lightbox, setLightbox] = useState(false);
-
-  const unreadCount = notifications.filter(n => n.unread).length;
-  const handleReadAll = () => setNotifications(prev => prev.map(n => ({ ...n, unread: false })));
 
   useEffect(() => {
     setLoading(true);
@@ -75,28 +64,8 @@ export default function RoomDetail({ user, onLogout }) {
           <div className="rd-nav-auth">
             {user ? (
               <div className="rd-nav-user">
-                <div className="rd-noti-wrap">
-                  <button className="rd-noti-btn" onClick={() => { setNotiOpen(!notiOpen); setMenuOpen(false); }}>
-                    🔔
-                    {unreadCount > 0 && <span className="rd-noti-dot">{unreadCount}</span>}
-                  </button>
-                  {notiOpen && (
-                    <div className="rd-noti-dropdown">
-                      <div className="rd-noti-header">
-                        <strong>Thông báo</strong>
-                        {unreadCount > 0 && <button onClick={handleReadAll}>Đánh dấu đã đọc</button>}
-                      </div>
-                      {notifications.map(n => (
-                        <div key={n.id} className={`rd-noti-item ${n.unread ? 'unread' : ''}`}>
-                          <span>{n.icon}</span>
-                          <div><p>{n.text}</p><span>{n.time}</span></div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
                 <div className="rd-nav-avatar-wrap">
-                  <button className="rd-nav-avatar-btn" onClick={() => { setMenuOpen(!menuOpen); setNotiOpen(false); }}>
+                  <button className="rd-nav-avatar-btn" onClick={() => setMenuOpen(!menuOpen)}>
                     <div className="rd-nav-avatar">
                       {user.avatar_url ? <img src={user.avatar_url} alt="avatar" /> : user.name?.charAt(0)}
                     </div>

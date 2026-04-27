@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { getDashboardApi, readAllNotificationsApi } from '../../api/employer';
+import { getDashboardApi } from '../../api/employer';
+import NotificationBell from '../../components/NotificationBell';
 import './Home.css';
 
 const STATUS_LABEL = {
@@ -12,7 +13,6 @@ const STATUS_LABEL = {
 
 export default function EmployerHome({ user, onLogout }) {
   const [menuOpen, setMenuOpen]   = useState(false);
-  const [notiOpen, setNotiOpen]   = useState(false);
   const [loading, setLoading]     = useState(true);
   const [data, setData]           = useState(null);
   const [error, setError]         = useState('');
@@ -24,16 +24,6 @@ export default function EmployerHome({ user, onLogout }) {
       .catch(e => setError(e.message))
       .finally(() => setLoading(false));
   }, []);
-
-  const handleReadAll = async () => {
-    try {
-      await readAllNotificationsApi();
-      setData(prev => ({
-        ...prev,
-        notifications: prev.notifications.map(n => ({ ...n, unread: false })),
-      }));
-    } catch {}
-  };
 
   const stats = data ? [
     { icon: '🏠', label: 'Tin đang đăng',   value: data.stats.tin_dang      ?? 0, color: 'blue',   sub: `${data.stats.tong_tin ?? 0} tổng cộng` },
@@ -57,28 +47,9 @@ export default function EmployerHome({ user, onLogout }) {
             <Link to="/employer/pricing" className="emp-nav-link emp-nav-link-pricing">💎 Mua gói</Link>
           </div>
           <div className="emp-nav-right">
-            <div className="emp-noti-wrap">
-              <button className="emp-noti-btn" onClick={() => { setNotiOpen(!notiOpen); setMenuOpen(false); }}>
-                🔔
-                {unreadCount > 0 && <span className="emp-noti-dot">{unreadCount}</span>}
-              </button>
-              {notiOpen && (
-                <div className="emp-noti-dropdown">
-                  <div className="emp-noti-header">
-                    <strong>Thông báo</strong>
-                    {unreadCount > 0 && <button onClick={handleReadAll}>Đánh dấu đã đọc</button>}
-                  </div>
-                  {data?.notifications?.length ? data.notifications.map(n => (
-                    <div key={n.id} className={`emp-noti-item ${n.unread ? 'unread' : ''}`}>
-                      <span className="emp-noti-icon">{n.icon}</span>
-                      <div><p>{n.text}</p><span>{n.time}</span></div>
-                    </div>
-                  )) : <p className="emp-noti-empty">Không có thông báo</p>}
-                </div>
-              )}
-            </div>
+            <NotificationBell user={user} />
             <div className="emp-user-wrap">
-              <button className="emp-user-btn" onClick={() => { setMenuOpen(!menuOpen); setNotiOpen(false); }}>
+              <button className="emp-user-btn" onClick={() => setMenuOpen(!menuOpen)}>
                 <div className="emp-avatar">
                   {user?.avatar_url ? <img src={user.avatar_url} alt="avatar" /> : (user?.name?.charAt(0) || 'C')}
                 </div>
