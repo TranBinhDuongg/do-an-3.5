@@ -132,6 +132,32 @@ router.post('/forgot-password/reset', async (req, res) => {
 
 // GET /api/auth/me
 const auth = require('../middleware/auth');
+const passport = require('passport');
+
+// GET /api/auth/google
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+// GET /api/auth/google/callback
+router.get('/google/callback',
+  passport.authenticate('google', { session: false, failureRedirect: `${process.env.FRONTEND_URL}/login?error=google` }),
+  (req, res) => {
+    const user = req.user;
+    const token = jwt.sign(
+      { id: user.ma_nd, name: user.ho_ten, username: user.tai_khoan, role: user.vai_tro },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+    );
+    const userData = encodeURIComponent(JSON.stringify({
+      id:         user.ma_nd,
+      name:       user.ho_ten,
+      username:   user.tai_khoan,
+      phone:      user.dien_thoai,
+      role:       user.vai_tro,
+      avatar_url: user.anh_dai_dien,
+    }));
+    res.redirect(`${process.env.FRONTEND_URL}/auth/google/callback?token=${token}&user=${userData}`);
+  }
+);
 router.get('/me', auth(), async (req, res) => {
   try {
     await poolConnect;

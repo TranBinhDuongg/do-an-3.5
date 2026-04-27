@@ -21,6 +21,7 @@ import Profile from './pages/Profile';
 import Message from './pages/user/Message';
 import Favorites from './pages/user/Favorites';
 import ChatBubble from './components/ChatBubble';
+import GoogleCallback from './pages/GoogleCallback';
 
 function ChatBubbleWrapper() {
   const { pathname } = useLocation();
@@ -53,6 +54,7 @@ export default function App() {
         <Route path="/login"           element={<Login          onLogin={login} />} />
         <Route path="/register"        element={<Register       onLogin={login} />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/auth/google/callback" element={<GoogleCallback onLogin={login} />} />
         <Route path="/terms"           element={<Terms />} />
         <Route path="/privacy"         element={<Privacy />} />
         <Route path="/admin/login"     element={<AdminLogin onLogin={login} />} />
