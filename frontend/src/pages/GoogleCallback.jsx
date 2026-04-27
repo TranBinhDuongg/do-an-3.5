@@ -12,6 +12,7 @@ export default function GoogleCallback({ onLogin }) {
       try {
         const user = JSON.parse(decodeURIComponent(userStr));
         localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
         onLogin(user);
         navigate(user.role === 'employer' ? '/employer' : '/');
       } catch {

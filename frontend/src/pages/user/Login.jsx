@@ -142,7 +142,7 @@ export default function Login({ onLogin }) {
           </div>
 
           <div className="login-socials">
-            <button className="login-social-btn" onClick={() => window.location.href = 'http://localhost:5000/api/auth/google'}>
+            <button className="login-social-btn" onClick={() => window.location.href = `http://localhost:5000/api/auth/google?role=${role}`}>
               <img src="https://www.google.com/favicon.ico" width={16} alt="Google" />
               Google
             </button>

@@ -36,10 +36,10 @@ export default function EmployerHome({ user, onLogout }) {
   };
 
   const stats = data ? [
-    { icon: '🏠', label: 'Tin đang đăng',   value: data.stats.tin_dang,      color: 'blue',   sub: `${data.stats.tong_tin} tổng cộng` },
-    { icon: '👁️', label: 'Tổng lượt xem',   value: data.stats.tong_luot_xem, color: 'green',  sub: 'Tất cả tin đăng' },
-    { icon: '📞', label: 'Tổng liên hệ',    value: data.stats.tong_lien_he,  color: 'orange', sub: 'Tất cả tin đăng' },
-    { icon: '❤️', label: 'Lượt lưu tin',    value: data.stats.tong_luu_tin,  color: 'red',    sub: 'Tổng cộng' },
+    { icon: '🏠', label: 'Tin đang đăng',   value: data.stats.tin_dang      ?? 0, color: 'blue',   sub: `${data.stats.tong_tin ?? 0} tổng cộng` },
+    { icon: '👁️', label: 'Tổng lượt xem',   value: data.stats.tong_luot_xem ?? 0, color: 'green',  sub: 'Tất cả tin đăng' },
+    { icon: '📞', label: 'Tổng liên hệ',    value: data.stats.tong_lien_he  ?? 0, color: 'orange', sub: 'Tất cả tin đăng' },
+    { icon: '❤️', label: 'Lượt lưu tin',    value: data.stats.tong_luu_tin  ?? 0, color: 'red',    sub: 'Tổng cộng' },
   ] : [];
 
   const unreadCount = data?.notifications?.filter(n => n.unread).length || 0;
@@ -140,19 +140,19 @@ export default function EmployerHome({ user, onLogout }) {
               <div className="emp-status-bar">
                 <div className="emp-status-item">
                   <span className="emp-status-dot approved" />
-                  <span>Đã duyệt: <strong>{data.stats.tin_dang}</strong></span>
+                  <span>Đã duyệt: <strong>{data.stats.tin_dang ?? 0}</strong></span>
                 </div>
                 <div className="emp-status-item">
                   <span className="emp-status-dot pending" />
-                  <span>Chờ duyệt: <strong>{data.stats.cho_duyet}</strong></span>
+                  <span>Chờ duyệt: <strong>{data.stats.cho_duyet ?? 0}</strong></span>
                 </div>
                 <div className="emp-status-item">
                   <span className="emp-status-dot rejected" />
-                  <span>Từ chối: <strong>{data.stats.bi_tu_choi}</strong></span>
+                  <span>Từ chối: <strong>{data.stats.bi_tu_choi ?? 0}</strong></span>
                 </div>
                 <div className="emp-status-item">
                   <span className="emp-status-dot paused" />
-                  <span>Tạm dừng: <strong>{data.stats.tam_dung}</strong></span>
+                  <span>Tạm dừng: <strong>{data.stats.tam_dung ?? 0}</strong></span>
                 </div>
               </div>
             )}

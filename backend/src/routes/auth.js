@@ -135,7 +135,10 @@ const auth = require('../middleware/auth');
 const passport = require('passport');
 
 // GET /api/auth/google
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+router.get('/google', (req, res, next) => {
+  const role = ['user', 'employer'].includes(req.query.role) ? req.query.role : 'user';
+  passport.authenticate('google', { scope: ['profile', 'email'], state: role })(req, res, next);
+});
 
 // GET /api/auth/google/callback
 router.get('/google/callback',
