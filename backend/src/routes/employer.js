@@ -120,14 +120,20 @@ router.post('/rooms', auth(['employer', 'admin']), async (req, res) => {
 
     const ma_phong = insertRes.recordset[0].ma_phong;
 
-    // 2. Insert ảnh
+    // 2. Insert ảnh (bỏ qua base64 quá lớn > 1MB)
     for (let i = 0; i < images.length; i++) {
-      await pool.request()
-        .input('ma_phong',   sql.Int,           ma_phong)
-        .input('duong_dan',  sql.NVarChar(500),  images[i])
-        .input('la_anh_bia', sql.Bit,            i === 0 ? 1 : 0)
-        .input('thu_tu',     sql.Int,            i)
-        .execute('sp_ThemAnhPhong');
+      const img = images[i];
+      if (!img || img.length > 1000000) continue; // skip quá lớn
+      try {
+        await pool.request()
+          .input('ma_phong',   sql.Int,               ma_phong)
+          .input('duong_dan',  sql.NVarChar(sql.MAX),  img)
+          .input('la_anh_bia', sql.Bit,                i === 0 ? 1 : 0)
+          .input('thu_tu',     sql.Int,                i)
+          .execute('sp_ThemAnhPhong');
+      } catch (imgErr) {
+        console.error('Lỗi insert ảnh:', imgErr.message);
+      }
     }
 
     // 3. Insert tiện ích

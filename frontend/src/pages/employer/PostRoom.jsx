@@ -36,7 +36,12 @@ const initForm = {
 export default function PostRoom({ user, onLogout }) {
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
-  const [form, setForm] = useState(initForm);
+  const [form, setForm] = useState(() => ({
+    ...initForm,
+    name:  user?.name     || '',
+    phone: user?.phone    || '',
+    email: user?.username || '',
+  }));
   const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -48,14 +53,26 @@ export default function PostRoom({ user, onLogout }) {
 
   const set = (k, v) => { setForm(p => ({ ...p, [k]: v })); setErrors(p => ({ ...p, [k]: '' })); };
 
+  const fillFromAccount = () => {
+    setForm(p => ({
+      ...p,
+      name:  user?.name     || p.name,
+      phone: user?.phone    || p.phone,
+      email: user?.username || p.email,
+    }));
+  };
+
   const toggleAmenity = (key) => set('amenities',
     form.amenities.includes(key) ? form.amenities.filter(a => a !== key) : [...form.amenities, key]
   );
 
   const handleImages = (e) => {
-    const files = Array.from(e.target.files).slice(0, 10);
-    setPreviewImgs(files.map(f => URL.createObjectURL(f)));
-    set('images', files);
+    const newFiles = Array.from(e.target.files);
+    const combined = [...form.images, ...newFiles].slice(0, 10);
+    set('images', combined);
+    setPreviewImgs(combined.map(f => URL.createObjectURL(f)));
+    // Reset để có thể chọn lại cùng file
+    e.target.value = '';
   };
 
   const validateStep = () => {
@@ -361,7 +378,12 @@ export default function PostRoom({ user, onLogout }) {
               {/* ── STEP 2: Liên hệ & Xác nhận ── */}
               {step === 2 && (
                 <div className="pr-card">
-                  <h2 className="pr-card-title">Thông tin liên hệ</h2>
+                  <div className="pr-card-title-row">
+                    <h2 className="pr-card-title">Thông tin liên hệ</h2>
+                    <button type="button" className="pr-fill-account-btn" onClick={fillFromAccount}>
+                      👤 Lấy từ tài khoản
+                    </button>
+                  </div>
 
                   <div className="pr-two-col">
                     <div className="pr-field">
