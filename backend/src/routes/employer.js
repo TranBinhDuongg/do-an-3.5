@@ -120,10 +120,10 @@ router.post('/rooms', auth(['employer', 'admin']), async (req, res) => {
 
     const ma_phong = insertRes.recordset[0].ma_phong;
 
-    // 2. Insert ảnh (bỏ qua base64 quá lớn > 1MB)
+    // 2. Insert ảnh
     for (let i = 0; i < images.length; i++) {
       const img = images[i];
-      if (!img || img.length > 1000000) continue; // skip quá lớn
+      if (!img) continue;
       try {
         await pool.request()
           .input('ma_phong',   sql.Int,               ma_phong)

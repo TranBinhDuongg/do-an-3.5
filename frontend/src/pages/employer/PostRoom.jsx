@@ -1,6 +1,7 @@
 ﻿import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { postRoomApi } from '../../api/employer';
+import NotificationBell from '../../components/NotificationBell';
 import './PostRoom.css';
 
 const notifications = [];
@@ -47,9 +48,7 @@ export default function PostRoom({ user, onLogout }) {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
-  const [notiOpen, setNotiOpen] = useState(false);
   const [previewImgs, setPreviewImgs] = useState([]);
-  const unreadCount = 0;
 
   const set = (k, v) => { setForm(p => ({ ...p, [k]: v })); setErrors(p => ({ ...p, [k]: '' })); };
 
@@ -96,12 +95,25 @@ export default function PostRoom({ user, onLogout }) {
   const next = () => { if (validateStep()) setStep(s => s + 1); };
   const prev = () => setStep(s => s - 1);
 
-  // Convert File to base64
+  // Resize + convert File to base64 (max 800px, quality 0.7)
   const toBase64 = (file) => new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const MAX = 800;
+      let { width, height } = img;
+      if (width > MAX || height > MAX) {
+        if (width > height) { height = Math.round(height * MAX / width); width = MAX; }
+        else                { width  = Math.round(width  * MAX / height); height = MAX; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL('image/jpeg', 0.7));
+    };
+    img.onerror = reject;
+    img.src = url;
   });
 
   const handleSubmit = async (e) => {
@@ -166,38 +178,23 @@ export default function PostRoom({ user, onLogout }) {
             <Link to="/employer/pricing" className="pr-nav-link pr-nav-link-gold">💎 Mua gói</Link>
           </div>
           <div className="pr-nav-right">
-            {/* Notification bell */}
-            <div className="pr-noti-wrap">
-              <button className="pr-noti-btn" onClick={() => { setNotiOpen(!notiOpen); setMenuOpen(false); }}>
-                🔔
-                {unreadCount > 0 && <span className="pr-noti-dot">{unreadCount}</span>}
-              </button>
-              {notiOpen && (
-                <div className="pr-noti-dropdown">
-                  <div className="pr-noti-header">
-                    <strong>Thông báo</strong>
-                    <button onClick={() => setNotiOpen(false)}>Đóng</button>
-                  </div>
-                  {notifications.map(n => (
-                    <div key={n.id} className={`pr-noti-item ${n.unread ? 'unread' : ''}`}>
-                      <span>{n.icon}</span>
-                      <div>
-                        <p>{n.text}</p>
-                        <span>{n.time}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            <NotificationBell user={user} />
             <div className="pr-user-wrap">
               <button className="pr-user-btn" onClick={() => setMenuOpen(!menuOpen)}>
-                <div className="pr-avatar">{user?.name?.charAt(0) || 'C'}</div>
-                <span>{user?.name || 'Chủ trọ'}</span>
+                <div className="pr-avatar">
+                  {user?.avatar_url
+                    ? <img src={user.avatar_url} alt="avatar" />
+                    : user?.name?.charAt(0) || 'C'}
+                </div>
+                <div className="pr-user-info">
+                  <span className="pr-user-name">{user?.name || 'Chủ trọ'}</span>
+                  <span className="pr-user-role">Chủ trọ</span>
+                </div>
                 <span>▾</span>
               </button>
               {menuOpen && (
                 <div className="pr-dropdown">
+                  <Link to="/profile"  className="pr-drop-item" onClick={() => setMenuOpen(false)}>👤 Hồ sơ</Link>
                   <Link to="/employer" className="pr-drop-item" onClick={() => setMenuOpen(false)}>🏠 Trang chủ</Link>
                   <hr className="pr-drop-hr" />
                   <button className="pr-drop-logout" onClick={() => { onLogout?.(); setMenuOpen(false); navigate('/login'); }}>🚪 Đăng xuất</button>

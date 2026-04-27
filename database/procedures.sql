@@ -235,7 +235,7 @@ BEGIN
 END
 GO
 
-CREATE OR ALTER PROCEDURE sp_ThemAnhPhong @ma_phong INT, @duong_dan NVARCHAR(500), @la_anh_bia BIT=0, @thu_tu INT=0 AS
+CREATE OR ALTER PROCEDURE sp_ThemAnhPhong @ma_phong INT, @duong_dan NVARCHAR(MAX), @la_anh_bia BIT=0, @thu_tu INT=0 AS
 BEGIN
     SET NOCOUNT ON;
     INSERT INTO anh_phong (ma_phong,duong_dan,la_anh_bia,thu_tu) VALUES (@ma_phong,@duong_dan,@la_anh_bia,@thu_tu);

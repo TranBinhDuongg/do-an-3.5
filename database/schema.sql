@@ -102,7 +102,7 @@ GO
 CREATE TABLE anh_phong (
     ma_anh    INT IDENTITY(1,1) PRIMARY KEY,
     ma_phong  INT           NOT NULL,
-    duong_dan NVARCHAR(500) NOT NULL,
+    duong_dan NVARCHAR(MAX) NOT NULL,
     la_anh_bia BIT          NOT NULL DEFAULT 0,
     thu_tu    INT           NOT NULL DEFAULT 0,
     FOREIGN KEY (ma_phong) REFERENCES phong_tro(ma_phong) ON DELETE CASCADE
