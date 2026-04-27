@@ -520,3 +520,50 @@ BEGIN
     WHERE ma_nd = @ma_nd;
 END
 GO
+
+-- ============================================================
+-- GOOGLE OAUTH
+-- ============================================================
+
+-- Thêm cột google_id nếu chưa có
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('nguoi_dung') AND name = 'google_id')
+    ALTER TABLE nguoi_dung ADD google_id NVARCHAR(100) NULL;
+GO
+
+CREATE OR ALTER PROCEDURE sp_DangNhapGoogle
+    @google_id    NVARCHAR(100),
+    @ho_ten       NVARCHAR(100),
+    @email        NVARCHAR(100),
+    @anh_dai_dien NVARCHAR(500) = NULL,
+    @vai_tro      NVARCHAR(20)  = 'user'
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Tìm theo google_id + role (2 record riêng biệt cho cùng 1 gmail)
+    IF EXISTS (SELECT 1 FROM nguoi_dung WHERE google_id = @google_id AND vai_tro = @vai_tro)
+    BEGIN
+        UPDATE nguoi_dung SET ho_ten = @ho_ten, anh_dai_dien = @anh_dai_dien
+        WHERE google_id = @google_id AND vai_tro = @vai_tro;
+        SELECT * FROM nguoi_dung WHERE google_id = @google_id AND vai_tro = @vai_tro;
+        RETURN;
+    END
+
+    -- tai_khoan = email + '_' + role để tránh trùng unique constraint
+    DECLARE @tai_khoan NVARCHAR(120) = @email + '_' + @vai_tro;
+
+    IF EXISTS (SELECT 1 FROM nguoi_dung WHERE tai_khoan = @tai_khoan)
+    BEGIN
+        UPDATE nguoi_dung SET google_id = @google_id, anh_dai_dien = @anh_dai_dien
+        WHERE tai_khoan = @tai_khoan;
+        SELECT * FROM nguoi_dung WHERE tai_khoan = @tai_khoan;
+        RETURN;
+    END
+
+    -- Tạo record mới với role tương ứng
+    INSERT INTO nguoi_dung (ho_ten, tai_khoan, mat_khau, vai_tro, google_id, anh_dai_dien)
+    VALUES (@ho_ten, @tai_khoan, '', @vai_tro, @google_id, @anh_dai_dien);
+
+    SELECT * FROM nguoi_dung WHERE ma_nd = SCOPE_IDENTITY();
+END
+GO
