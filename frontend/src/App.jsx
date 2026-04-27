@@ -25,7 +25,7 @@ import GoogleCallback from './pages/GoogleCallback';
 
 function ChatBubbleWrapper() {
   const { pathname } = useLocation();
-  if (pathname.startsWith('/admin') || ['/login', '/register', '/forgot-password', '/terms', '/privacy'].includes(pathname)) return null;
+  if (pathname.startsWith('/admin') || ['/login', '/register', '/forgot-password', '/terms', '/privacy', '/message'].includes(pathname)) return null;
   return <ChatBubble />;
 }
 

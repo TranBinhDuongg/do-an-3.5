@@ -138,8 +138,6 @@ export default function Rooms({ user, onLogout }) {
                 <div className="emp-user-dropdown">
                   <Link to="/profile" className="emp-drop-item" onClick={() => setMenuOpen(false)}>👤 Hồ sơ</Link>
                   <hr className="emp-drop-hr" />
-                  <Link to="/" className="emp-drop-item" onClick={() => setMenuOpen(false)}>🔍 Xem trang người thuê</Link>
-                  <hr className="emp-drop-hr" />
                   <button className="emp-drop-logout" onClick={() => { onLogout?.(); navigate('/login'); }}>🚪 Đăng xuất</button>
                 </div>
               )}

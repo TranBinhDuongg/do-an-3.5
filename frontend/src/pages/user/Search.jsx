@@ -14,6 +14,12 @@ const PRICES = [
   { label: 'Trên 6 triệu', min: '6000000', max: '' },
 ];
 
+const mockNotifications = [
+  { id: 1, icon: '✅', text: 'Tin đăng "Phòng trọ 15 Tạ Quang Bửu" đã được duyệt.', time: '10 phút trước', unread: true },
+  { id: 2, icon: '💬', text: 'Chủ trọ Trần Văn B đã nhắn tin cho bạn.', time: '1 giờ trước', unread: true },
+  { id: 3, icon: '🏠', text: 'Có 5 phòng mới phù hợp với tìm kiếm của bạn.', time: 'Hôm qua', unread: false },
+];
+
 export default function Search({ user, onLogout }) {
   const [searchParams] = useSearchParams();
   const [keyword, setKeyword] = useState(searchParams.get('keyword') || '');
@@ -29,7 +35,12 @@ export default function Search({ user, onLogout }) {
   const [loading, setLoading]   = useState(false);
   const [viewMode, setViewMode] = useState('grid');
   const [menuOpen, setMenuOpen] = useState(false);
+  const [notiOpen, setNotiOpen] = useState(false);
+  const [notifications, setNotifications] = useState(mockNotifications);
   const navigate = useNavigate();
+
+  const unreadCount = notifications.filter(n => n.unread).length;
+  const handleReadAll = () => setNotifications(prev => prev.map(n => ({ ...n, unread: false })));
 
   const priceFilter = PRICES[priceIdx];
 
@@ -67,31 +78,53 @@ export default function Search({ user, onLogout }) {
             <Link to="/" className="search-nav-link">Trang chủ</Link>
             <Link to="/search" className="search-nav-link active">Tìm phòng</Link>
             <Link to="/favorites" className="search-nav-link">Yêu thích</Link>
-            <Link to="/message" className="search-nav-link">Tin nhắn</Link>
           </div>
           <div className="search-nav-auth">
             {user ? (
               <div className="search-nav-user">
-                <button className="search-nav-avatar-btn" onClick={() => setMenuOpen(!menuOpen)}>
-                  <div className="search-nav-avatar">
-                    {user.avatar_url
-                      ? <img src={user.avatar_url} alt="avatar" />
-                      : user.name?.charAt(0)}
-                  </div>
-                  <div className="search-nav-user-info">
-                    <span className="search-nav-user-name">{user.name}</span>
-                    <span className="search-nav-user-role">Người thuê</span>
-                  </div>
-                  <span>▾</span>
-                </button>
-                {menuOpen && (
-                  <div className="search-nav-dropdown">
-                    <Link to="/profile" className="search-nav-drop-item" onClick={() => setMenuOpen(false)}>👤 Hồ sơ</Link>
-                    <Link to="/favorites" className="search-nav-drop-item" onClick={() => setMenuOpen(false)}>❤️ Yêu thích</Link>
-                    <hr className="search-nav-drop-hr" />
-                    <button className="search-nav-drop-logout" onClick={() => { onLogout(); setMenuOpen(false); navigate('/login'); }}>🚪 Đăng xuất</button>
-                  </div>
-                )}
+                {/* Notification bell */}
+                <div className="search-noti-wrap">
+                  <button className="search-noti-btn" onClick={() => { setNotiOpen(!notiOpen); setMenuOpen(false); }}>
+                    🔔
+                    {unreadCount > 0 && <span className="search-noti-dot">{unreadCount}</span>}
+                  </button>
+                  {notiOpen && (
+                    <div className="search-noti-dropdown">
+                      <div className="search-noti-header">
+                        <strong>Thông báo</strong>
+                        {unreadCount > 0 && <button onClick={handleReadAll}>Đánh dấu đã đọc</button>}
+                      </div>
+                      {notifications.map(n => (
+                        <div key={n.id} className={`search-noti-item ${n.unread ? 'unread' : ''}`}>
+                          <span>{n.icon}</span>
+                          <div><p>{n.text}</p><span>{n.time}</span></div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {/* Avatar + dropdown */}
+                <div className="search-nav-avatar-wrap">
+                  <button className="search-nav-avatar-btn" onClick={() => { setMenuOpen(!menuOpen); setNotiOpen(false); }}>
+                    <div className="search-nav-avatar">
+                      {user.avatar_url
+                        ? <img src={user.avatar_url} alt="avatar" />
+                        : user.name?.charAt(0)}
+                    </div>
+                    <div className="search-nav-user-info">
+                      <span className="search-nav-user-name">{user.name}</span>
+                      <span className="search-nav-user-role">Người thuê</span>
+                    </div>
+                    <span>▾</span>
+                  </button>
+                  {menuOpen && (
+                    <div className="search-nav-dropdown">
+                      <Link to="/profile" className="search-nav-drop-item" onClick={() => setMenuOpen(false)}>👤 Hồ sơ</Link>
+                      <hr className="search-nav-drop-hr" />
+                      <button className="search-nav-drop-logout" onClick={() => { onLogout(); setMenuOpen(false); navigate('/login'); }}>🚪 Đăng xuất</button>
+                    </div>
+                  )}
+                </div>
               </div>
             ) : (
               <>

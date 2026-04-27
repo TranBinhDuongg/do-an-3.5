@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Message.css';
 
-// Mock data
 const mockContacts = [
   { id: 1, name: 'Trần Văn B', role: 'Chủ trọ', avatar: 'T', room: 'Phòng trọ 15 Tạ Quang Bửu', lastMsg: 'Phòng vẫn còn trống bạn nhé!', time: '10:30', unread: 2, online: true },
   { id: 2, name: 'Lê Thị C',   role: 'Chủ trọ', avatar: 'L', room: 'Chung cư mini 88 Láng Hạ',  lastMsg: 'Bạn có thể đến xem phòng lúc 3h chiều', time: 'Hôm qua', unread: 0, online: false },
@@ -28,11 +27,10 @@ const mockMessages = {
 };
 
 export default function Message({ user, onLogout }) {
-  const [activeId, setActiveId]   = useState(1);
-  const [messages, setMessages]   = useState(mockMessages);
-  const [contacts, setContacts]   = useState(mockContacts);
-  const [input, setInput]         = useState('');
-  const [menuOpen, setMenuOpen]   = useState(false);
+  const [activeId, setActiveId]     = useState(1);
+  const [messages, setMessages]     = useState(mockMessages);
+  const [contacts, setContacts]     = useState(mockContacts);
+  const [input, setInput]           = useState('');
   const [imgPreview, setImgPreview] = useState(null);
   const bottomRef = useRef(null);
   const fileRef   = useRef(null);
@@ -45,7 +43,6 @@ export default function Message({ user, onLogout }) {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [activeId, messages]);
 
-  // Đánh dấu đã đọc khi chọn contact
   const selectContact = (id) => {
     setActiveId(id);
     setContacts(prev => prev.map(c => c.id === id ? { ...c, unread: 0 } : c));
@@ -71,35 +68,20 @@ export default function Message({ user, onLogout }) {
 
   const handleKey = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } };
 
+  const backPath = user?.role === 'employer' ? '/employer' : '/';
+
   return (
     <div className="msg-page">
       {/* NAVBAR */}
       <nav className="msg-nav">
         <div className="msg-nav-inner">
           <Link to="/" className="msg-nav-logo">🏠 PhòngTrọ<span>VN</span></Link>
-          <div className="msg-nav-links">
-            <Link to="/"        className="msg-nav-link">Trang chủ</Link>
-            <Link to="/search"  className="msg-nav-link">Tìm phòng</Link>
-            <Link to="/favorites" className="msg-nav-link">Yêu thích</Link>
-            <Link to="/message" className="msg-nav-link active">Tin nhắn</Link>
-          </div>
           <div className="msg-nav-right">
-            {user ? (
-              <div className="msg-nav-user">
-                <button className="msg-nav-avatar-btn" onClick={() => setMenuOpen(!menuOpen)}>
-                  <div className="msg-nav-avatar">{user.name?.charAt(0)}</div>
-                  <span>{user.name}</span> <span>▾</span>
-                </button>
-                {menuOpen && (
-                  <div className="msg-nav-dropdown">
-                    <Link to="/profile" className="msg-nav-drop-item" onClick={() => setMenuOpen(false)}>👤 Hồ sơ</Link>
-                    <hr className="msg-nav-drop-hr" />
-                    <button className="msg-nav-drop-logout" onClick={() => { onLogout?.(); setMenuOpen(false); navigate('/login'); }}>🚪 Đăng xuất</button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <Link to="/login" className="msg-nav-btn">Đăng nhập</Link>
+            <Link to={backPath} className="msg-nav-back">← Quay lại</Link>
+            {user && (
+              <button className="msg-nav-logout" onClick={() => { onLogout?.(); navigate('/login'); }}>
+                🚪 Đăng xuất
+              </button>
             )}
           </div>
         </div>
@@ -110,7 +92,9 @@ export default function Message({ user, onLogout }) {
         <aside className="msg-sidebar">
           <div className="msg-sidebar-header">
             <h2>Tin nhắn</h2>
-            <span className="msg-total">{contacts.reduce((s, c) => s + c.unread, 0) > 0 && contacts.reduce((s, c) => s + c.unread, 0)}</span>
+            {contacts.reduce((s, c) => s + c.unread, 0) > 0 && (
+              <span className="msg-total">{contacts.reduce((s, c) => s + c.unread, 0)}</span>
+            )}
           </div>
           <div className="msg-search">
             <span>🔍</span>
@@ -139,7 +123,6 @@ export default function Message({ user, onLogout }) {
 
         {/* CHAT AREA */}
         <main className="msg-chat">
-          {/* Chat header */}
           <div className="msg-chat-header">
             <div className="msg-chat-header-left">
               <div className="msg-chat-avatar-wrap">
@@ -157,7 +140,6 @@ export default function Message({ user, onLogout }) {
             </div>
           </div>
 
-          {/* Messages */}
           <div className="msg-messages">
             {msgs.map(msg => (
               <div key={msg.id} className={`msg-row ${msg.from === 'me' ? 'me' : 'them'}`}>
@@ -166,9 +148,7 @@ export default function Message({ user, onLogout }) {
                 )}
                 <div className="msg-bubble-wrap">
                   {msg.type === 'text' ? (
-                    <div className={`msg-bubble ${msg.from === 'me' ? 'me' : 'them'}`}>
-                      {msg.text}
-                    </div>
+                    <div className={`msg-bubble ${msg.from === 'me' ? 'me' : 'them'}`}>{msg.text}</div>
                   ) : (
                     <div className="msg-bubble-img" onClick={() => setImgPreview(msg.image)}>
                       <img src={msg.image} alt="img" />
@@ -181,13 +161,9 @@ export default function Message({ user, onLogout }) {
             <div ref={bottomRef} />
           </div>
 
-          {/* Input */}
           <div className="msg-input-bar">
-            <button className="msg-attach-btn" onClick={() => fileRef.current.click()} title="Gửi ảnh">
-              📷
-            </button>
+            <button className="msg-attach-btn" onClick={() => fileRef.current.click()} title="Gửi ảnh">📷</button>
             <input type="file" ref={fileRef} accept="image/*" style={{ display: 'none' }} onChange={sendImage} />
-
             <div className="msg-input-wrap">
               <textarea
                 placeholder="Nhập tin nhắn..."
@@ -197,15 +173,11 @@ export default function Message({ user, onLogout }) {
                 rows={1}
               />
             </div>
-
-            <button className="msg-send-btn" onClick={sendMessage} disabled={!input.trim()}>
-              ➤
-            </button>
+            <button className="msg-send-btn" onClick={sendMessage} disabled={!input.trim()}>➤</button>
           </div>
         </main>
       </div>
 
-      {/* Image preview modal */}
       {imgPreview && (
         <div className="msg-img-modal" onClick={() => setImgPreview(null)}>
           <img src={imgPreview} alt="preview" />

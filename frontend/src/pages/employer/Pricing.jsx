@@ -147,8 +147,6 @@ export default function Pricing({ user, onLogout }) {
                   <Link to="/profile" className="pricing-drop-item" onClick={() => setMenuOpen(false)}>👤 Hồ sơ</Link>
                   <Link to="/employer/settings" className="pricing-drop-item" onClick={() => setMenuOpen(false)}>⚙️ Cài đặt</Link>
                   <hr className="pricing-drop-hr" />
-                  <Link to="/" className="pricing-drop-item" onClick={() => setMenuOpen(false)}>🔍 Xem trang người thuê</Link>
-                  <hr className="pricing-drop-hr" />
                   <button className="pricing-drop-logout" onClick={() => { onLogout?.(); setMenuOpen(false); navigate('/login'); }}>🚪 Đăng xuất</button>
                 </div>
               )}

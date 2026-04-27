@@ -92,8 +92,6 @@ export default function EmployerHome({ user, onLogout }) {
                 <div className="emp-user-dropdown">
                   <Link to="/profile" className="emp-drop-item" onClick={() => setMenuOpen(false)}>👤 Hồ sơ</Link>
                   <hr className="emp-drop-hr" />
-                  <Link to="/" className="emp-drop-item" onClick={() => setMenuOpen(false)}>🔍 Xem trang người thuê</Link>
-                  <hr className="emp-drop-hr" />
                   <button className="emp-drop-logout" onClick={() => { onLogout?.(); setMenuOpen(false); navigate('/login'); }}>🚪 Đăng xuất</button>
                 </div>
               )}

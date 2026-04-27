@@ -14,13 +14,25 @@ const categories = [
   { icon: '🏠', label: 'Căn hộ dịch vụ', color: '#fff1f2', border: '#fecdd3' },
 ];
 
+const mockNotifications = [
+  { id: 1, icon: '✅', text: 'Tin đăng "Phòng trọ 15 Tạ Quang Bửu" đã được duyệt.', time: '10 phút trước', unread: true },
+  { id: 2, icon: '💬', text: 'Chủ trọ Trần Văn B đã nhắn tin cho bạn.', time: '1 giờ trước', unread: true },
+  { id: 3, icon: '🏠', text: 'Có 5 phòng mới phù hợp với tìm kiếm của bạn.', time: 'Hôm qua', unread: false },
+];
+
 export default function Home({ user, onLogout }) {
   const [search, setSearch] = useState({ keyword: '', city: '', type: '' });
   const [menuOpen, setMenuOpen] = useState(false);
+  const [notiOpen, setNotiOpen] = useState(false);
+  const [notifications, setNotifications] = useState(mockNotifications);
   const [newRooms, setNewRooms] = useState([]);
   const [featuredRooms, setFeaturedRooms] = useState([]);
   const [stats, setStats] = useState({ total_rooms: 0, total_employers: 0, total_users: 0 });
   const navigate = useNavigate();
+
+  const unreadCount = notifications.filter(n => n.unread).length;
+
+  const handleReadAll = () => setNotifications(prev => prev.map(n => ({ ...n, unread: false })));
 
   useEffect(() => {
     getHomeDataApi()
@@ -42,12 +54,34 @@ export default function Home({ user, onLogout }) {
             <Link to="/" className="home-nav-link active">Trang chủ</Link>
             <Link to="/search" className="home-nav-link">Tìm phòng</Link>
             <Link to="/favorites" className="home-nav-link">Yêu thích</Link>
-            <Link to="/message" className="home-nav-link">Tin nhắn</Link>
           </div>
           <div className="home-nav-auth">
             {user ? (
               <div className="home-nav-user">
-                <button className="home-nav-avatar-btn" onClick={() => setMenuOpen(!menuOpen)}>
+                {/* NOTIFICATION BELL */}
+                <div className="home-noti-wrap">
+                  <button className="home-noti-btn" onClick={() => { setNotiOpen(!notiOpen); setMenuOpen(false); }}>
+                    🔔
+                    {unreadCount > 0 && <span className="home-noti-dot">{unreadCount}</span>}
+                  </button>
+                  {notiOpen && (
+                    <div className="home-noti-dropdown">
+                      <div className="home-noti-header">
+                        <strong>Thông báo</strong>
+                        {unreadCount > 0 && <button onClick={handleReadAll}>Đánh dấu đã đọc</button>}
+                      </div>
+                      {notifications.length ? notifications.map(n => (
+                        <div key={n.id} className={`home-noti-item ${n.unread ? 'unread' : ''}`}>
+                          <span className="home-noti-icon">{n.icon}</span>
+                          <div><p>{n.text}</p><span>{n.time}</span></div>
+                        </div>
+                      )) : <p className="home-noti-empty">Không có thông báo</p>}
+                    </div>
+                  )}
+                </div>
+
+                <div className="home-nav-avatar-wrap">
+                  <button className="home-nav-avatar-btn" onClick={() => { setMenuOpen(!menuOpen); setNotiOpen(false); }}>
                   <div className="home-nav-avatar">
                     {user.avatar_url
                       ? <img src={user.avatar_url} alt="avatar" />
@@ -62,11 +96,11 @@ export default function Home({ user, onLogout }) {
                 {menuOpen && (
                   <div className="home-nav-dropdown">
                     <Link to="/profile" className="home-nav-drop-item" onClick={() => setMenuOpen(false)}>👤 Hồ sơ</Link>
-                    <Link to="/favorites" className="home-nav-drop-item" onClick={() => setMenuOpen(false)}>❤️ Yêu thích</Link>
                     <hr className="home-nav-drop-hr" />
                     <button className="home-nav-drop-logout" onClick={() => { onLogout(); setMenuOpen(false); navigate('/login'); }}>🚪 Đăng xuất</button>
                   </div>
                 )}
+                </div>
               </div>
             ) : (
               <>
