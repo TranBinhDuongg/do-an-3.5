@@ -146,7 +146,7 @@ export default function Login({ onLogin }) {
               <img src="https://www.google.com/favicon.ico" width={16} alt="Google" />
               Google
             </button>
-            <button className="login-social-btn">
+            <button className="login-social-btn" onClick={() => alert('Tính năng đăng nhập bằng Facebook đang được phát triển.')}>
               <span style={{ color: '#1877f2', fontWeight: 800, fontSize: 16 }}>f</span>
               Facebook
             </button>

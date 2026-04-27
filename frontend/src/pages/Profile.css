@@ -4,13 +4,20 @@
 .prof-nav {
   background: #fff;
   border-bottom: 1px solid #e2e8f0;
-  padding: 0 32px;
   height: 60px;
+  display: flex;
+  align-items: center;
+}
+.prof-nav-inner {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 32px;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
-.prof-nav-logo { font-size: 1.1rem; font-weight: 700; color: #1e293b; text-decoration: none; }
+.prof-nav-logo { font-size: 20px; font-weight: 800; color: #1e293b; text-decoration: none; }
 .prof-nav-logo span { color: #0ea5e9; }
 .prof-nav-right { display: flex; align-items: center; gap: 12px; }
 .prof-nav-back {

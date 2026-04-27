@@ -112,12 +112,14 @@ export default function Profile({ user, onLogin, onLogout }) {
   return (
     <div className="prof-page">
       <nav className="prof-nav">
-        <Link to={backPath} className="prof-nav-logo">🏠 PhòngTrọ<span>VN</span></Link>
-        <div className="prof-nav-right">
-          <Link to={backPath} className="prof-nav-back">← Quay lại</Link>
-          <button className="prof-nav-logout" onClick={() => { onLogout(); navigate('/login'); }}>
-            🚪 Đăng xuất
-          </button>
+        <div className="prof-nav-inner">
+          <Link to={backPath} className="prof-nav-logo">🏠 PhòngTrọ<span>VN</span></Link>
+          <div className="prof-nav-right">
+            <Link to={backPath} className="prof-nav-back">← Quay lại</Link>
+            <button className="prof-nav-logout" onClick={() => { onLogout(); navigate('/login'); }}>
+              🚪 Đăng xuất
+            </button>
+          </div>
         </div>
       </nav>
 
