@@ -1,0 +1,363 @@
+import { useState, useEffect } from 'react';
+import { Link, useParams, useNavigate } from 'react-router-dom';
+import { getRoomDetailApi, addFavoriteApi, removeFavoriteApi, checkFavoriteApi } from '../../api/rooms';
+import './RoomDetail.css';
+
+const FALLBACK_IMG = 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=800&h=500&fit=crop';
+
+const mockNotifications = [
+  { id: 1, icon: '✅', text: 'Tin đăng "Phòng trọ 15 Tạ Quang Bửu" đã được duyệt.', time: '10 phút trước', unread: true },
+  { id: 2, icon: '💬', text: 'Chủ trọ Trần Văn B đã nhắn tin cho bạn.', time: '1 giờ trước', unread: true },
+  { id: 3, icon: '🏠', text: 'Có 5 phòng mới phù hợp với tìm kiếm của bạn.', time: 'Hôm qua', unread: false },
+];
+
+export default function RoomDetail({ user, onLogout }) {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [room, setRoom] = useState(null);
+  const [related, setRelated] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [imgIdx, setImgIdx] = useState(0);
+  const [saved, setSaved] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [notiOpen, setNotiOpen] = useState(false);
+  const [notifications, setNotifications] = useState(mockNotifications);
+  const [showPhone, setShowPhone] = useState(false);
+  const [lightbox, setLightbox] = useState(false);
+
+  const unreadCount = notifications.filter(n => n.unread).length;
+  const handleReadAll = () => setNotifications(prev => prev.map(n => ({ ...n, unread: false })));
+
+  useEffect(() => {
+    setLoading(true);
+    setImgIdx(0);
+    getRoomDetailApi(id)
+      .then(d => { setRoom(d.room); setRelated(d.related); })
+      .catch(() => navigate('/search'))
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  useEffect(() => {
+    if (!user || !id) return;
+    checkFavoriteApi(id).then(d => setSaved(d.saved)).catch(() => {});
+  }, [id, user]);
+
+  const toggleFav = async () => {
+    if (!user) { navigate('/login'); return; }
+    try {
+      if (saved) { await removeFavoriteApi(id); setSaved(false); }
+      else        { await addFavoriteApi(id);    setSaved(true);  }
+    } catch {}
+  };
+
+  const images = room?.images?.length ? room.images : [FALLBACK_IMG];
+
+  if (loading) return (
+    <div className="rd-loading-wrap">
+      <div className="rd-spinner" />
+      <p>Đang tải thông tin phòng...</p>
+    </div>
+  );
+
+  if (!room) return null;
+
+  return (
+    <div className="rd-wrap">
+      {/* NAVBAR */}
+      <nav className="rd-nav">
+        <div className="rd-nav-inner">
+          <Link to="/" className="rd-nav-logo">🏠 PhòngTrọ<span>VN</span></Link>
+          <div className="rd-nav-links">
+            <Link to="/" className="rd-nav-link">Trang chủ</Link>
+            <Link to="/search" className="rd-nav-link">Tìm phòng</Link>
+            <Link to="/favorites" className="rd-nav-link">Yêu thích</Link>
+          </div>
+          <div className="rd-nav-auth">
+            {user ? (
+              <div className="rd-nav-user">
+                <div className="rd-noti-wrap">
+                  <button className="rd-noti-btn" onClick={() => { setNotiOpen(!notiOpen); setMenuOpen(false); }}>
+                    🔔
+                    {unreadCount > 0 && <span className="rd-noti-dot">{unreadCount}</span>}
+                  </button>
+                  {notiOpen && (
+                    <div className="rd-noti-dropdown">
+                      <div className="rd-noti-header">
+                        <strong>Thông báo</strong>
+                        {unreadCount > 0 && <button onClick={handleReadAll}>Đánh dấu đã đọc</button>}
+                      </div>
+                      {notifications.map(n => (
+                        <div key={n.id} className={`rd-noti-item ${n.unread ? 'unread' : ''}`}>
+                          <span>{n.icon}</span>
+                          <div><p>{n.text}</p><span>{n.time}</span></div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="rd-nav-avatar-wrap">
+                  <button className="rd-nav-avatar-btn" onClick={() => { setMenuOpen(!menuOpen); setNotiOpen(false); }}>
+                    <div className="rd-nav-avatar">
+                      {user.avatar_url ? <img src={user.avatar_url} alt="avatar" /> : user.name?.charAt(0)}
+                    </div>
+                    <div className="rd-nav-user-info">
+                      <span className="rd-nav-user-name">{user.name}</span>
+                      <span className="rd-nav-user-role">Người thuê</span>
+                    </div>
+                    <span>▾</span>
+                  </button>
+                  {menuOpen && (
+                    <div className="rd-nav-dropdown">
+                      <Link to="/profile" className="rd-nav-drop-item" onClick={() => setMenuOpen(false)}>👤 Hồ sơ</Link>
+                      <hr className="rd-nav-drop-hr" />
+                      <button className="rd-nav-drop-logout" onClick={() => { onLogout(); setMenuOpen(false); navigate('/login'); }}>🚪 Đăng xuất</button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <>
+                <Link to="/login" className="rd-nav-btn-outline">Đăng nhập</Link>
+                <Link to="/register" className="rd-nav-btn-primary">Đăng ký</Link>
+              </>
+            )}
+          </div>
+        </div>
+      </nav>
+
+      {/* BREADCRUMB */}
+      <div className="rd-breadcrumb">
+        <div className="rd-container">
+          <Link to="/">Trang chủ</Link> <span>›</span>
+          <Link to="/search">Tìm phòng</Link> <span>›</span>
+          <Link to={`/search?city=${room.city}`}>{room.city}</Link> <span>›</span>
+          <span className="rd-bc-current">{room.title}</span>
+        </div>
+      </div>
+
+      <div className="rd-container rd-body">
+        {/* LEFT COLUMN */}
+        <div className="rd-main">
+
+          {/* IMAGE GALLERY */}
+          <div className="rd-gallery">
+            <div className="rd-gallery-main" onClick={() => setLightbox(true)}>
+              <img src={images[imgIdx] || FALLBACK_IMG} alt={room.title}
+                onError={e => { e.target.src = FALLBACK_IMG; }} />
+              <span className="rd-gallery-count">📷 {images.length} ảnh</span>
+              {!room.available && <div className="rd-sold-overlay">Hết phòng</div>}
+            </div>
+            {images.length > 1 && (
+              <div className="rd-gallery-thumbs">
+                {images.map((img, i) => (
+                  <button key={i} className={`rd-thumb ${i === imgIdx ? 'active' : ''}`}
+                    onClick={() => setImgIdx(i)}>
+                    <img src={img} alt="" onError={e => { e.target.src = FALLBACK_IMG; }} />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* TITLE + BADGES */}
+          <div className="rd-title-row">
+            <div>
+              <div className="rd-badges">
+                <span className={`rd-badge-status ${room.available ? 'green' : 'red'}`}>
+                  {room.available ? '✅ Còn phòng' : '❌ Hết phòng'}
+                </span>
+                {room.isFeatured && <span className="rd-badge-featured">⭐ Nổi bật</span>}
+                <span className="rd-badge-type">{room.type}</span>
+              </div>
+              <h1 className="rd-title">{room.title}</h1>
+              <p className="rd-address">📍 {room.address}{room.district ? `, ${room.district}` : ''}, {room.city}</p>
+            </div>
+            <div className="rd-title-actions">
+              <button className={`rd-fav-btn ${saved ? 'saved' : ''}`} onClick={toggleFav} title={saved ? 'Bỏ yêu thích' : 'Lưu yêu thích'}>
+                {saved ? '❤️' : '🤍'} {saved ? 'Đã lưu' : 'Lưu tin'}
+              </button>
+              <button className="rd-share-btn" onClick={() => navigator.clipboard?.writeText(window.location.href)} title="Sao chép link">
+                🔗 Chia sẻ
+              </button>
+            </div>
+          </div>
+
+          {/* KEY INFO */}
+          <div className="rd-key-info">
+            <div className="rd-key-item">
+              <span className="rd-key-label">Giá thuê</span>
+              <span className="rd-key-value price">{Number(room.price).toLocaleString('vi-VN')}đ/tháng</span>
+            </div>
+            <div className="rd-key-item">
+              <span className="rd-key-label">Diện tích</span>
+              <span className="rd-key-value">{room.area} m²</span>
+            </div>
+            {room.deposit && (
+              <div className="rd-key-item">
+                <span className="rd-key-label">Tiền cọc</span>
+                <span className="rd-key-value">{Number(room.deposit).toLocaleString('vi-VN')}đ</span>
+              </div>
+            )}
+            <div className="rd-key-item">
+              <span className="rd-key-label">Loại phòng</span>
+              <span className="rd-key-value">{room.type}</span>
+            </div>
+            <div className="rd-key-item">
+              <span className="rd-key-label">Khu vực</span>
+              <span className="rd-key-value">{room.city}</span>
+            </div>
+            <div className="rd-key-item">
+              <span className="rd-key-label">Lượt xem</span>
+              <span className="rd-key-value">👁 {room.views}</span>
+            </div>
+          </div>
+
+          {/* AMENITIES */}
+          {room.amenities?.length > 0 && (
+            <div className="rd-section">
+              <h2 className="rd-section-title">🛠 Tiện ích</h2>
+              <div className="rd-amenities">
+                {room.amenities.map(a => (
+                  <span key={a.key} className="rd-amenity">
+                    {a.icon || '✔'} {a.label}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* DESCRIPTION */}
+          {room.description && (
+            <div className="rd-section">
+              <h2 className="rd-section-title">📋 Mô tả chi tiết</h2>
+              <div className="rd-description">
+                {room.description.split('\n').map((line, i) => (
+                  <p key={i}>{line}</p>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* MAP PLACEHOLDER */}
+          <div className="rd-section">
+            <h2 className="rd-section-title">📍 Vị trí</h2>
+            <div className="rd-map-placeholder">
+              <span>🗺</span>
+              <p>{room.address}, {room.city}</p>
+              <a href={`https://maps.google.com/?q=${encodeURIComponent(room.address + ', ' + room.city)}`}
+                target="_blank" rel="noreferrer" className="rd-map-link">
+                Xem trên Google Maps →
+              </a>
+            </div>
+          </div>
+
+          {/* RELATED */}
+          {related.length > 0 && (
+            <div className="rd-section">
+              <h2 className="rd-section-title">🏠 Phòng tương tự</h2>
+              <div className="rd-related-grid">
+                {related.map(r => <RelatedCard key={r.id} room={r} />)}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* RIGHT SIDEBAR - CONTACT */}
+        <aside className="rd-sidebar">
+          <div className="rd-contact-card">
+            <div className="rd-contact-owner">
+              <div className="rd-owner-avatar">
+                {room.ownerAvatar
+                  ? <img src={room.ownerAvatar} alt={room.ownerName} />
+                  : room.ownerName?.charAt(0)}
+              </div>
+              <div>
+                <p className="rd-owner-name">{room.contactName || room.ownerName}</p>
+                <span className="rd-owner-label">Chủ trọ</span>
+              </div>
+            </div>
+
+            <div className="rd-contact-price">
+              <span>{Number(room.price).toLocaleString('vi-VN')}đ</span>
+              <small>/tháng</small>
+            </div>
+
+            {room.contactPhone ? (
+              <div className="rd-contact-actions">
+                {showPhone ? (
+                  <a href={`tel:${room.contactPhone}`} className="rd-btn-phone">
+                    📞 {room.contactPhone}
+                  </a>
+                ) : (
+                  <button className="rd-btn-phone" onClick={() => setShowPhone(true)}>
+                    📞 Hiện số điện thoại
+                  </button>
+                )}
+                <a href={`tel:${room.contactPhone}`} className="rd-btn-call">Gọi ngay</a>
+              </div>
+            ) : (
+              <p className="rd-no-phone">Chủ trọ ẩn số điện thoại</p>
+            )}
+
+            {room.contactEmail && (
+              <a href={`mailto:${room.contactEmail}`} className="rd-btn-email">
+                ✉️ Gửi email
+              </a>
+            )}
+
+            <Link to="/message" className="rd-btn-chat">💬 Nhắn tin</Link>
+
+            <div className="rd-contact-info">
+              <div className="rd-info-row"><span>📐 Diện tích</span><strong>{room.area} m²</strong></div>
+              {room.deposit && <div className="rd-info-row"><span>💰 Tiền cọc</span><strong>{Number(room.deposit).toLocaleString('vi-VN')}đ</strong></div>}
+              <div className="rd-info-row"><span>🕐 Đăng</span><strong>{room.postedAt}</strong></div>
+            </div>
+          </div>
+
+          {/* SAFETY TIPS */}
+          <div className="rd-safety-card">
+            <h4>⚠️ Lưu ý an toàn</h4>
+            <ul>
+              <li>Không đặt cọc khi chưa xem phòng trực tiếp</li>
+              <li>Kiểm tra hợp đồng trước khi ký</li>
+              <li>Xác minh thông tin chủ trọ</li>
+            </ul>
+          </div>
+        </aside>
+      </div>
+
+      {/* LIGHTBOX */}
+      {lightbox && (
+        <div className="rd-lightbox" onClick={() => setLightbox(false)}>
+          <button className="rd-lb-close">✕</button>
+          <button className="rd-lb-prev" onClick={e => { e.stopPropagation(); setImgIdx(i => (i - 1 + images.length) % images.length); }}>‹</button>
+          <img src={images[imgIdx]} alt="" onClick={e => e.stopPropagation()} onError={e => { e.target.src = FALLBACK_IMG; }} />
+          <button className="rd-lb-next" onClick={e => { e.stopPropagation(); setImgIdx(i => (i + 1) % images.length); }}>›</button>
+          <span className="rd-lb-count">{imgIdx + 1} / {images.length}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function RelatedCard({ room }) {
+  const FALLBACK = 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400&h=250&fit=crop';
+  return (
+    <Link to={`/room/${room.id}`} className="rd-related-card">
+      <div className="rd-related-img">
+        <img src={room.image || FALLBACK} alt={room.title} onError={e => { e.target.src = FALLBACK; }} />
+        <span className={`rd-related-badge ${room.available ? 'green' : 'red'}`}>
+          {room.available ? 'Còn phòng' : 'Hết phòng'}
+        </span>
+      </div>
+      <div className="rd-related-body">
+        <p className="rd-related-title">{room.title}</p>
+        <p className="rd-related-addr">📍 {room.address}</p>
+        <div className="rd-related-footer">
+          <span className="rd-related-price">{Number(room.price).toLocaleString('vi-VN')}đ/tháng</span>
+          <span className="rd-related-area">{room.area}m²</span>
+        </div>
+      </div>
+    </Link>
+  );
+}

@@ -56,3 +56,10 @@ export async function checkFavoriteApi(roomId) {
   if (!res.ok) throw new Error(data.message);
   return data; // { saved: bool }
 }
+
+export async function getRoomDetailApi(roomId) {
+  const res = await fetch(`${BASE}/${roomId}`);
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message);
+  return data; // { room, related }
+}

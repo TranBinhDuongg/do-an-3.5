@@ -22,6 +22,7 @@ import Message from './pages/user/Message';
 import Favorites from './pages/user/Favorites';
 import ChatBubble from './components/ChatBubble';
 import GoogleCallback from './pages/GoogleCallback';
+import RoomDetail from './pages/user/RoomDetail';
 
 function ChatBubbleWrapper() {
   const { pathname } = useLocation();
@@ -50,6 +51,7 @@ export default function App() {
       <Routes>
         <Route path="/"       element={<Home   user={user} onLogout={logout} />} />
         <Route path="/search"   element={<Search  user={user} onLogout={logout} />} />
+        <Route path="/room/:id" element={<RoomDetail user={user} onLogout={logout} />} />
         <Route path="/message"  element={<Message user={user} onLogout={logout} />} />
         <Route path="/login"           element={<Login          onLogin={login} />} />
         <Route path="/register"        element={<Register       onLogin={login} />} />
