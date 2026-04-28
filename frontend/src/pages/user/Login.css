@@ -245,7 +245,13 @@
   color: #f9fafb;
   font-size: 14px;
   outline: none;
+  /* Tắt icon mắt mặc định của browser */
+  -webkit-appearance: none;
 }
+.login-input-wrap input::-ms-reveal,
+.login-input-wrap input::-ms-clear,
+.login-input-wrap input::-webkit-credentials-auto-fill-button,
+.login-input-wrap input::-webkit-textfield-decoration-container { display: none; }
 
 .login-input-wrap input::placeholder {
   color: #4b5563;
