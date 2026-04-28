@@ -68,3 +68,10 @@ export async function deleteRoomApi(roomId) {
   if (!res.ok) throw new Error(data.message);
   return data;
 }
+
+export async function getRoomDetailEmployerApi(roomId) {
+  const res = await fetch(`${BASE}/rooms/${roomId}/detail`, { headers: authHeader() });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message);
+  return data; // { room }
+}

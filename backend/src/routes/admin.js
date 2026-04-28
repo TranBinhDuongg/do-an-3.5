@@ -8,12 +8,13 @@ const router = express.Router();
 router.use(auth(['admin']));
 
 function timeAgo(date) {
-  const diff  = Date.now() - new Date(date).getTime();
+  const diff  = Date.now() - new Date(date).getTime() + 7 * 3600000;
   const mins  = Math.floor(diff / 60000);
   const hours = Math.floor(diff / 3600000);
   const days  = Math.floor(diff / 86400000);
-  if (mins  < 60) return `${mins} phút trước`;
-  if (hours < 24) return `${hours} giờ trước`;
+  if (mins  < 1)   return 'Vừa xong';
+  if (mins  < 60)  return `${mins} phút trước`;
+  if (hours < 24)  return `${hours} giờ trước`;
   return `${days} ngày trước`;
 }
 

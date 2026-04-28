@@ -5,10 +5,11 @@ const auth = require('../middleware/auth');
 const router = express.Router();
 
 function timeAgo(date) {
-  const diff = Date.now() - new Date(date).getTime();
+  const diff = Date.now() - new Date(date).getTime() + 7 * 3600000;
   const mins  = Math.floor(diff / 60000);
   const hours = Math.floor(diff / 3600000);
   const days  = Math.floor(diff / 86400000);
+  if (mins  < 1)   return 'Vừa xong';
   if (mins  < 60)  return `${mins} phút trước`;
   if (hours < 24)  return `${hours} giờ trước`;
   return `${days} ngày trước`;
@@ -217,6 +218,76 @@ router.delete('/rooms/:id', auth(['employer', 'admin']), async (req, res) => {
       .input('ma_chu_tro', sql.Int, req.user.id)
       .execute('sp_XoaPhong');
     return res.json({ message: 'Đã xóa tin đăng' });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Lỗi server' });
+  }
+});
+
+// GET /api/employer/rooms/:id/detail
+router.get('/rooms/:id/detail', auth(['employer', 'admin']), async (req, res) => {
+  const ma_phong = parseInt(req.params.id);
+  const ma_nd = req.user.id;
+  try {
+    await poolConnect;
+
+    const roomRes = await pool.request()
+      .input('ma_phong',   sql.Int, ma_phong)
+      .input('ma_chu_tro', sql.Int, ma_nd)
+      .query(`
+        SELECT p.*, n.ho_ten AS ten_chu_tro, n.anh_dai_dien,
+          (SELECT COUNT(*) FROM yeu_thich yt WHERE yt.ma_phong = p.ma_phong) AS luot_luu
+        FROM phong_tro p
+        JOIN nguoi_dung n ON n.ma_nd = p.ma_chu_tro
+        WHERE p.ma_phong = @ma_phong AND p.ma_chu_tro = @ma_chu_tro
+      `);
+
+    if (!roomRes.recordset.length)
+      return res.status(404).json({ message: 'Không tìm thấy phòng' });
+
+    const r = roomRes.recordset[0];
+
+    const imgRes = await pool.request()
+      .input('ma_phong', sql.Int, ma_phong)
+      .query(`SELECT duong_dan, la_anh_bia FROM anh_phong WHERE ma_phong=@ma_phong ORDER BY la_anh_bia DESC, thu_tu ASC`);
+
+    const amenRes = await pool.request()
+      .input('ma_phong', sql.Int, ma_phong)
+      .query(`
+        SELECT ti.ma_khoa, ti.ten_hien_thi, ti.bieu_tuong
+        FROM tien_ich_phong tip
+        JOIN tien_ich ti ON ti.ma_tien_ich = tip.ma_tien_ich
+        WHERE tip.ma_phong = @ma_phong
+      `);
+
+    return res.json({
+      room: {
+        id:           r.ma_phong,
+        title:        r.tieu_de,
+        type:         r.loai_phong,
+        city:         r.tinh_thanh,
+        district:     r.quan_huyen,
+        address:      r.dia_chi,
+        price:        r.gia_thue,
+        deposit:      r.tien_coc,
+        area:         r.dien_tich,
+        description:  r.mo_ta,
+        available:    r.con_phong,
+        isFeatured:   r.noi_bat,
+        status:       r.trang_thai,
+        views:        r.luot_xem,
+        contacts:     r.so_lien_he,
+        saved:        r.luot_luu,
+        contactName:  r.ten_lien_he,
+        contactPhone: r.sdt_lien_he,
+        contactEmail: r.email_lien_he,
+        showPhone:    r.hien_sdt,
+        postedAt:     timeAgo(r.ngay_tao),
+        updatedAt:    timeAgo(r.ngay_cap_nhat),
+        images:       imgRes.recordset.map(i => i.duong_dan),
+        amenities:    amenRes.recordset.map(a => ({ key: a.ma_khoa, label: a.ten_hien_thi, icon: a.bieu_tuong })),
+      }
+    });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: 'Lỗi server' });
