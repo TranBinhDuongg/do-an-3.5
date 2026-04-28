@@ -34,7 +34,7 @@ export default function Register({ onLogin }) {
       const { token, user } = await registerApi(form.name, form.username, form.password, form.phone, role);
       localStorage.setItem('token', token);
       onLogin(user);
-      navigate(role === 'employer' ? '/employer' : '/');
+      navigate('/login', { state: { successMsg: 'Đăng ký thành công! Vui lòng đăng nhập.' } });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -186,8 +186,7 @@ export default function Register({ onLogin }) {
             {/* Điều khoản */}
             <label className="register-terms">
               <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} />
-              Tôi đồng ý với <Link to="/terms">Điều khoản sử dụng</Link> và{' '}
-              <Link to="/privacy">Chính sách bảo mật</Link>
+              <span>Tôi đồng ý với <Link to="/terms">Điều khoản sử dụng</Link> và <Link to="/privacy">Chính sách bảo mật</Link></span>
             </label>
 
             <button type="submit" className="register-submit-btn" disabled={loading}>

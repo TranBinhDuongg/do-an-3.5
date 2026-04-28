@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import './Login.css';
 import { loginApi } from '../../api/auth';
+import Toast from '../../components/Toast';
 
 export default function Login({ onLogin }) {
   const [form, setForm] = useState({ username: '', password: '' });
@@ -9,7 +10,17 @@ export default function Login({ onLogin }) {
   const [role, setRole] = useState('user');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
+  const successMsg = location.state?.successMsg || '';
+
+  // Xóa state khỏi history để không hiện lại khi refresh
+  useEffect(() => {
+    if (successMsg) {
+      window.history.replaceState({}, document.title);
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,7 +34,8 @@ export default function Login({ onLogin }) {
       const { token, user } = await loginApi(form.username, form.password, role);
       localStorage.setItem('token', token);
       onLogin(user);
-      navigate(role === 'employer' ? '/employer' : '/');
+      setToast(`Chào mừng trở lại, ${user.name}! 👋`);
+      setTimeout(() => navigate(role === 'employer' ? '/employer' : '/'), 1200);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -33,6 +45,7 @@ export default function Login({ onLogin }) {
 
   return (
     <div className="login-page">
+      {toast && <Toast message={toast} type="success" onClose={() => setToast('')} />}
       {/* LEFT - Hero */}
       <div className="login-left">
         <div className="login-left-inner">
@@ -93,6 +106,7 @@ export default function Login({ onLogin }) {
             </button>
           </div>
 
+          {successMsg && <div className="login-success">{successMsg}</div>}
           {error && <div className="login-error">{error}</div>}
 
           <form onSubmit={handleSubmit} className="login-form">
