@@ -171,11 +171,11 @@ export default function PostRoom({ user, onLogout }) {
       {/* NAVBAR */}
       <nav className="pr-nav">
         <div className="pr-nav-inner">
-          <Link to="/" className="pr-nav-logo">🏠 PhòngTrọ<span>VN</span></Link>
+          <Link to="/employer" className="pr-nav-logo">🏠 PhòngTrọ<span>VN</span></Link>
           <div className="pr-nav-links">
             <Link to="/employer"         className="pr-nav-link">Tổng quan</Link>
             <Link to="/employer/rooms"   className="pr-nav-link">Tin đăng</Link>
-            <Link to="/employer/pricing" className="pr-nav-link pr-nav-link-gold">💎 Mua gói</Link>
+            <Link to="/employer/pricing" className="pr-nav-link pr-nav-link-gold">Dịch vụ</Link>
           </div>
           <div className="pr-nav-right">
             <NotificationBell user={user} />

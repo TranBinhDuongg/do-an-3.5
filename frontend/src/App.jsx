@@ -14,6 +14,7 @@ import Rooms from './pages/employer/Rooms';
 import Pricing from './pages/employer/Pricing';
 import EmployerRoomDetail from './pages/employer/RoomDetail';
 import EditRoom from './pages/employer/EditRoom';
+import Wallet from './pages/employer/Wallet';
 import AdminLogin from './pages/admin/Login';
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminRooms from './pages/admin/Rooms';
@@ -74,6 +75,7 @@ export default function App() {
         <Route path="/employer/pricing" element={<Pricing  user={user} onLogout={logout} />} />
         <Route path="/employer/rooms/:id" element={<EmployerRoomDetail user={user} onLogout={logout} />} />
         <Route path="/employer/rooms/:id/edit" element={<EditRoom user={user} onLogout={logout} />} />
+        <Route path="/employer/wallet"         element={<Wallet   user={user} onLogout={logout} />} />
         <Route path="*"         element={<Navigate to="/" replace />} />
       </Routes>
       <ChatBubbleWrapper />

@@ -105,11 +105,12 @@ export default function Pricing({ user, onLogout }) {
       {/* NAVBAR */}
       <nav className="pricing-nav">
         <div className="pricing-nav-inner">
-          <Link to="/" className="pricing-nav-logo">🏠 PhòngTrọ<span>VN</span></Link>
+          <Link to="/employer" className="pricing-nav-logo">🏠 PhòngTrọ<span>VN</span></Link>
           <div className="pricing-nav-links">
-            <Link to="/employer"         className="pricing-nav-link">Tổng quan</Link>
-            <Link to="/employer/rooms"   className="pricing-nav-link">Tin đăng</Link>
-            <Link to="/employer/pricing" className="pricing-nav-link active pricing-nav-link-gold">💎 Mua gói</Link>
+            <Link to="/employer"           className="pricing-nav-link">Tổng quan</Link>
+            <Link to="/employer/rooms"     className="pricing-nav-link">Tin đăng</Link>
+            <Link to="/employer/wallet"    className="pricing-nav-link">Ví của tôi</Link>
+            <Link to="/employer/pricing"   className="pricing-nav-link active pricing-nav-link-gold">Dịch vụ</Link>
           </div>
           <div className="pricing-nav-right">
             <div className="emp-noti-wrap">
