@@ -39,6 +39,8 @@
 .erd-actions { display: flex; gap: 8px; flex-shrink: 0; flex-direction: column; }
 .erd-btn-toggle { padding: 9px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; border: 1.5px solid #2563eb; background: #eff6ff; color: #2563eb; cursor: pointer; white-space: nowrap; }
 .erd-btn-toggle.inactive { border-color: #22c55e; background: #f0fdf4; color: #16a34a; }
+.erd-btn-edit { padding: 9px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; border: 1.5px solid #a5b4fc; background: #eef2ff; color: #4f46e5; cursor: pointer; white-space: nowrap; text-decoration: none; display: inline-flex; align-items: center; }
+.erd-btn-edit:hover { background: #e0e7ff; }
 .erd-btn-delete { padding: 9px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; border: 1.5px solid #fecdd3; background: #fff1f2; color: #e11d48; cursor: pointer; white-space: nowrap; }
 
 /* STATS */

@@ -58,3 +58,12 @@
   background: #ef4444; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer;
 }
 .rooms-modal-confirm:hover { background: #dc2626; }
+
+/* Edit button */
+.emp-btn-edit {
+  font-size: 12px; font-weight: 600; padding: 6px 10px;
+  border-radius: 8px; border: none; cursor: pointer;
+  background: #eff6ff; color: #2563eb; transition: background 0.15s;
+  white-space: nowrap; text-decoration: none; display: inline-flex; align-items: center;
+}
+.emp-btn-edit:hover { background: #dbeafe; }

@@ -220,6 +220,28 @@ BEGIN
 END
 GO
 
+CREATE OR ALTER PROCEDURE sp_SuaPhong
+    @ma_phong INT, @ma_chu_tro INT,
+    @tieu_de NVARCHAR(200), @loai_phong NVARCHAR(50),
+    @tinh_thanh NVARCHAR(100), @quan_huyen NVARCHAR(100)=NULL, @dia_chi NVARCHAR(300),
+    @gia_thue DECIMAL(12,0), @tien_coc DECIMAL(12,0)=NULL, @dien_tich DECIMAL(6,1),
+    @mo_ta NVARCHAR(MAX)=NULL, @ten_lien_he NVARCHAR(100), @sdt_lien_he NVARCHAR(20),
+    @email_lien_he NVARCHAR(150)=NULL, @hien_sdt BIT=1
+AS
+BEGIN
+    SET NOCOUNT ON;
+    UPDATE phong_tro SET
+        tieu_de=@tieu_de, loai_phong=@loai_phong,
+        tinh_thanh=@tinh_thanh, quan_huyen=@quan_huyen, dia_chi=@dia_chi,
+        gia_thue=@gia_thue, tien_coc=@tien_coc, dien_tich=@dien_tich,
+        mo_ta=@mo_ta, ten_lien_he=@ten_lien_he, sdt_lien_he=@sdt_lien_he,
+        email_lien_he=@email_lien_he, hien_sdt=@hien_sdt,
+        trang_thai='pending', ngay_cap_nhat=GETDATE()
+    WHERE ma_phong=@ma_phong AND ma_chu_tro=@ma_chu_tro;
+    SELECT @@ROWCOUNT AS affected;
+END
+GO
+
 CREATE OR ALTER PROCEDURE sp_DangTinPhong
     @ma_chu_tro INT, @tieu_de NVARCHAR(200), @loai_phong NVARCHAR(50),
     @tinh_thanh NVARCHAR(100), @quan_huyen NVARCHAR(100)=NULL, @dia_chi NVARCHAR(300),

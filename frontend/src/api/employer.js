@@ -75,3 +75,14 @@ export async function getRoomDetailEmployerApi(roomId) {
   if (!res.ok) throw new Error(data.message);
   return data; // { room }
 }
+
+export async function updateRoomApi(roomId, payload) {
+  const res = await fetch(`${BASE}/rooms/${roomId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...authHeader() },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message);
+  return data;
+}

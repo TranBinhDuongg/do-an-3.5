@@ -187,6 +187,88 @@ router.get('/rooms', auth(['employer', 'admin']), async (req, res) => {
   }
 });
 
+// PUT /api/employer/rooms/:id — sửa tin đăng
+router.put('/rooms/:id', auth(['employer', 'admin']), async (req, res) => {
+  const ma_phong = parseInt(req.params.id);
+  const ma_nd = req.user.id;
+  const {
+    title, type, city, district, address,
+    price, deposit, area, description,
+    contactName, contactPhone, contactEmail, showPhone,
+    amenities = [],
+    images    = [],   // base64 mới (nếu có), URL cũ giữ nguyên
+    keepImages = [],  // URL ảnh cũ muốn giữ lại
+  } = req.body;
+
+  if (!title || !type || !city || !address || !price || !area || !contactName || !contactPhone)
+    return res.status(400).json({ message: 'Thiếu thông tin bắt buộc' });
+
+  try {
+    await poolConnect;
+
+    // 1. Cập nhật thông tin phòng (trạng thái về pending để admin duyệt lại)
+    const upd = await pool.request()
+      .input('ma_phong',      sql.Int,          ma_phong)
+      .input('ma_chu_tro',    sql.Int,          ma_nd)
+      .input('tieu_de',       sql.NVarChar(200), title)
+      .input('loai_phong',    sql.NVarChar(50),  type)
+      .input('tinh_thanh',    sql.NVarChar(100), city)
+      .input('quan_huyen',    sql.NVarChar(100), district || null)
+      .input('dia_chi',       sql.NVarChar(300), address)
+      .input('gia_thue',      sql.Decimal(12,0), parseFloat(price))
+      .input('tien_coc',      sql.Decimal(12,0), deposit ? parseFloat(deposit) : null)
+      .input('dien_tich',     sql.Decimal(6,1),  parseFloat(area))
+      .input('mo_ta',         sql.NVarChar(sql.MAX), description || null)
+      .input('ten_lien_he',   sql.NVarChar(100), contactName)
+      .input('sdt_lien_he',   sql.NVarChar(20),  contactPhone)
+      .input('email_lien_he', sql.NVarChar(150), contactEmail || null)
+      .input('hien_sdt',      sql.Bit,           showPhone ? 1 : 0)
+      .execute('sp_SuaPhong');
+
+    if (!upd.recordset[0]?.affected)
+      return res.status(403).json({ message: 'Không tìm thấy hoặc không có quyền sửa' });
+
+    // 2. Xóa ảnh cũ không còn trong keepImages, giữ lại ảnh trong keepImages
+    await pool.request()
+      .input('ma_phong', sql.Int, ma_phong)
+      .query(`DELETE FROM anh_phong WHERE ma_phong=@ma_phong`);
+
+    // 3. Insert lại ảnh giữ + ảnh mới
+    const allImages = [...keepImages, ...images];
+    for (let i = 0; i < allImages.length; i++) {
+      const img = allImages[i];
+      if (!img) continue;
+      try {
+        await pool.request()
+          .input('ma_phong',   sql.Int,               ma_phong)
+          .input('duong_dan',  sql.NVarChar(sql.MAX),  img)
+          .input('la_anh_bia', sql.Bit,                i === 0 ? 1 : 0)
+          .input('thu_tu',     sql.Int,                i)
+          .execute('sp_ThemAnhPhong');
+      } catch (imgErr) {
+        console.error('Lỗi insert ảnh:', imgErr.message);
+      }
+    }
+
+    // 4. Cập nhật tiện ích: xóa cũ, insert mới
+    await pool.request()
+      .input('ma_phong', sql.Int, ma_phong)
+      .query(`DELETE FROM tien_ich_phong WHERE ma_phong=@ma_phong`);
+
+    for (const key of amenities) {
+      await pool.request()
+        .input('ma_phong', sql.Int,          ma_phong)
+        .input('ma_khoa',  sql.NVarChar(50), key)
+        .execute('sp_ThemTienIchPhong');
+    }
+
+    return res.json({ message: 'Cập nhật tin đăng thành công, đang chờ duyệt lại' });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Lỗi server' });
+  }
+});
+
 // PATCH /api/employer/rooms/:id/status — đổi trạng thái (pause/activate)
 router.patch('/rooms/:id/status', auth(['employer', 'admin']), async (req, res) => {
   const ma_phong = parseInt(req.params.id);

@@ -140,6 +140,7 @@ export default function EmployerRoomDetail({ user, onLogout }) {
                       {room.status === 'paused' ? '▶ Kích hoạt' : '⏸ Tạm dừng'}
                     </button>
                   )}
+                  <Link to={`/employer/rooms/${room.id}/edit`} className="erd-btn-edit">✏️ Sửa tin</Link>
                   <button className="erd-btn-delete" onClick={() => setConfirmDelete(true)}>🗑️ Xóa tin</button>
                 </div>
               </div>

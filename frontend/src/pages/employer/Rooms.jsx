@@ -214,6 +214,7 @@ export default function Rooms({ user, onLogout }) {
 
                   <div className="emp-room-actions">
                     <Link to={`/employer/rooms/${room.id}`} className="emp-btn-view">🔍 Chi tiết</Link>
+                    <Link to={`/employer/rooms/${room.id}/edit`} className="emp-btn-edit">✏️ Sửa</Link>
                     {/* Chỉ cho pause/activate nếu đã duyệt hoặc đang tạm dừng */}
                     {(room.status === 'approved' || room.status === 'paused') && (
                       <button
