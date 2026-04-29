@@ -2,9 +2,8 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { postRoomApi } from '../../api/employer';
 import NotificationBell from '../../components/NotificationBell';
+import LocationPicker from '../../components/LocationPicker';
 import './PostRoom.css';
-
-const notifications = [];
 
 const STEPS = ['Thông tin cơ bản', 'Tiện ích & Ảnh', 'Liên hệ & Xác nhận'];
 
@@ -28,49 +27,44 @@ const TYPES  = ['Phòng trọ', 'Chung cư mini', 'Nhà nguyên căn', 'Studio',
 
 const initForm = {
   title: '', type: '', city: '', district: '', address: '',
-  price: '', deposit: '', area: '', floors: '', description: '',
-  amenities: [],
-  images: [],
+  price: '', deposit: '', area: '', description: '',
+  amenities: [], images: [],
   name: '', phone: '', email: '', showPhone: true,
+  lat: null, lon: null,
 };
 
 export default function PostRoom({ user, onLogout }) {
   const navigate = useNavigate();
-  const [step, setStep] = useState(0);
-  const [form, setForm] = useState(() => ({
-    ...initForm,
-    name:  user?.name     || '',
-    phone: user?.phone    || '',
-    email: user?.username || '',
-  }));
-  const [errors, setErrors] = useState({});
-  const [success, setSuccess] = useState(false);
+  const [step, setStep]           = useState(0);
+  const [form, setForm]           = useState(() => ({ ...initForm, name: user?.name || '', phone: user?.phone || '', email: user?.username || '' }));
+  const [errors, setErrors]       = useState({});
+  const [success, setSuccess]     = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuOpen, setMenuOpen]   = useState(false);
   const [previewImgs, setPreviewImgs] = useState([]);
 
   const set = (k, v) => { setForm(p => ({ ...p, [k]: v })); setErrors(p => ({ ...p, [k]: '' })); };
 
-  const fillFromAccount = () => {
-    setForm(p => ({
-      ...p,
-      name:  user?.name     || p.name,
-      phone: user?.phone    || p.phone,
-      email: user?.username || p.email,
-    }));
+  const fillFromAccount = () => setForm(p => ({ ...p, name: user?.name || p.name, phone: user?.phone || p.phone, email: user?.username || p.email }));
+
+  const handleLocationSelect = (loc) => {
+    const parts    = loc.display_name.split(', ');
+    const address  = parts.slice(0, 3).join(', ');
+    const district = parts.find(p => /quận|huyện|thị xã/i.test(p)) || '';
+    const CITY_MAP = { 'Hà Nội': 'Hà Nội', 'Thành phố Hồ Chí Minh': 'TP. Hồ Chí Minh', 'Đà Nẵng': 'Đà Nẵng', 'Cần Thơ': 'Cần Thơ', 'Hải Phòng': 'Hải Phòng', 'Bình Dương': 'Bình Dương', 'Đồng Nai': 'Đồng Nai' };
+    const cityRaw  = parts.find(p => CITY_MAP[p]) || '';
+    const city     = CITY_MAP[cityRaw] || cityRaw;
+    setForm(p => ({ ...p, address: address || p.address, district: district || p.district, city: city || p.city, lat: parseFloat(loc.lat), lon: parseFloat(loc.lon) }));
+    setErrors(p => ({ ...p, address: '', city: '' }));
   };
 
-  const toggleAmenity = (key) => set('amenities',
-    form.amenities.includes(key) ? form.amenities.filter(a => a !== key) : [...form.amenities, key]
-  );
+  const toggleAmenity = (key) => set('amenities', form.amenities.includes(key) ? form.amenities.filter(a => a !== key) : [...form.amenities, key]);
 
   const handleImages = (e) => {
-    const newFiles = Array.from(e.target.files);
-    const combined = [...form.images, ...newFiles].slice(0, 10);
+    const combined = [...form.images, ...Array.from(e.target.files)].slice(0, 10);
     set('images', combined);
     setPreviewImgs(combined.map(f => URL.createObjectURL(f)));
-    // Reset để có thể chọn lại cùng file
     e.target.value = '';
   };
 
@@ -95,7 +89,6 @@ export default function PostRoom({ user, onLogout }) {
   const next = () => { if (validateStep()) setStep(s => s + 1); };
   const prev = () => setStep(s => s - 1);
 
-  // Resize + convert File to base64 (max 800px, quality 0.7)
   const toBase64 = (file) => new Promise((resolve, reject) => {
     const img = new Image();
     const url = URL.createObjectURL(file);
@@ -104,7 +97,7 @@ export default function PostRoom({ user, onLogout }) {
       let { width, height } = img;
       if (width > MAX || height > MAX) {
         if (width > height) { height = Math.round(height * MAX / width); width = MAX; }
-        else                { width  = Math.round(width  * MAX / height); height = MAX; }
+        else { width = Math.round(width * MAX / height); height = MAX; }
       }
       const canvas = document.createElement('canvas');
       canvas.width = width; canvas.height = height;
@@ -119,28 +112,16 @@ export default function PostRoom({ user, onLogout }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateStep()) return;
-    setSubmitting(true);
-    setSubmitError('');
+    setSubmitting(true); setSubmitError('');
     try {
-      // Convert images to base64
       const imageData = await Promise.all(form.images.map(f => toBase64(f)));
-
       await postRoomApi({
-        title:        form.title,
-        type:         form.type,
-        city:         form.city,
-        district:     form.district,
-        address:      form.address,
-        price:        form.price,
-        deposit:      form.deposit,
-        area:         form.area,
-        description:  form.description,
-        contactName:  form.name,
-        contactPhone: form.phone,
-        contactEmail: form.email,
-        showPhone:    form.showPhone,
-        amenities:    form.amenities,
-        images:       imageData,
+        title: form.title, type: form.type, city: form.city, district: form.district,
+        address: form.address, price: form.price, deposit: form.deposit, area: form.area,
+        description: form.description, contactName: form.name, contactPhone: form.phone,
+        contactEmail: form.email, showPhone: form.showPhone,
+        amenities: form.amenities, images: imageData,
+        lat: form.lat, lon: form.lon,
       });
       setSuccess(true);
     } catch (err) {
@@ -158,9 +139,7 @@ export default function PostRoom({ user, onLogout }) {
         <p>Tin đăng của bạn đang được xét duyệt.<br />Chúng tôi sẽ thông báo trong vòng 24 giờ.</p>
         <div className="pr-success-actions">
           <Link to="/employer" className="pr-success-btn-primary">Về trang chủ</Link>
-          <button className="pr-success-btn-outline" onClick={() => { setForm(initForm); setPreviewImgs([]); setStep(0); setSuccess(false); }}>
-            Đăng tin khác
-          </button>
+          <button className="pr-success-btn-outline" onClick={() => { setForm(initForm); setPreviewImgs([]); setStep(0); setSuccess(false); }}>Đăng tin khác</button>
         </div>
       </div>
     </div>
@@ -168,13 +147,13 @@ export default function PostRoom({ user, onLogout }) {
 
   return (
     <div className="pr-page">
-      {/* NAVBAR */}
       <nav className="pr-nav">
         <div className="pr-nav-inner">
           <Link to="/employer" className="pr-nav-logo">🏠 PhòngTrọ<span>VN</span></Link>
           <div className="pr-nav-links">
             <Link to="/employer"         className="pr-nav-link">Tổng quan</Link>
             <Link to="/employer/rooms"   className="pr-nav-link">Tin đăng</Link>
+            <Link to="/employer/wallet"  className="pr-nav-link">Ví của tôi</Link>
             <Link to="/employer/pricing" className="pr-nav-link pr-nav-link-gold">Dịch vụ</Link>
           </div>
           <div className="pr-nav-right">
@@ -182,9 +161,7 @@ export default function PostRoom({ user, onLogout }) {
             <div className="pr-user-wrap">
               <button className="pr-user-btn" onClick={() => setMenuOpen(!menuOpen)}>
                 <div className="pr-avatar">
-                  {user?.avatar_url
-                    ? <img src={user.avatar_url} alt="avatar" />
-                    : user?.name?.charAt(0) || 'C'}
+                  {user?.avatar_url ? <img src={user.avatar_url} alt="avatar" /> : user?.name?.charAt(0) || 'C'}
                 </div>
                 <div className="pr-user-info">
                   <span className="pr-user-name">{user?.name || 'Chủ trọ'}</span>
@@ -206,19 +183,15 @@ export default function PostRoom({ user, onLogout }) {
       </nav>
 
       <div className="pr-body">
-        {/* Page title */}
         <div className="pr-page-title">
           <h1>📝 Đăng tin cho thuê phòng</h1>
           <p>Điền đầy đủ thông tin để tin đăng được duyệt nhanh hơn</p>
         </div>
 
-        {/* STEPPER */}
         <div className="pr-stepper">
           {STEPS.map((s, i) => (
             <div key={s} className="pr-step-item">
-              <div className={`pr-step-circle ${i < step ? 'done' : i === step ? 'active' : ''}`}>
-                {i < step ? '✓' : i + 1}
-              </div>
+              <div className={`pr-step-circle ${i < step ? 'done' : i === step ? 'active' : ''}`}>{i < step ? '✓' : i + 1}</div>
               <span className={`pr-step-label ${i === step ? 'active' : ''}`}>{s}</span>
               {i < STEPS.length - 1 && <div className={`pr-step-line ${i < step ? 'done' : ''}`} />}
             </div>
@@ -227,10 +200,9 @@ export default function PostRoom({ user, onLogout }) {
 
         <form onSubmit={handleSubmit}>
           <div className="pr-form-layout">
-            {/* MAIN FORM */}
             <div className="pr-form-main">
 
-              {/* ── STEP 0: Thông tin cơ bản ── */}
+              {/* STEP 0 */}
               {step === 0 && (
                 <div className="pr-card">
                   <h2 className="pr-card-title">Thông tin phòng trọ</h2>
@@ -238,8 +210,7 @@ export default function PostRoom({ user, onLogout }) {
                   <div className="pr-field">
                     <label>Tiêu đề tin đăng <span className="pr-req">*</span></label>
                     <input type="text" placeholder="VD: Phòng trọ cao cấp gần ĐH Bách Khoa, đầy đủ nội thất"
-                      value={form.title} onChange={e => set('title', e.target.value)}
-                      className={errors.title ? 'error' : ''} />
+                      value={form.title} onChange={e => set('title', e.target.value)} className={errors.title ? 'error' : ''} />
                     {errors.title && <span className="pr-error">{errors.title}</span>}
                     <span className="pr-hint">{form.title.length}/100 ký tự</span>
                   </div>
@@ -263,6 +234,12 @@ export default function PostRoom({ user, onLogout }) {
                     </div>
                   </div>
 
+                  <div className="pr-field">
+                    <label>📍 Vị trí trên bản đồ</label>
+                    <LocationPicker onSelect={handleLocationSelect} initialAddress={form.address} />
+                    <span className="pr-hint">Tìm kiếm hoặc ghim vị trí để tự động điền địa chỉ bên dưới</span>
+                  </div>
+
                   <div className="pr-two-col">
                     <div className="pr-field">
                       <label>Quận / Huyện</label>
@@ -272,8 +249,7 @@ export default function PostRoom({ user, onLogout }) {
                     <div className="pr-field">
                       <label>Địa chỉ cụ thể <span className="pr-req">*</span></label>
                       <input type="text" placeholder="Số nhà, tên đường, phường/xã"
-                        value={form.address} onChange={e => set('address', e.target.value)}
-                        className={errors.address ? 'error' : ''} />
+                        value={form.address} onChange={e => set('address', e.target.value)} className={errors.address ? 'error' : ''} />
                       {errors.address && <span className="pr-error">{errors.address}</span>}
                     </div>
                   </div>
@@ -283,8 +259,7 @@ export default function PostRoom({ user, onLogout }) {
                       <label>Giá thuê (đ/tháng) <span className="pr-req">*</span></label>
                       <div className="pr-input-addon">
                         <input type="number" placeholder="3500000"
-                          value={form.price} onChange={e => set('price', e.target.value)}
-                          className={errors.price ? 'error' : ''} />
+                          value={form.price} onChange={e => set('price', e.target.value)} className={errors.price ? 'error' : ''} />
                         <span>đ</span>
                       </div>
                       {errors.price && <span className="pr-error">{errors.price}</span>}
@@ -302,8 +277,7 @@ export default function PostRoom({ user, onLogout }) {
                       <label>Diện tích (m²) <span className="pr-req">*</span></label>
                       <div className="pr-input-addon">
                         <input type="number" placeholder="25"
-                          value={form.area} onChange={e => set('area', e.target.value)}
-                          className={errors.area ? 'error' : ''} />
+                          value={form.area} onChange={e => set('area', e.target.value)} className={errors.area ? 'error' : ''} />
                         <span>m²</span>
                       </div>
                       {errors.area && <span className="pr-error">{errors.area}</span>}
@@ -312,15 +286,14 @@ export default function PostRoom({ user, onLogout }) {
 
                   <div className="pr-field">
                     <label>Mô tả chi tiết</label>
-                    <textarea rows={6}
-                      placeholder="Mô tả về phòng trọ: vị trí, nội thất, tiện ích xung quanh, quy định nhà trọ..."
+                    <textarea rows={6} placeholder="Mô tả về phòng trọ: vị trí, nội thất, tiện ích xung quanh, quy định nhà trọ..."
                       value={form.description} onChange={e => set('description', e.target.value)} />
                     <span className="pr-hint">{form.description.length} ký tự</span>
                   </div>
                 </div>
               )}
 
-              {/* ── STEP 1: Tiện ích & Ảnh ── */}
+              {/* STEP 1 */}
               {step === 1 && (
                 <div className="pr-card">
                   <h2 className="pr-card-title">Tiện ích & Hình ảnh</h2>
@@ -338,9 +311,7 @@ export default function PostRoom({ user, onLogout }) {
                         </button>
                       ))}
                     </div>
-                    {form.amenities.length > 0 && (
-                      <p className="pr-hint">Đã chọn {form.amenities.length} tiện ích</p>
-                    )}
+                    {form.amenities.length > 0 && <p className="pr-hint">Đã chọn {form.amenities.length} tiện ích</p>}
                   </div>
 
                   <div className="pr-field">
@@ -349,10 +320,8 @@ export default function PostRoom({ user, onLogout }) {
                       <span className="pr-upload-icon">📷</span>
                       <p>Kéo thả hoặc <span>click để chọn ảnh</span></p>
                       <small>Tối đa 10 ảnh · JPG, PNG · Mỗi ảnh ≤ 5MB</small>
-                      <input id="img-upload" type="file" multiple accept="image/*"
-                        style={{ display: 'none' }} onChange={handleImages} />
+                      <input id="img-upload" type="file" multiple accept="image/*" style={{ display: 'none' }} onChange={handleImages} />
                     </label>
-
                     {previewImgs.length > 0 && (
                       <div className="pr-img-preview-grid">
                         {previewImgs.map((src, i) => (
@@ -360,10 +329,7 @@ export default function PostRoom({ user, onLogout }) {
                             <img src={src} alt={`preview-${i}`} />
                             {i === 0 && <span className="pr-img-main-badge">Ảnh bìa</span>}
                             <button type="button" className="pr-img-remove"
-                              onClick={() => {
-                                setPreviewImgs(p => p.filter((_, j) => j !== i));
-                                set('images', form.images.filter((_, j) => j !== i));
-                              }}>✕</button>
+                              onClick={() => { setPreviewImgs(p => p.filter((_, j) => j !== i)); set('images', form.images.filter((_, j) => j !== i)); }}>✕</button>
                           </div>
                         ))}
                       </div>
@@ -372,29 +338,25 @@ export default function PostRoom({ user, onLogout }) {
                 </div>
               )}
 
-              {/* ── STEP 2: Liên hệ & Xác nhận ── */}
+              {/* STEP 2 */}
               {step === 2 && (
                 <div className="pr-card">
                   <div className="pr-card-title-row">
                     <h2 className="pr-card-title">Thông tin liên hệ</h2>
-                    <button type="button" className="pr-fill-account-btn" onClick={fillFromAccount}>
-                      👤 Lấy từ tài khoản
-                    </button>
+                    <button type="button" className="pr-fill-account-btn" onClick={fillFromAccount}>👤 Lấy từ tài khoản</button>
                   </div>
 
                   <div className="pr-two-col">
                     <div className="pr-field">
                       <label>Họ và tên <span className="pr-req">*</span></label>
                       <input type="text" placeholder="Nguyễn Văn A"
-                        value={form.name} onChange={e => set('name', e.target.value)}
-                        className={errors.name ? 'error' : ''} />
+                        value={form.name} onChange={e => set('name', e.target.value)} className={errors.name ? 'error' : ''} />
                       {errors.name && <span className="pr-error">{errors.name}</span>}
                     </div>
                     <div className="pr-field">
                       <label>Số điện thoại <span className="pr-req">*</span></label>
                       <input type="tel" placeholder="0912 345 678"
-                        value={form.phone} onChange={e => set('phone', e.target.value)}
-                        className={errors.phone ? 'error' : ''} />
+                        value={form.phone} onChange={e => set('phone', e.target.value)} className={errors.phone ? 'error' : ''} />
                       {errors.phone && <span className="pr-error">{errors.phone}</span>}
                     </div>
                   </div>
@@ -406,12 +368,10 @@ export default function PostRoom({ user, onLogout }) {
                   </div>
 
                   <label className="pr-checkbox-label">
-                    <input type="checkbox" checked={form.showPhone}
-                      onChange={e => set('showPhone', e.target.checked)} />
+                    <input type="checkbox" checked={form.showPhone} onChange={e => set('showPhone', e.target.checked)} />
                     Hiển thị số điện thoại công khai trên tin đăng
                   </label>
 
-                  {/* Preview */}
                   <div className="pr-preview-box">
                     <h3>📋 Xem lại thông tin</h3>
                     <div className="pr-preview-grid">
@@ -422,30 +382,23 @@ export default function PostRoom({ user, onLogout }) {
                       <div className="pr-preview-item"><span>Diện tích</span><strong>{form.area ? `${form.area} m²` : '—'}</strong></div>
                       <div className="pr-preview-item"><span>Tiện ích</span><strong>{form.amenities.length} tiện ích đã chọn</strong></div>
                       <div className="pr-preview-item"><span>Hình ảnh</span><strong>{previewImgs.length} ảnh</strong></div>
-                      <div className="pr-preview-item"><span>Liên hệ</span><strong>{form.phone || '—'}</strong></div>
+                      <div className="pr-preview-item"><span>Tọa độ</span><strong>{form.lat ? `${form.lat.toFixed(4)}, ${form.lon.toFixed(4)}` : 'Chưa ghim'}</strong></div>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* NAV BUTTONS */}
               <div className="pr-nav-btns">
-                {step > 0 && (
-                  <button type="button" className="pr-btn-prev" onClick={prev}>← Quay lại</button>
-                )}
+                {step > 0 && <button type="button" className="pr-btn-prev" onClick={prev}>← Quay lại</button>}
                 <div style={{ flex: 1 }} />
-                {step < STEPS.length - 1 ? (
-                  <button type="button" className="pr-btn-next" onClick={next}>Tiếp theo →</button>
-                ) : (
-                  <button type="submit" className="pr-btn-submit" disabled={submitting}>
-                    {submitting ? '⏳ Đang đăng...' : '🚀 Đăng tin ngay'}
-                  </button>
-                )}
+                {step < STEPS.length - 1
+                  ? <button type="button" className="pr-btn-next" onClick={next}>Tiếp theo →</button>
+                  : <button type="submit" className="pr-btn-submit" disabled={submitting}>{submitting ? '⏳ Đang đăng...' : '🚀 Đăng tin ngay'}</button>
+                }
               </div>
               {submitError && <p className="pr-submit-error">{submitError}</p>}
             </div>
 
-            {/* SIDEBAR TIPS */}
             <aside className="pr-sidebar">
               <div className="pr-tip-card">
                 <h3>💡 Mẹo đăng tin hiệu quả</h3>
@@ -457,7 +410,6 @@ export default function PostRoom({ user, onLogout }) {
                   <li><strong>Cập nhật thường xuyên</strong> — tin mới được ưu tiên hiển thị</li>
                 </ul>
               </div>
-
               <div className="pr-tip-card pr-tip-policy">
                 <h3>📋 Quy định đăng tin</h3>
                 <ul>
@@ -467,15 +419,14 @@ export default function PostRoom({ user, onLogout }) {
                   <li>Tin được duyệt trong vòng 24 giờ</li>
                 </ul>
               </div>
-
-              {/* Progress */}
               <div className="pr-tip-card">
                 <h3>📊 Tiến độ điền thông tin</h3>
                 {[
                   { label: 'Thông tin cơ bản', done: !!(form.title && form.type && form.city && form.address && form.price && form.area) },
-                  { label: 'Tiện ích', done: form.amenities.length > 0 },
-                  { label: 'Hình ảnh', done: previewImgs.length > 0 },
-                  { label: 'Liên hệ', done: !!(form.name && form.phone) },
+                  { label: 'Vị trí bản đồ',   done: !!(form.lat && form.lon) },
+                  { label: 'Tiện ích',         done: form.amenities.length > 0 },
+                  { label: 'Hình ảnh',         done: previewImgs.length > 0 },
+                  { label: 'Liên hệ',          done: !!(form.name && form.phone) },
                 ].map(p => (
                   <div key={p.label} className="pr-progress-item">
                     <span className={`pr-progress-dot ${p.done ? 'done' : ''}`}>{p.done ? '✓' : '○'}</span>

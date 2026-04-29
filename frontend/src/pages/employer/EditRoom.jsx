@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { getRoomDetailEmployerApi, updateRoomApi } from '../../api/employer';
 import NotificationBell from '../../components/NotificationBell';
+import LocationPicker from '../../components/LocationPicker';
 import './PostRoom.css';
 
 const STEPS = ['Thông tin cơ bản', 'Tiện ích & Ảnh', 'Liên hệ & Xác nhận'];
@@ -27,18 +28,16 @@ const TYPES  = ['Phòng trọ', 'Chung cư mini', 'Nhà nguyên căn', 'Studio',
 export default function EditRoom({ user, onLogout }) {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [step, setStep] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState(null);
-  const [errors, setErrors] = useState({});
-  const [success, setSuccess] = useState(false);
+  const [step, setStep]           = useState(0);
+  const [loading, setLoading]     = useState(true);
+  const [form, setForm]           = useState(null);
+  const [errors, setErrors]       = useState({});
+  const [success, setSuccess]     = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
-  const [menuOpen, setMenuOpen] = useState(false);
-  // Ảnh cũ (URL) giữ lại
+  const [menuOpen, setMenuOpen]   = useState(false);
   const [keepImages, setKeepImages] = useState([]);
-  // Ảnh mới (File objects)
-  const [newImages, setNewImages] = useState([]);
+  const [newImages, setNewImages]   = useState([]);
   const [newPreviews, setNewPreviews] = useState([]);
 
   useEffect(() => {
@@ -60,6 +59,8 @@ export default function EditRoom({ user, onLogout }) {
           phone:       r.contactPhone || '',
           email:       r.contactEmail || '',
           showPhone:   r.showPhone ?? true,
+          lat:         r.lat  || null,
+          lon:         r.lon  || null,
         });
         setKeepImages(r.images || []);
       })
@@ -68,6 +69,24 @@ export default function EditRoom({ user, onLogout }) {
   }, [id]);
 
   const set = (k, v) => { setForm(p => ({ ...p, [k]: v })); setErrors(p => ({ ...p, [k]: '' })); };
+
+  const handleLocationSelect = (loc) => {
+    const parts    = loc.display_name.split(', ');
+    const address  = parts.slice(0, 3).join(', ');
+    const district = parts.find(p => /quận|huyện|thị xã/i.test(p)) || '';
+    const CITY_MAP = { 'Hà Nội': 'Hà Nội', 'Thành phố Hồ Chí Minh': 'TP. Hồ Chí Minh', 'Đà Nẵng': 'Đà Nẵng', 'Cần Thơ': 'Cần Thơ', 'Hải Phòng': 'Hải Phòng', 'Bình Dương': 'Bình Dương', 'Đồng Nai': 'Đồng Nai' };
+    const cityRaw  = parts.find(p => CITY_MAP[p]) || '';
+    const city     = CITY_MAP[cityRaw] || cityRaw;
+    setForm(p => ({
+      ...p,
+      address:  address  || p.address,
+      district: district || p.district,
+      city:     city     || p.city,
+      lat: parseFloat(loc.lat),
+      lon: parseFloat(loc.lon),
+    }));
+    setErrors(p => ({ ...p, address: '', city: '' }));
+  };
 
   const toggleAmenity = (key) => set('amenities',
     form.amenities.includes(key) ? form.amenities.filter(a => a !== key) : [...form.amenities, key]
@@ -82,10 +101,7 @@ export default function EditRoom({ user, onLogout }) {
   };
 
   const removeKeepImage = (i) => setKeepImages(p => p.filter((_, j) => j !== i));
-  const removeNewImage  = (i) => {
-    setNewImages(p => p.filter((_, j) => j !== i));
-    setNewPreviews(p => p.filter((_, j) => j !== i));
-  };
+  const removeNewImage  = (i) => { setNewImages(p => p.filter((_, j) => j !== i)); setNewPreviews(p => p.filter((_, j) => j !== i)); };
 
   const validateStep = () => {
     const e = {};
@@ -116,7 +132,7 @@ export default function EditRoom({ user, onLogout }) {
       let { width, height } = img;
       if (width > MAX || height > MAX) {
         if (width > height) { height = Math.round(height * MAX / width); width = MAX; }
-        else                { width  = Math.round(width  * MAX / height); height = MAX; }
+        else { width = Math.round(width * MAX / height); height = MAX; }
       }
       const canvas = document.createElement('canvas');
       canvas.width = width; canvas.height = height;
@@ -131,27 +147,16 @@ export default function EditRoom({ user, onLogout }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateStep()) return;
-    setSubmitting(true);
-    setSubmitError('');
+    setSubmitting(true); setSubmitError('');
     try {
       const imageData = await Promise.all(newImages.map(f => toBase64(f)));
       await updateRoomApi(id, {
-        title:        form.title,
-        type:         form.type,
-        city:         form.city,
-        district:     form.district,
-        address:      form.address,
-        price:        form.price,
-        deposit:      form.deposit,
-        area:         form.area,
-        description:  form.description,
-        contactName:  form.name,
-        contactPhone: form.phone,
-        contactEmail: form.email,
-        showPhone:    form.showPhone,
-        amenities:    form.amenities,
-        keepImages,
-        images:       imageData,
+        title: form.title, type: form.type, city: form.city, district: form.district,
+        address: form.address, price: form.price, deposit: form.deposit, area: form.area,
+        description: form.description, contactName: form.name, contactPhone: form.phone,
+        contactEmail: form.email, showPhone: form.showPhone,
+        amenities: form.amenities, keepImages, images: imageData,
+        lat: form.lat, lon: form.lon,
       });
       setSuccess(true);
     } catch (err) {
@@ -185,13 +190,13 @@ export default function EditRoom({ user, onLogout }) {
 
   return (
     <div className="pr-page">
-      {/* NAVBAR */}
       <nav className="pr-nav">
         <div className="pr-nav-inner">
           <Link to="/employer" className="pr-nav-logo">🏠 PhòngTrọ<span>VN</span></Link>
           <div className="pr-nav-links">
             <Link to="/employer"         className="pr-nav-link">Tổng quan</Link>
             <Link to="/employer/rooms"   className="pr-nav-link active">Tin đăng</Link>
+            <Link to="/employer/wallet"  className="pr-nav-link">Ví của tôi</Link>
             <Link to="/employer/pricing" className="pr-nav-link pr-nav-link-gold">Dịch vụ</Link>
           </div>
           <div className="pr-nav-right">
@@ -209,7 +214,7 @@ export default function EditRoom({ user, onLogout }) {
               </button>
               {menuOpen && (
                 <div className="pr-dropdown">
-                  <Link to="/profile"  className="pr-drop-item" onClick={() => setMenuOpen(false)}>👤 Hồ sơ</Link>
+                  <Link to="/profile" className="pr-drop-item" onClick={() => setMenuOpen(false)}>👤 Hồ sơ</Link>
                   <hr className="pr-drop-hr" />
                   <button className="pr-drop-logout" onClick={() => { onLogout?.(); navigate('/login'); }}>🚪 Đăng xuất</button>
                 </div>
@@ -225,13 +230,10 @@ export default function EditRoom({ user, onLogout }) {
           <p>Cập nhật thông tin phòng trọ — tin sẽ được gửi duyệt lại sau khi lưu</p>
         </div>
 
-        {/* STEPPER */}
         <div className="pr-stepper">
           {STEPS.map((s, i) => (
             <div key={s} className="pr-step-item">
-              <div className={`pr-step-circle ${i < step ? 'done' : i === step ? 'active' : ''}`}>
-                {i < step ? '✓' : i + 1}
-              </div>
+              <div className={`pr-step-circle ${i < step ? 'done' : i === step ? 'active' : ''}`}>{i < step ? '✓' : i + 1}</div>
               <span className={`pr-step-label ${i === step ? 'active' : ''}`}>{s}</span>
               {i < STEPS.length - 1 && <div className={`pr-step-line ${i < step ? 'done' : ''}`} />}
             </div>
@@ -249,8 +251,7 @@ export default function EditRoom({ user, onLogout }) {
 
                   <div className="pr-field">
                     <label>Tiêu đề tin đăng <span className="pr-req">*</span></label>
-                    <input type="text" value={form.title} onChange={e => set('title', e.target.value)}
-                      className={errors.title ? 'error' : ''} />
+                    <input type="text" value={form.title} onChange={e => set('title', e.target.value)} className={errors.title ? 'error' : ''} />
                     {errors.title && <span className="pr-error">{errors.title}</span>}
                     <span className="pr-hint">{form.title.length}/100 ký tự</span>
                   </div>
@@ -274,6 +275,18 @@ export default function EditRoom({ user, onLogout }) {
                     </div>
                   </div>
 
+                  <div className="pr-field">
+                    <label>📍 Vị trí trên bản đồ</label>
+                    <LocationPicker
+                      onSelect={handleLocationSelect}
+                      initialAddress={form.address}
+                      key={form.address}
+                    />
+                    <span className="pr-hint">
+                      {form.lat ? `✅ Đã ghim: ${form.lat.toFixed(4)}, ${form.lon.toFixed(4)}` : 'Tìm kiếm hoặc ghim lại vị trí để cập nhật tọa độ'}
+                    </span>
+                  </div>
+
                   <div className="pr-two-col">
                     <div className="pr-field">
                       <label>Quận / Huyện</label>
@@ -281,8 +294,7 @@ export default function EditRoom({ user, onLogout }) {
                     </div>
                     <div className="pr-field">
                       <label>Địa chỉ cụ thể <span className="pr-req">*</span></label>
-                      <input type="text" value={form.address} onChange={e => set('address', e.target.value)}
-                        className={errors.address ? 'error' : ''} />
+                      <input type="text" value={form.address} onChange={e => set('address', e.target.value)} className={errors.address ? 'error' : ''} />
                       {errors.address && <span className="pr-error">{errors.address}</span>}
                     </div>
                   </div>
@@ -291,8 +303,7 @@ export default function EditRoom({ user, onLogout }) {
                     <div className="pr-field">
                       <label>Giá thuê (đ/tháng) <span className="pr-req">*</span></label>
                       <div className="pr-input-addon">
-                        <input type="number" value={form.price} onChange={e => set('price', e.target.value)}
-                          className={errors.price ? 'error' : ''} />
+                        <input type="number" value={form.price} onChange={e => set('price', e.target.value)} className={errors.price ? 'error' : ''} />
                         <span>đ</span>
                       </div>
                       {errors.price && <span className="pr-error">{errors.price}</span>}
@@ -308,8 +319,7 @@ export default function EditRoom({ user, onLogout }) {
                     <div className="pr-field">
                       <label>Diện tích (m²) <span className="pr-req">*</span></label>
                       <div className="pr-input-addon">
-                        <input type="number" value={form.area} onChange={e => set('area', e.target.value)}
-                          className={errors.area ? 'error' : ''} />
+                        <input type="number" value={form.area} onChange={e => set('area', e.target.value)} className={errors.area ? 'error' : ''} />
                         <span>m²</span>
                       </div>
                       {errors.area && <span className="pr-error">{errors.area}</span>}
@@ -336,8 +346,7 @@ export default function EditRoom({ user, onLogout }) {
                         <button key={a.key} type="button"
                           className={`pr-amenity-btn ${form.amenities.includes(a.key) ? 'active' : ''}`}
                           onClick={() => toggleAmenity(a.key)}>
-                          <span>{a.icon}</span>
-                          <span>{a.label}</span>
+                          <span>{a.icon}</span><span>{a.label}</span>
                           {form.amenities.includes(a.key) && <span className="pr-amenity-check">✓</span>}
                         </button>
                       ))}
@@ -347,8 +356,6 @@ export default function EditRoom({ user, onLogout }) {
 
                   <div className="pr-field">
                     <label>Hình ảnh phòng ({totalImgCount}/10)</label>
-
-                    {/* Ảnh cũ */}
                     {keepImages.length > 0 && (
                       <div className="pr-img-preview-grid" style={{ marginBottom: 12 }}>
                         {keepImages.map((src, i) => (
@@ -360,8 +367,6 @@ export default function EditRoom({ user, onLogout }) {
                         ))}
                       </div>
                     )}
-
-                    {/* Ảnh mới */}
                     {newPreviews.length > 0 && (
                       <div className="pr-img-preview-grid" style={{ marginBottom: 12 }}>
                         {newPreviews.map((src, i) => (
@@ -373,14 +378,12 @@ export default function EditRoom({ user, onLogout }) {
                         ))}
                       </div>
                     )}
-
                     {totalImgCount < 10 && (
                       <label className="pr-upload-area" htmlFor="img-upload-edit">
                         <span className="pr-upload-icon">📷</span>
                         <p>Kéo thả hoặc <span>click để thêm ảnh mới</span></p>
                         <small>Tối đa {10 - totalImgCount} ảnh nữa · JPG, PNG</small>
-                        <input id="img-upload-edit" type="file" multiple accept="image/*"
-                          style={{ display: 'none' }} onChange={handleNewImages} />
+                        <input id="img-upload-edit" type="file" multiple accept="image/*" style={{ display: 'none' }} onChange={handleNewImages} />
                       </label>
                     )}
                   </div>
@@ -391,32 +394,26 @@ export default function EditRoom({ user, onLogout }) {
               {step === 2 && (
                 <div className="pr-card">
                   <h2 className="pr-card-title">Thông tin liên hệ</h2>
-
                   <div className="pr-two-col">
                     <div className="pr-field">
                       <label>Họ và tên <span className="pr-req">*</span></label>
-                      <input type="text" value={form.name} onChange={e => set('name', e.target.value)}
-                        className={errors.name ? 'error' : ''} />
+                      <input type="text" value={form.name} onChange={e => set('name', e.target.value)} className={errors.name ? 'error' : ''} />
                       {errors.name && <span className="pr-error">{errors.name}</span>}
                     </div>
                     <div className="pr-field">
                       <label>Số điện thoại <span className="pr-req">*</span></label>
-                      <input type="tel" value={form.phone} onChange={e => set('phone', e.target.value)}
-                        className={errors.phone ? 'error' : ''} />
+                      <input type="tel" value={form.phone} onChange={e => set('phone', e.target.value)} className={errors.phone ? 'error' : ''} />
                       {errors.phone && <span className="pr-error">{errors.phone}</span>}
                     </div>
                   </div>
-
                   <div className="pr-field">
                     <label>Email</label>
                     <input type="email" value={form.email} onChange={e => set('email', e.target.value)} />
                   </div>
-
                   <label className="pr-checkbox-label">
                     <input type="checkbox" checked={form.showPhone} onChange={e => set('showPhone', e.target.checked)} />
                     Hiển thị số điện thoại công khai trên tin đăng
                   </label>
-
                   <div className="pr-preview-box">
                     <h3>📋 Xem lại thông tin</h3>
                     <div className="pr-preview-grid">
@@ -427,7 +424,7 @@ export default function EditRoom({ user, onLogout }) {
                       <div className="pr-preview-item"><span>Diện tích</span><strong>{form.area ? `${form.area} m²` : '—'}</strong></div>
                       <div className="pr-preview-item"><span>Tiện ích</span><strong>{form.amenities.length} tiện ích</strong></div>
                       <div className="pr-preview-item"><span>Hình ảnh</span><strong>{totalImgCount} ảnh</strong></div>
-                      <div className="pr-preview-item"><span>Liên hệ</span><strong>{form.phone || '—'}</strong></div>
+                      <div className="pr-preview-item"><span>Tọa độ</span><strong>{form.lat ? `${form.lat.toFixed(4)}, ${form.lon.toFixed(4)}` : 'Chưa ghim'}</strong></div>
                     </div>
                   </div>
                 </div>
@@ -436,18 +433,14 @@ export default function EditRoom({ user, onLogout }) {
               <div className="pr-nav-btns">
                 {step > 0 && <button type="button" className="pr-btn-prev" onClick={prev}>← Quay lại</button>}
                 <div style={{ flex: 1 }} />
-                {step < STEPS.length - 1 ? (
-                  <button type="button" className="pr-btn-next" onClick={next}>Tiếp theo →</button>
-                ) : (
-                  <button type="submit" className="pr-btn-submit" disabled={submitting}>
-                    {submitting ? '⏳ Đang lưu...' : '💾 Lưu thay đổi'}
-                  </button>
-                )}
+                {step < STEPS.length - 1
+                  ? <button type="button" className="pr-btn-next" onClick={next}>Tiếp theo →</button>
+                  : <button type="submit" className="pr-btn-submit" disabled={submitting}>{submitting ? '⏳ Đang lưu...' : '💾 Lưu thay đổi'}</button>
+                }
               </div>
               {submitError && <p className="pr-submit-error">{submitError}</p>}
             </div>
 
-            {/* SIDEBAR */}
             <aside className="pr-sidebar">
               <div className="pr-tip-card">
                 <h3>ℹ️ Lưu ý khi sửa tin</h3>
@@ -462,9 +455,10 @@ export default function EditRoom({ user, onLogout }) {
                 <h3>📊 Tiến độ điền thông tin</h3>
                 {[
                   { label: 'Thông tin cơ bản', done: !!(form.title && form.type && form.city && form.address && form.price && form.area) },
-                  { label: 'Tiện ích', done: form.amenities.length > 0 },
-                  { label: 'Hình ảnh', done: totalImgCount > 0 },
-                  { label: 'Liên hệ', done: !!(form.name && form.phone) },
+                  { label: 'Vị trí bản đồ',   done: !!(form.lat && form.lon) },
+                  { label: 'Tiện ích',         done: form.amenities.length > 0 },
+                  { label: 'Hình ảnh',         done: totalImgCount > 0 },
+                  { label: 'Liên hệ',          done: !!(form.name && form.phone) },
                 ].map(p => (
                   <div key={p.label} className="pr-progress-item">
                     <span className={`pr-progress-dot ${p.done ? 'done' : ''}`}>{p.done ? '✓' : '○'}</span>

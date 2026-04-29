@@ -172,6 +172,8 @@ router.get('/:id', async (req, res) => {
         available:    r.con_phong,
         isFeatured:   r.noi_bat,
         views:        r.luot_xem,
+        lat:          r.latitude  ? parseFloat(r.latitude)  : null,
+        lon:          r.longitude ? parseFloat(r.longitude) : null,
         contactName:  r.ten_lien_he,
         contactPhone: r.hien_sdt ? r.sdt_lien_he : null,
         contactEmail: r.email_lien_he,

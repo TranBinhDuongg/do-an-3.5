@@ -1,0 +1,69 @@
+.lp-wrap { display: flex; flex-direction: column; gap: 10px; }
+
+/* Search */
+.lp-search-wrap { position: relative; }
+.lp-search-row {
+  display: flex; align-items: center; gap: 8px;
+  border: 1.5px solid #e2e8f0; border-radius: 10px;
+  padding: 10px 14px; background: #fff;
+  transition: border-color 0.15s;
+}
+.lp-search-row:focus-within { border-color: #2563eb; }
+.lp-search-icon { font-size: 16px; flex-shrink: 0; }
+.lp-search-input {
+  flex: 1; border: none; outline: none;
+  font-size: 14px; color: #1e293b; background: transparent;
+}
+.lp-search-input::placeholder { color: #94a3b8; }
+.lp-spinner { font-size: 14px; animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.lp-clear-btn {
+  background: none; border: none; cursor: pointer;
+  color: #94a3b8; font-size: 14px; padding: 0 2px;
+}
+.lp-clear-btn:hover { color: #475569; }
+
+/* Results dropdown */
+.lp-results {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+  background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+  list-style: none; padding: 4px 0; margin: 0; z-index: 500;
+  max-height: 240px; overflow-y: auto;
+}
+.lp-result-item {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 10px 14px; cursor: pointer; font-size: 13px; color: #374151;
+  transition: background 0.1s;
+}
+.lp-result-item:hover { background: #f0f7ff; }
+.lp-result-icon { flex-shrink: 0; margin-top: 1px; }
+
+/* Toggle button */
+.lp-toggle-map-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border: 1.5px solid #2563eb;
+  border-radius: 8px; background: #eff6ff;
+  color: #2563eb; font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all 0.15s; width: fit-content;
+}
+.lp-toggle-map-btn:hover { background: #2563eb; color: #fff; }
+
+/* Map */
+.lp-map-wrap { border-radius: 12px; overflow: hidden; border: 1.5px solid #e2e8f0; }
+.lp-map { height: 320px; width: 100%; }
+.lp-map-hint {
+  background: #f8fafc; padding: 8px 14px;
+  font-size: 12px; color: #64748b; margin: 0;
+  border-top: 1px solid #e2e8f0;
+}
+
+/* Selected */
+.lp-selected {
+  display: flex; align-items: flex-start; gap: 10px;
+  background: #f0fdf4; border: 1.5px solid #86efac;
+  border-radius: 10px; padding: 12px 14px;
+}
+.lp-selected-icon { font-size: 18px; flex-shrink: 0; }
+.lp-selected-addr { font-size: 13px; font-weight: 600; color: #166534; margin-bottom: 2px; }
+.lp-selected-coords { font-size: 11px; color: #4ade80; }

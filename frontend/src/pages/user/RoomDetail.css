@@ -275,3 +275,13 @@
 .rd-lb-prev { left: 20px; }
 .rd-lb-next { right: 20px; }
 .rd-lb-count { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.7); font-size: 13px; }
+
+/* ===== MAP REAL ===== */
+.rd-map-real-wrap { border-radius: 10px; overflow: hidden; border: 1.5px solid #e2e8f0; }
+.rd-map-real { height: 300px; width: 100%; }
+.rd-map-ext-link {
+  display: block; text-align: center; padding: 10px;
+  background: #f8fafc; border-top: 1px solid #e2e8f0;
+  font-size: 13px; font-weight: 600; color: #2563eb; text-decoration: none;
+}
+.rd-map-ext-link:hover { background: #eff6ff; }

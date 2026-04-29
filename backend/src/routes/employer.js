@@ -360,6 +360,8 @@ router.get('/rooms/:id/detail', auth(['employer', 'admin']), async (req, res) =>
         views:        r.luot_xem,
         contacts:     r.so_lien_he,
         saved:        r.luot_luu,
+        lat:          r.latitude  ? parseFloat(r.latitude)  : null,
+        lon:          r.longitude ? parseFloat(r.longitude) : null,
         contactName:  r.ten_lien_he,
         contactPhone: r.sdt_lien_he,
         contactEmail: r.email_lien_he,

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { getRoomDetailEmployerApi, updateRoomStatusApi, deleteRoomApi } from '../../api/employer';
 import NotificationBell from '../../components/NotificationBell';
@@ -13,6 +13,72 @@ const STATUS_LABEL = {
   rejected: { text: 'Từ chối',   cls: 'rejected', icon: '❌' },
   paused:   { text: 'Tạm dừng',  cls: 'paused',   icon: '⏸' },
 };
+
+function RoomMap({ lat, lon, address, city }) {
+  const mapRef  = useRef(null);
+  const mapInst = useRef(null);
+  const [coords, setCoords] = useState(
+    lat && lon ? { lat: parseFloat(lat), lon: parseFloat(lon) } : null
+  );
+  const [geocoding, setGeocoding] = useState(false);
+
+  useEffect(() => {
+    if (coords) return;
+    setGeocoding(true);
+    const q = encodeURIComponent(`${address}, ${city}, Việt Nam`);
+    fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1&countrycodes=vn`)
+      .then(r => r.json())
+      .then(data => { if (data[0]) setCoords({ lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) }); })
+      .catch(() => {})
+      .finally(() => setGeocoding(false));
+  }, [address, city]);
+
+  useEffect(() => {
+    if (!coords || !mapRef.current || mapInst.current) return;
+    if (!document.getElementById('leaflet-css')) {
+      const link = document.createElement('link');
+      link.id = 'leaflet-css'; link.rel = 'stylesheet';
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      document.head.appendChild(link);
+    }
+    import('leaflet').then(L => {
+      const map = L.map(mapRef.current, { center: [coords.lat, coords.lon], zoom: 16 });
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors' }).addTo(map);
+      const icon = L.icon({
+        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+        iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+        iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34],
+      });
+      L.marker([coords.lat, coords.lon], { icon }).addTo(map)
+        .bindPopup(`<b>${address}</b><br/>${city}`).openPopup();
+      mapInst.current = map;
+    });
+    return () => { if (mapInst.current) { mapInst.current.remove(); mapInst.current = null; } };
+  }, [coords]);
+
+  if (geocoding) return (
+    <div className="erd-map-placeholder"><span style={{ fontSize: 28 }}>⏳</span><p>Đang tải bản đồ...</p></div>
+  );
+
+  if (!coords) return (
+    <div className="erd-map-placeholder">
+      <span>🗺</span>
+      <p>{address}, {city}</p>
+      <a href={`https://maps.google.com/?q=${encodeURIComponent(address + ', ' + city)}`}
+        target="_blank" rel="noreferrer" className="erd-map-link">Xem trên Google Maps →</a>
+    </div>
+  );
+
+  return (
+    <div className="erd-map-wrap">
+      <div ref={mapRef} className="erd-map" />
+      <a href={`https://maps.google.com/?q=${coords.lat},${coords.lon}`} target="_blank" rel="noreferrer" className="erd-map-ext-link">
+        🗺 Mở Google Maps →
+      </a>
+    </div>
+  );
+}
 
 export default function EmployerRoomDetail({ user, onLogout }) {
   const { id } = useParams();
@@ -65,6 +131,7 @@ export default function EmployerRoomDetail({ user, onLogout }) {
           <div className="emp-nav-links">
             <Link to="/employer"         className="emp-nav-link">Tổng quan</Link>
             <Link to="/employer/rooms"   className="emp-nav-link active">Tin đăng</Link>
+            <Link to="/employer/wallet"  className="emp-nav-link">Ví của tôi</Link>
             <Link to="/employer/pricing" className="emp-nav-link emp-nav-link-pricing">Dịch vụ</Link>
           </div>
           <div className="emp-nav-right">
@@ -187,6 +254,12 @@ export default function EmployerRoomDetail({ user, onLogout }) {
                 </div>
               </div>
             )}
+
+            {/* MAP */}
+            <div className="erd-card">
+              <h2 className="erd-section-title">📍 Vị trí trên bản đồ</h2>
+              <RoomMap lat={room.lat} lon={room.lon} address={room.address} city={room.city} />
+            </div>
           </div>
 
           {/* SIDEBAR */}

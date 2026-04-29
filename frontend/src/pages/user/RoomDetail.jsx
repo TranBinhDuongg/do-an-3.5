@@ -1,9 +1,85 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { getRoomDetailApi, addFavoriteApi, removeFavoriteApi, checkFavoriteApi } from '../../api/rooms';
 import './RoomDetail.css';
 
 const FALLBACK_IMG = 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=800&h=500&fit=crop';
+
+function RoomMap({ lat, lon, address, city }) {
+  const mapRef  = useRef(null);
+  const mapInst = useRef(null);
+  const [coords, setCoords] = useState(
+    lat && lon ? { lat: parseFloat(lat), lon: parseFloat(lon) } : null
+  );
+  const [geocoding, setGeocoding] = useState(false);
+
+  // Nếu không có tọa độ → tự geocode từ địa chỉ
+  useEffect(() => {
+    if (coords) return;
+    setGeocoding(true);
+    const q = encodeURIComponent(`${address}, ${city}, Việt Nam`);
+    fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1&countrycodes=vn`)
+      .then(r => r.json())
+      .then(data => {
+        if (data[0]) setCoords({ lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) });
+      })
+      .catch(() => {})
+      .finally(() => setGeocoding(false));
+  }, [address, city]);
+
+  // Khởi tạo map khi có coords
+  useEffect(() => {
+    if (!coords || !mapRef.current || mapInst.current) return;
+    if (!document.getElementById('leaflet-css')) {
+      const link = document.createElement('link');
+      link.id = 'leaflet-css'; link.rel = 'stylesheet';
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      document.head.appendChild(link);
+    }
+    import('leaflet').then(L => {
+      const map = L.map(mapRef.current, { center: [coords.lat, coords.lon], zoom: 16, zoomControl: true });
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(map);
+      const icon = L.icon({
+        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+        iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+        iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34],
+      });
+      L.marker([coords.lat, coords.lon], { icon }).addTo(map)
+        .bindPopup(`<b>${address}</b><br/>${city}`)
+        .openPopup();
+      mapInst.current = map;
+    });
+    return () => { if (mapInst.current) { mapInst.current.remove(); mapInst.current = null; } };
+  }, [coords]);
+
+  if (geocoding) return (
+    <div className="rd-map-placeholder">
+      <span style={{ fontSize: 32 }}>⏳</span>
+      <p>Đang tải bản đồ...</p>
+    </div>
+  );
+
+  if (!coords) return (
+    <div className="rd-map-placeholder">
+      <span>🗺</span>
+      <p>{address}, {city}</p>
+      <a href={`https://maps.google.com/?q=${encodeURIComponent(address + ', ' + city)}`}
+        target="_blank" rel="noreferrer" className="rd-map-link">Xem trên Google Maps →</a>
+    </div>
+  );
+
+  return (
+    <div className="rd-map-real-wrap">
+      <div ref={mapRef} className="rd-map-real" />
+      <a href={`https://maps.google.com/?q=${coords.lat},${coords.lon}`} target="_blank" rel="noreferrer" className="rd-map-ext-link">
+        🗺 Mở Google Maps →
+      </a>
+    </div>
+  );
+}
 
 export default function RoomDetail({ user, onLogout }) {
   const { id } = useParams();
@@ -207,17 +283,10 @@ export default function RoomDetail({ user, onLogout }) {
             </div>
           )}
 
-          {/* MAP PLACEHOLDER */}
+          {/* MAP */}
           <div className="rd-section">
             <h2 className="rd-section-title">📍 Vị trí</h2>
-            <div className="rd-map-placeholder">
-              <span>🗺</span>
-              <p>{room.address}, {room.city}</p>
-              <a href={`https://maps.google.com/?q=${encodeURIComponent(room.address + ', ' + room.city)}`}
-                target="_blank" rel="noreferrer" className="rd-map-link">
-                Xem trên Google Maps →
-              </a>
-            </div>
+            <RoomMap lat={room.lat} lon={room.lon} address={room.address} city={room.city} />
           </div>
 
           {/* RELATED */}
@@ -262,7 +331,6 @@ export default function RoomDetail({ user, onLogout }) {
                     📞 Hiện số điện thoại
                   </button>
                 )}
-                <a href={`tel:${room.contactPhone}`} className="rd-btn-call">Gọi ngay</a>
               </div>
             ) : (
               <p className="rd-no-phone">Chủ trọ ẩn số điện thoại</p>
