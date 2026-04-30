@@ -97,6 +97,37 @@ router.post('/:roomId', auth(['user']), async (req, res) => {
   }
 });
 
+// PUT /api/reviews/:roomId - Sửa đánh giá của mình
+router.put('/:roomId', auth(['user']), async (req, res) => {
+  const roomId = parseInt(req.params.roomId);
+  if (isNaN(roomId)) return res.status(400).json({ message: 'ID không hợp lệ' });
+
+  const { stars, content } = req.body;
+  if (!stars || stars < 1 || stars > 5)
+    return res.status(400).json({ message: 'Số sao không hợp lệ (1-5)' });
+
+  try {
+    await poolConnect;
+    const result = await pool.request()
+      .input('ma_phong', sql.Int,      roomId)
+      .input('ma_nd',    sql.Int,      req.user.id)
+      .input('so_sao',   sql.TinyInt,  parseInt(stars))
+      .input('noi_dung', sql.NVarChar, content?.trim() || null)
+      .query(`
+        UPDATE danh_gia SET so_sao = @so_sao, noi_dung = @noi_dung
+        WHERE ma_phong = @ma_phong AND ma_nd = @ma_nd
+      `);
+
+    if (result.rowsAffected[0] === 0)
+      return res.status(404).json({ message: 'Không tìm thấy đánh giá' });
+
+    return res.json({ message: 'Cập nhật thành công' });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Lỗi server' });
+  }
+});
+
 // DELETE /api/reviews/:roomId - Xóa đánh giá của mình
 router.delete('/:roomId', auth(['user']), async (req, res) => {
   const roomId = parseInt(req.params.roomId);

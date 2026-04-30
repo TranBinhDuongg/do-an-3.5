@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { getRoomDetailApi, addFavoriteApi, removeFavoriteApi, checkFavoriteApi, getReviewsApi, postReviewApi, deleteReviewApi } from '../../api/rooms';
+import { getRoomDetailApi, addFavoriteApi, removeFavoriteApi, checkFavoriteApi, getReviewsApi, postReviewApi, deleteReviewApi, updateReviewApi } from '../../api/rooms';
 import './RoomDetail.css';
 
 const FALLBACK_IMG = 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=800&h=500&fit=crop';
@@ -101,6 +101,7 @@ export default function RoomDetail({ user, onLogout }) {
   const [reviewLoading, setReviewLoading] = useState(false);
   const [reviewError, setReviewError] = useState('');
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const [editMode, setEditMode] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -145,13 +146,18 @@ export default function RoomDetail({ user, onLogout }) {
     setReviewLoading(true);
     setReviewError('');
     try {
-      await postReviewApi(id, reviewForm);
+      if (editMode) {
+        await updateReviewApi(id, reviewForm);
+      } else {
+        await postReviewApi(id, reviewForm);
+      }
       const d = await getReviewsApi(id);
       setReviews(d.reviews);
       setReviewStats({ total: d.total, average: d.average });
       const mine = d.reviews.find(r => r.userName === user.name);
       setMyReview(mine || null);
       setShowReviewForm(false);
+      setEditMode(false);
       setReviewForm({ stars: 5, content: '' });
     } catch (err) {
       setReviewError(err.message);
@@ -363,12 +369,56 @@ export default function RoomDetail({ user, onLogout }) {
             {user?.role === 'user' && (
               <div className="rd-review-action">
                 {myReview ? (
-                  <div className="rd-my-review">
-                    <p className="rd-my-review-label">Đánh giá của bạn:</p>
-                    <StarDisplay stars={myReview.stars} />
-                    {myReview.content && <p className="rd-my-review-content">"{myReview.content}"</p>}
-                    <button className="rd-review-delete-btn" onClick={handleDeleteReview}>🗑 Xóa đánh giá</button>
-                  </div>
+                  editMode ? (
+                    <form className="rd-review-form" onSubmit={handleSubmitReview}>
+                      <p className="rd-review-form-title">Sửa đánh giá của bạn</p>
+                      <div className="rd-star-picker">
+                        {[1,2,3,4,5].map(s => (
+                          <button
+                            key={s} type="button"
+                            className={`rd-star-btn ${s <= reviewForm.stars ? 'active' : ''}`}
+                            onClick={() => setReviewForm(f => ({ ...f, stars: s }))}
+                          >★</button>
+                        ))}
+                        <span className="rd-star-label">{reviewForm.stars}/5 sao</span>
+                      </div>
+                      <textarea
+                        className="rd-review-textarea"
+                        placeholder="Nhận xét của bạn... (không bắt buộc)"
+                        value={reviewForm.content}
+                        onChange={e => setReviewForm(f => ({ ...f, content: e.target.value }))}
+                        rows={3}
+                        maxLength={500}
+                        autoFocus
+                      />
+                      {reviewError && <p className="rd-review-error">{reviewError}</p>}
+                      <div className="rd-review-form-btns">
+                        <button type="submit" className="rd-review-submit-btn" disabled={reviewLoading}>
+                          {reviewLoading ? 'Đang lưu...' : '💾 Lưu thay đổi'}
+                        </button>
+                        <button type="button" className="rd-review-cancel-btn" onClick={() => { setEditMode(false); setReviewError(''); }}>
+                          Hủy
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    <div
+                      className="rd-my-review rd-my-review-clickable"
+                      onClick={() => {
+                        setReviewForm({ stars: myReview.stars, content: myReview.content || '' });
+                        setEditMode(true);
+                        setReviewError('');
+                      }}
+                      title="Nhấn để sửa đánh giá"
+                    >
+                      <div className="rd-my-review-top">
+                        <p className="rd-my-review-label">Đánh giá của bạn</p>
+                        <button className="rd-review-delete-btn" onClick={e => { e.stopPropagation(); handleDeleteReview(); }}>🗑 Xóa</button>
+                      </div>
+                      <StarDisplay stars={myReview.stars} />
+                      {myReview.content && <p className="rd-my-review-content">"{myReview.content}"</p>}
+                    </div>
+                  )
                 ) : showReviewForm ? (
                   <form className="rd-review-form" onSubmit={handleSubmitReview}>
                     <p className="rd-review-form-title">Đánh giá phòng này</p>

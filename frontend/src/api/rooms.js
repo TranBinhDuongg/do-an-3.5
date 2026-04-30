@@ -93,3 +93,14 @@ export async function deleteReviewApi(roomId) {
   if (!res.ok) throw new Error(data.message);
   return data;
 }
+
+export async function updateReviewApi(roomId, { stars, content }) {
+  const res = await fetch(`${REVIEW_BASE}/${roomId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...authHeader() },
+    body: JSON.stringify({ stars, content }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message);
+  return data;
+}
