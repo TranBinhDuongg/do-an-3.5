@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { getRoomDetailApi, addFavoriteApi, removeFavoriteApi, checkFavoriteApi, getReviewsApi, postReviewApi, deleteReviewApi, updateReviewApi } from '../../api/rooms';
+import { startConversationApi } from '../../api/messages';
 import './RoomDetail.css';
 
 const FALLBACK_IMG = 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=800&h=500&fit=crop';
@@ -92,6 +93,7 @@ export default function RoomDetail({ user, onLogout }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showPhone, setShowPhone] = useState(false);
   const [lightbox, setLightbox] = useState(false);
+  const [chatLoading, setChatLoading] = useState(false);
 
   // Reviews state
   const [reviews, setReviews] = useState([]);
@@ -138,6 +140,20 @@ export default function RoomDetail({ user, onLogout }) {
       if (saved) { await removeFavoriteApi(id); setSaved(false); }
       else        { await addFavoriteApi(id);    setSaved(true);  }
     } catch {}
+  };
+
+  const handleChat = async () => {
+    if (!user) { navigate('/login'); return; }
+    setChatLoading(true);
+    try {
+      const result = await startConversationApi(room.ownerId, `Xin chào! Tôi quan tâm đến phòng "${room.title}". Phòng còn trống không ạ?`, room.id);
+      navigate(`/message?conversationId=${result.ma_ctc}`);
+    } catch (err) {
+      console.error(err);
+      navigate('/message');
+    } finally {
+      setChatLoading(false);
+    }
   };
 
   const handleSubmitReview = async (e) => {
@@ -209,7 +225,7 @@ export default function RoomDetail({ user, onLogout }) {
                     </div>
                     <div className="rd-nav-user-info">
                       <span className="rd-nav-user-name">{user.name}</span>
-                      <span className="rd-nav-user-role">Người thuê</span>
+                      <span className="rd-nav-user-role">{user.role === 'employer' ? 'Chủ trọ' : user.role === 'admin' ? 'Quản trị viên' : 'Người thuê'}</span>
                     </div>
                     <span>▾</span>
                   </button>
@@ -537,7 +553,13 @@ export default function RoomDetail({ user, onLogout }) {
               </a>
             )}
 
-            <Link to="/message" className="rd-btn-chat">💬 Nhắn tin</Link>
+            <button
+              className="rd-btn-chat"
+              onClick={handleChat}
+              disabled={chatLoading}
+            >
+              {chatLoading ? '⏳ Đang mở...' : '💬 Nhắn tin'}
+            </button>
 
             <div className="rd-contact-info">
               <div className="rd-info-row"><span>📐 Diện tích</span><strong>{room.area} m²</strong></div>

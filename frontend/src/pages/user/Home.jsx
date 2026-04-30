@@ -63,7 +63,7 @@ export default function Home({ user, onLogout }) {
                   </div>
                   <div className="home-nav-user-info">
                     <span className="home-nav-user-name">{user.name}</span>
-                    <span className="home-nav-user-role">Người thuê</span>
+                    <span className="home-nav-user-role">{user.role === 'employer' ? 'Chủ trọ' : user.role === 'admin' ? 'Quản trị viên' : 'Người thuê'}</span>
                   </div>
                   <span>▾</span>
                 </button>

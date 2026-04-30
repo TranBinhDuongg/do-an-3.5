@@ -177,6 +177,7 @@ router.get('/:id', async (req, res) => {
         contactName:  r.ten_lien_he,
         contactPhone: r.hien_sdt ? r.sdt_lien_he : null,
         contactEmail: r.email_lien_he,
+        ownerId:      r.ma_chu_tro,
         ownerName:    r.ho_ten,
         ownerAvatar:  r.anh_dai_dien,
         postedAt:     timeAgo(r.ngay_tao),

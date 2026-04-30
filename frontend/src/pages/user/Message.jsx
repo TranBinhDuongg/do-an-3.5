@@ -1,74 +1,161 @@
-import { useState, useRef, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { io } from 'socket.io-client';
+import {
+  getConversationsApi,
+  getMessagesApi,
+  sendMessageApi,
+  startConversationApi,
+} from '../../api/messages';
 import './Message.css';
 
-const mockContacts = [
-  { id: 1, name: 'Trần Văn B', role: 'Chủ trọ', avatar: 'T', room: 'Phòng trọ 15 Tạ Quang Bửu', lastMsg: 'Phòng vẫn còn trống bạn nhé!', time: '10:30', unread: 2, online: true },
-  { id: 2, name: 'Lê Thị C',   role: 'Chủ trọ', avatar: 'L', room: 'Chung cư mini 88 Láng Hạ',  lastMsg: 'Bạn có thể đến xem phòng lúc 3h chiều', time: 'Hôm qua', unread: 0, online: false },
-  { id: 3, name: 'Phạm Văn D', role: 'Chủ trọ', avatar: 'P', room: 'Nhà nguyên căn Thanh Xuân',  lastMsg: 'Giá thuê có thể thương lượng', time: 'T2', unread: 0, online: true },
-];
+const ROLE_LABEL = { user: 'Người thuê', employer: 'Chủ trọ', admin: 'Quản trị viên' };
 
-const mockMessages = {
-  1: [
-    { id: 1, from: 'them', text: 'Xin chào! Bạn quan tâm đến phòng trọ của mình à?', time: '10:00', type: 'text' },
-    { id: 2, from: 'me',   text: 'Vâng, mình muốn hỏi thêm về phòng ạ', time: '10:05', type: 'text' },
-    { id: 3, from: 'them', text: 'Phòng 25m², đầy đủ nội thất, giá 3.5 triệu/tháng', time: '10:10', type: 'text' },
-    { id: 4, from: 'them', image: 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=300&h=200&fit=crop', time: '10:12', type: 'image' },
-    { id: 5, from: 'me',   text: 'Phòng trông đẹp đấy! Còn trống không ạ?', time: '10:20', type: 'text' },
-    { id: 6, from: 'them', text: 'Phòng vẫn còn trống bạn nhé!', time: '10:30', type: 'text' },
-  ],
-  2: [
-    { id: 1, from: 'me',   text: 'Cho mình hỏi phòng còn trống không ạ?', time: 'Hôm qua', type: 'text' },
-    { id: 2, from: 'them', text: 'Bạn có thể đến xem phòng lúc 3h chiều', time: 'Hôm qua', type: 'text' },
-  ],
-  3: [
-    { id: 1, from: 'them', text: 'Giá thuê có thể thương lượng', time: 'T2', type: 'text' },
-  ],
-};
+function formatTime(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  const now = new Date();
+  const diff = now - d;
+  if (diff < 60000) return 'Vừa xong';
+  if (diff < 3600000) return `${Math.floor(diff / 60000)} phút trước`;
+  if (d.toDateString() === now.toDateString())
+    return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+  const yesterday = new Date(now); yesterday.setDate(now.getDate() - 1);
+  if (d.toDateString() === yesterday.toDateString()) return 'Hôm qua';
+  return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
+}
 
 export default function Message({ user, onLogout }) {
-  const [activeId, setActiveId]     = useState(1);
-  const [messages, setMessages]     = useState(mockMessages);
-  const [contacts, setContacts]     = useState(mockContacts);
-  const [input, setInput]           = useState('');
-  const [imgPreview, setImgPreview] = useState(null);
-  const bottomRef = useRef(null);
-  const fileRef   = useRef(null);
-  const navigate  = useNavigate();
+  const [conversations, setConversations] = useState([]);
+  const [activeId, setActiveId]           = useState(null);
+  const [messages, setMessages]           = useState([]);
+  const [input, setInput]                 = useState('');
+  const [loading, setLoading]             = useState(true);
+  const [sending, setSending]             = useState(false);
+  const [menuOpen, setMenuOpen]           = useState(false);
+  const [searchParams]                    = useSearchParams();
 
-  const active = contacts.find(c => c.id === activeId);
-  const msgs   = messages[activeId] || [];
+  const bottomRef   = useRef(null);
+  const socketRef   = useRef(null);
+  const activeIdRef = useRef(null); // ref để dùng trong socket callback
+  const navigate    = useNavigate();
+
+  // Sync activeId vào ref
+  useEffect(() => { activeIdRef.current = activeId; }, [activeId]);
+
+  const backPath = user?.role === 'employer' ? '/employer' : '/';
+
+  // Khởi tạo socket
+  useEffect(() => {
+    if (!user) { navigate('/login'); return; }
+    const token = localStorage.getItem('token');
+    const socket = io('http://localhost:5000', { auth: { token } });
+    socketRef.current = socket;
+
+    socket.on('connect_error', (err) => console.error('Socket error:', err.message));
+
+    // Nhận tin nhắn mới trong conversation đang mở
+    socket.on('new_message', ({ ma_ctc, message }) => {
+      // Chỉ xử lý tin từ đối phương, tin của mình đã được add khi gửi
+      if (message.ma_nguoi_gui === user.id) return;
+
+      if (ma_ctc === activeIdRef.current) {
+        setMessages(prev => [...prev, message]);
+      }
+      // Cập nhật preview sidebar
+      setConversations(prev =>
+        prev.map(c => c.ma_ctc === ma_ctc
+          ? { ...c, tin_nhan_cuoi: message.noi_dung, thoi_gian_cuoi: message.ngay_tao,
+              chua_doc: ma_ctc === activeIdRef.current ? 0 : (c.chua_doc || 0) + 1 }
+          : c
+        ).sort((a, b) => new Date(b.thoi_gian_cuoi) - new Date(a.thoi_gian_cuoi))
+      );
+    });
+
+    // Conversation mới xuất hiện (đối phương nhắn lần đầu)
+    socket.on('conversation_updated', ({ ma_ctc }) => {
+      // Reload danh sách để lấy conversation mới nếu chưa có
+      setConversations(prev => {
+        if (prev.some(c => c.ma_ctc === ma_ctc)) return prev;
+        // Fetch lại danh sách
+        getConversationsApi().then(list => setConversations(list)).catch(() => {});
+        return prev;
+      });
+    });
+
+    return () => { socket.disconnect(); };
+  }, [user]);
+
+  // Load conversations
+  useEffect(() => {
+    if (!user) return;
+    getConversationsApi()
+      .then(list => {
+        setConversations(list);
+        const cid = searchParams.get('conversationId');
+        if (cid) setActiveId(Number(cid));
+        else if (list.length) setActiveId(list[0].ma_ctc);
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [user]);
+
+  // Load messages + join socket room khi đổi conversation
+  useEffect(() => {
+    if (!activeId) return;
+    const socket = socketRef.current;
+
+    // Leave room cũ, join room mới
+    if (socket) {
+      socket.emit('leave_conversation', activeIdRef.current);
+      socket.emit('join_conversation', activeId);
+    }
+
+    getMessagesApi(activeId)
+      .then(msgs => {
+        setMessages(msgs);
+        setConversations(prev =>
+          prev.map(c => c.ma_ctc === activeId ? { ...c, chua_doc: 0 } : c)
+        );
+      })
+      .catch(console.error);
+  }, [activeId]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [activeId, messages]);
+  }, [messages]);
 
-  const selectContact = (id) => {
-    setActiveId(id);
-    setContacts(prev => prev.map(c => c.id === id ? { ...c, unread: 0 } : c));
-  };
+  const activeConv = conversations.find(c => c.ma_ctc === activeId);
 
-  const sendMessage = () => {
-    if (!input.trim()) return;
-    const msg = { id: Date.now(), from: 'me', text: input.trim(), time: 'Vừa xong', type: 'text' };
-    setMessages(prev => ({ ...prev, [activeId]: [...(prev[activeId] || []), msg] }));
-    setContacts(prev => prev.map(c => c.id === activeId ? { ...c, lastMsg: input.trim(), time: 'Vừa xong' } : c));
+  const sendMessage = async () => {
+    if (!input.trim() || sending) return;
+    const text = input.trim();
     setInput('');
+    setSending(true);
+
+    try {
+      const msg = await sendMessageApi(activeId, text);
+      // Thêm tin thật vào UI (không dùng optimistic để tránh duplicate với socket)
+      setMessages(prev => [...prev, { ...msg, noi_dung: text, ma_nguoi_gui: user.id }]);
+      setConversations(prev =>
+        prev.map(c => c.ma_ctc === activeId
+          ? { ...c, tin_nhan_cuoi: text, thoi_gian_cuoi: msg.ngay_tao }
+          : c
+        ).sort((a, b) => new Date(b.thoi_gian_cuoi) - new Date(a.thoi_gian_cuoi))
+      );
+    } catch (err) {
+      console.error(err);
+      setInput(text);
+    } finally {
+      setSending(false);
+    }
   };
 
-  const sendImage = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const url = URL.createObjectURL(file);
-    const msg = { id: Date.now(), from: 'me', image: url, time: 'Vừa xong', type: 'image' };
-    setMessages(prev => ({ ...prev, [activeId]: [...(prev[activeId] || []), msg] }));
-    setContacts(prev => prev.map(c => c.id === activeId ? { ...c, lastMsg: '📷 Hình ảnh', time: 'Vừa xong' } : c));
-    e.target.value = '';
+  const handleKey = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
   };
 
-  const handleKey = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } };
-
-  const backPath = user?.role === 'employer' ? '/employer' : '/';
+  const totalUnread = conversations.reduce((s, c) => s + (c.chua_doc || 0), 0);
 
   return (
     <div className="msg-page">
@@ -79,43 +166,69 @@ export default function Message({ user, onLogout }) {
           <div className="msg-nav-right">
             <Link to={backPath} className="msg-nav-back">← Quay lại</Link>
             {user && (
-              <button className="msg-nav-logout" onClick={() => { onLogout?.(); navigate('/login'); }}>
-                🚪 Đăng xuất
-              </button>
+              <div className="msg-nav-user-wrap">
+                <button className="msg-nav-user-btn" onClick={() => setMenuOpen(!menuOpen)}>
+                  <div className="msg-nav-avatar">
+                    {user.avatar_url
+                      ? <img src={user.avatar_url} alt="avatar" />
+                      : user.name?.charAt(0)}
+                  </div>
+                  <div className="msg-nav-user-info">
+                    <span className="msg-nav-user-name">{user.name}</span>
+                    <span className="msg-nav-user-role">{ROLE_LABEL[user.role] || user.role}</span>
+                  </div>
+                  <span className="msg-nav-caret">▾</span>
+                </button>
+                {menuOpen && (
+                  <div className="msg-nav-dropdown">
+                    <Link to="/profile" className="msg-nav-drop-item" onClick={() => setMenuOpen(false)}>👤 Hồ sơ</Link>
+                    <hr className="msg-nav-drop-hr" />
+                    <button className="msg-nav-drop-logout" onClick={() => { onLogout?.(); setMenuOpen(false); navigate('/login'); }}>
+                      🚪 Đăng xuất
+                    </button>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </div>
       </nav>
 
       <div className="msg-body">
-        {/* CONTACT LIST */}
+        {/* SIDEBAR */}
         <aside className="msg-sidebar">
           <div className="msg-sidebar-header">
             <h2>Tin nhắn</h2>
-            {contacts.reduce((s, c) => s + c.unread, 0) > 0 && (
-              <span className="msg-total">{contacts.reduce((s, c) => s + c.unread, 0)}</span>
-            )}
+            {totalUnread > 0 && <span className="msg-total">{totalUnread}</span>}
           </div>
           <div className="msg-search">
             <span>🔍</span>
             <input type="text" placeholder="Tìm cuộc trò chuyện..." />
           </div>
           <div className="msg-contact-list">
-            {contacts.map(c => (
-              <div key={c.id} className={`msg-contact ${activeId === c.id ? 'active' : ''}`}
-                onClick={() => selectContact(c.id)}>
+            {loading && <p className="msg-loading-text">Đang tải...</p>}
+            {!loading && conversations.length === 0 && (
+              <p className="msg-empty-text">Chưa có cuộc trò chuyện nào.</p>
+            )}
+            {conversations.map(c => (
+              <div key={c.ma_ctc}
+                className={`msg-contact ${activeId === c.ma_ctc ? 'active' : ''}`}
+                onClick={() => setActiveId(c.ma_ctc)}>
                 <div className="msg-contact-avatar-wrap">
-                  <div className="msg-contact-avatar">{c.avatar}</div>
-                  {c.online && <span className="msg-online-dot" />}
+                  <div className="msg-contact-avatar">
+                    {c.avatar_doi_phuong
+                      ? <img src={c.avatar_doi_phuong} alt="av" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                      : c.ten_doi_phuong?.charAt(0)}
+                  </div>
                 </div>
                 <div className="msg-contact-info">
                   <div className="msg-contact-top">
-                    <span className="msg-contact-name">{c.name}</span>
-                    <span className="msg-contact-time">{c.time}</span>
+                    <span className="msg-contact-name">{c.ten_doi_phuong}</span>
+                    <span className="msg-contact-time">{formatTime(c.thoi_gian_cuoi)}</span>
                   </div>
-                  <p className="msg-contact-last">{c.lastMsg}</p>
+                  <p className="msg-contact-last">{c.tin_nhan_cuoi || c.ten_phong || '...'}</p>
                 </div>
-                {c.unread > 0 && <span className="msg-unread-badge">{c.unread}</span>}
+                {c.chua_doc > 0 && <span className="msg-unread-badge">{c.chua_doc}</span>}
               </div>
             ))}
           </div>
@@ -123,67 +236,68 @@ export default function Message({ user, onLogout }) {
 
         {/* CHAT AREA */}
         <main className="msg-chat">
-          <div className="msg-chat-header">
-            <div className="msg-chat-header-left">
-              <div className="msg-chat-avatar-wrap">
-                <div className="msg-chat-avatar">{active?.avatar}</div>
-                {active?.online && <span className="msg-online-dot" />}
-              </div>
-              <div>
-                <p className="msg-chat-name">{active?.name}</p>
-                <p className="msg-chat-sub">{active?.online ? '🟢 Đang hoạt động' : '⚫ Offline'} · {active?.room}</p>
-              </div>
+          {!activeConv ? (
+            <div className="msg-empty-chat">
+              <p>💬 Chọn một cuộc trò chuyện để bắt đầu</p>
             </div>
-            <div className="msg-chat-header-right">
-              <button className="msg-header-btn" title="Gọi điện">📞</button>
-              <button className="msg-header-btn" title="Thông tin">ℹ️</button>
-            </div>
-          </div>
-
-          <div className="msg-messages">
-            {msgs.map(msg => (
-              <div key={msg.id} className={`msg-row ${msg.from === 'me' ? 'me' : 'them'}`}>
-                {msg.from === 'them' && (
-                  <div className="msg-bubble-avatar">{active?.avatar}</div>
-                )}
-                <div className="msg-bubble-wrap">
-                  {msg.type === 'text' ? (
-                    <div className={`msg-bubble ${msg.from === 'me' ? 'me' : 'them'}`}>{msg.text}</div>
-                  ) : (
-                    <div className="msg-bubble-img" onClick={() => setImgPreview(msg.image)}>
-                      <img src={msg.image} alt="img" />
+          ) : (
+            <>
+              <div className="msg-chat-header">
+                <div className="msg-chat-header-left">
+                  <div className="msg-chat-avatar-wrap">
+                    <div className="msg-chat-avatar">
+                      {activeConv.avatar_doi_phuong
+                        ? <img src={activeConv.avatar_doi_phuong} alt="av" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                        : activeConv.ten_doi_phuong?.charAt(0)}
                     </div>
-                  )}
-                  <span className="msg-time">{msg.time}</span>
+                  </div>
+                  <div>
+                    <p className="msg-chat-name">{activeConv.ten_doi_phuong}</p>
+                    <p className="msg-chat-sub">
+                      {ROLE_LABEL[activeConv.vai_tro_doi_phuong] || activeConv.vai_tro_doi_phuong}
+                      {activeConv.ten_phong && ` · ${activeConv.ten_phong}`}
+                    </p>
+                  </div>
                 </div>
               </div>
-            ))}
-            <div ref={bottomRef} />
-          </div>
 
-          <div className="msg-input-bar">
-            <button className="msg-attach-btn" onClick={() => fileRef.current.click()} title="Gửi ảnh">📷</button>
-            <input type="file" ref={fileRef} accept="image/*" style={{ display: 'none' }} onChange={sendImage} />
-            <div className="msg-input-wrap">
-              <textarea
-                placeholder="Nhập tin nhắn..."
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={handleKey}
-                rows={1}
-              />
-            </div>
-            <button className="msg-send-btn" onClick={sendMessage} disabled={!input.trim()}>➤</button>
-          </div>
+              <div className="msg-messages">
+                {messages.map(msg => (
+                  <div key={msg.ma_tn} className={`msg-row ${msg.ma_nguoi_gui === user?.id ? 'me' : 'them'}`}>
+                    {msg.ma_nguoi_gui !== user?.id && (
+                      <div className="msg-bubble-avatar">
+                        {activeConv.avatar_doi_phuong
+                          ? <img src={activeConv.avatar_doi_phuong} alt="av" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                          : activeConv.ten_doi_phuong?.charAt(0)}
+                      </div>
+                    )}
+                    <div className="msg-bubble-wrap">
+                      <div className={`msg-bubble ${msg.ma_nguoi_gui === user?.id ? 'me' : 'them'}`}>
+                        {msg.noi_dung}
+                      </div>
+                      <span className="msg-time">{formatTime(msg.ngay_tao)}</span>
+                    </div>
+                  </div>
+                ))}
+                <div ref={bottomRef} />
+              </div>
+
+              <div className="msg-input-bar">
+                <div className="msg-input-wrap">
+                  <textarea
+                    placeholder="Nhập tin nhắn..."
+                    value={input}
+                    onChange={e => setInput(e.target.value)}
+                    onKeyDown={handleKey}
+                    rows={1}
+                  />
+                </div>
+                <button className="msg-send-btn" onClick={sendMessage} disabled={!input.trim() || sending}>➤</button>
+              </div>
+            </>
+          )}
         </main>
       </div>
-
-      {imgPreview && (
-        <div className="msg-img-modal" onClick={() => setImgPreview(null)}>
-          <img src={imgPreview} alt="preview" />
-          <button className="msg-img-close">✕</button>
-        </div>
-      )}
     </div>
   );
 }
