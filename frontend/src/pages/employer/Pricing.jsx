@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { getPackagesApi, getBalanceApi, purchasePackageApi } from '../../api/wallet';
 import './Pricing.css';
 
 const plans = [
@@ -84,20 +85,52 @@ const plans = [
 ];
 
 export default function Pricing({ user, onLogout }) {
-  const [selected, setSelected] = useState(null);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [notiOpen, setNotiOpen] = useState(false);
+  const [selected, setSelected]   = useState(null);
+  const [menuOpen, setMenuOpen]   = useState(false);
+  const [notiOpen, setNotiOpen]   = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [packages, setPackages]   = useState([]);
+  const [balance, setBalance]     = useState(0);
+  const [loading, setLoading]     = useState(true);
+  const [buying, setBuying]       = useState(false);
+  const [error, setError]         = useState('');
+  const [success, setSuccess]     = useState('');
   const navigate = useNavigate();
 
-  const handleBuy = (plan) => {
-    setSelected(plan);
+  useEffect(() => {
+    Promise.all([getPackagesApi(), getBalanceApi()])
+      .then(([pkgRes, balRes]) => {
+        setPackages(pkgRes.packages);
+        setBalance(balRes.so_du);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleBuy = (pkg) => {
+    setSelected(pkg);
+    setError('');
+    setSuccess('');
     setShowModal(true);
   };
 
-  const handleConfirm = () => {
-    setShowModal(false);
-    navigate('/employer/post');
+  const handleConfirm = async () => {
+    if (!selected) return;
+    setBuying(true);
+    setError('');
+    try {
+      const res = await purchasePackageApi(selected.ma_goi);
+      setSuccess(res.message);
+      setBalance(res.so_du_moi);
+      setTimeout(() => {
+        setShowModal(false);
+        navigate('/employer/post');
+      }, 1500);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBuying(false);
+    }
   };
 
   return (
@@ -172,41 +205,32 @@ export default function Pricing({ user, onLogout }) {
 
         {/* Plans grid */}
         <div className="pricing-grid">
-          {plans.map(plan => (
-            <div key={plan.id} className={`pricing-card pricing-card-${plan.color} ${plan.id === 'premium' ? 'featured' : ''}`}>
-              {plan.badge && (
-                <div className={`pricing-badge pricing-badge-${plan.color}`}>{plan.badge}</div>
-              )}
-
+          {loading && <p style={{textAlign:'center',color:'#64748b'}}>Đang tải gói...</p>}
+          {packages.map(pkg => (
+            <div key={pkg.ma_goi} className={`pricing-card ${pkg.noi_bat ? 'pricing-card-gold featured' : 'pricing-card-gray'}`}>
+              {pkg.noi_bat && <div className="pricing-badge pricing-badge-gold">Nổi bật</div>}
               <div className="pricing-card-header">
-                <h2 className="pricing-plan-name">{plan.name}</h2>
+                <h2 className="pricing-plan-name">{pkg.ten_goi}</h2>
                 <div className="pricing-price">
-                  <span className="pricing-amount">{plan.price.toLocaleString('vi-VN')}đ</span>
-                  <span className="pricing-period">/ {plan.duration} ngày</span>
+                  <span className="pricing-amount">{Number(pkg.gia).toLocaleString('vi-VN')}đ</span>
+                  <span className="pricing-period">/ {pkg.so_ngay} ngày</span>
                 </div>
                 <div className="pricing-posts">
-                  {plan.posts === 999 ? 'Không giới hạn tin đăng' : `${plan.posts} tin đăng`}
+                  {pkg.gioi_han_tin >= 999 ? 'Không giới hạn tin đăng' : `${pkg.gioi_han_tin} tin đăng`}
                 </div>
               </div>
-
-              <ul className="pricing-features">
-                {plan.features.map(f => (
-                  <li key={f} className="pricing-feature included">
-                    <span className="pricing-check">✓</span> {f}
-                  </li>
-                ))}
-                {plan.notIncluded.map(f => (
-                  <li key={f} className="pricing-feature not-included">
-                    <span className="pricing-x">✕</span> {f}
-                  </li>
-                ))}
-              </ul>
-
-              <button
-                className={`pricing-buy-btn pricing-buy-${plan.color}`}
-                onClick={() => handleBuy(plan)}
-              >
-                {plan.id === 'vip' ? '👑 Mua ngay' : 'Mua gói này'}
+              {pkg.mo_ta && (
+                <ul className="pricing-features">
+                  {pkg.mo_ta.split(',').map(f => (
+                    <li key={f} className="pricing-feature included">
+                      <span className="pricing-check">✓</span> {f.trim()}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <button className={`pricing-buy-btn ${pkg.noi_bat ? 'pricing-buy-gold' : 'pricing-buy-gray'}`}
+                onClick={() => handleBuy(pkg)}>
+                Mua gói này
               </button>
             </div>
           ))}
@@ -237,38 +261,43 @@ export default function Pricing({ user, onLogout }) {
           <div className="pricing-modal" onClick={e => e.stopPropagation()}>
             <button className="pricing-modal-close" onClick={() => setShowModal(false)}>✕</button>
             <h2>Xác nhận mua gói</h2>
-            <div className={`pricing-modal-plan pricing-card-${selected.color}`}>
-              <strong>{selected.name}</strong>
-              <span>{selected.price.toLocaleString('vi-VN')}đ / {selected.duration} ngày</span>
+            <div className={`pricing-modal-plan ${selected.noi_bat ? 'pricing-card-gold' : 'pricing-card-gray'}`}>
+              <strong>{selected.ten_goi}</strong>
+              <span>{Number(selected.gia).toLocaleString('vi-VN')}đ / {selected.so_ngay} ngày</span>
             </div>
 
-            <div className="pricing-modal-methods">
-              <p>Chọn phương thức thanh toán:</p>
-              <div className="pricing-payment-grid">
-                {[
-                  { icon: '🏦', label: 'Chuyển khoản ngân hàng' },
-                  { icon: '💜', label: 'Ví MoMo' },
-                  { icon: '🔵', label: 'ZaloPay' },
-                  { icon: '💳', label: 'Thẻ ATM / Visa' },
-                ].map(m => (
-                  <button key={m.label} className="pricing-payment-btn">
-                    <span>{m.icon}</span>
-                    <span>{m.label}</span>
-                  </button>
-                ))}
-              </div>
+            <div className="pricing-modal-balance">
+              <span>Số dư ví của bạn:</span>
+              <strong style={{ color: balance >= selected.gia ? '#22c55e' : '#ef4444' }}>
+                {balance.toLocaleString('vi-VN')}đ
+              </strong>
             </div>
+
+            {balance < selected.gia && (
+              <div className="pricing-modal-warn">
+                ⚠️ Số dư không đủ. Bạn cần nạp thêm{' '}
+                <strong>{(selected.gia - balance).toLocaleString('vi-VN')}đ</strong>.{' '}
+                <Link to="/employer/wallet" onClick={() => setShowModal(false)}>Nạp tiền ngay →</Link>
+              </div>
+            )}
+
+            {error && <p className="pricing-modal-warn">{error}</p>}
+            {success && <p className="pricing-modal-success">✅ {success}</p>}
 
             <div className="pricing-modal-total">
               <span>Tổng thanh toán:</span>
-              <strong>{selected.price.toLocaleString('vi-VN')}đ</strong>
+              <strong>{Number(selected.gia).toLocaleString('vi-VN')}đ</strong>
             </div>
 
-            <button className="pricing-modal-confirm" onClick={handleConfirm}>
-              ✅ Xác nhận thanh toán
+            <button
+              className="pricing-modal-confirm"
+              onClick={handleConfirm}
+              disabled={buying || balance < selected.gia}
+            >
+              {buying ? 'Đang xử lý...' : '✅ Xác nhận thanh toán'}
             </button>
             <p className="pricing-modal-note">
-              * Sau khi thanh toán, gói sẽ được kích hoạt trong vòng 5 phút
+              * Tiền sẽ được trừ từ ví. Gói kích hoạt ngay sau khi thanh toán.
             </p>
           </div>
         </div>

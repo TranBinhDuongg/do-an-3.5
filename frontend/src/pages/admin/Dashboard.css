@@ -270,3 +270,15 @@
   .adm-main { margin-left: 0; }
   .adm-body { padding: 16px; }
 }
+
+/* Topups page extras */
+.adm-btn { border: none; border-radius: 7px; padding: 6px 14px; font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; }
+.adm-btn:hover { opacity: 0.85; }
+.adm-btn-primary { background: #2563eb; color: #fff; }
+.adm-btn-ghost   { background: #e2e8f0; color: #475569; }
+.adm-input { border: 1px solid #e2e8f0; border-radius: 6px; padding: 5px 10px; font-size: 13px; outline: none; }
+.adm-input:focus { border-color: #2563eb; }
+.adm-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+.adm-badge-approved { background: #dcfce7; color: #16a34a; }
+.adm-badge-pending  { background: #fef9c3; color: #b45309; }
+.adm-badge-rejected { background: #fee2e2; color: #dc2626; }

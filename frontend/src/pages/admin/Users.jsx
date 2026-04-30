@@ -12,7 +12,8 @@ const NAV = [
   { path: '/admin/dashboard', icon: '📊', label: 'Tổng quan' },
   { path: '/admin/rooms',     icon: '🏠', label: 'Quản lý tin đăng' },
   { path: '/admin/users',     icon: '👥', label: 'Quản lý người dùng' },
-  { path: '/admin/reports',   icon: '📋', label: 'Báo cáo' },
+  { path: '/admin/topups',    icon: '💵', label: 'Nạp tiền' },
+  { path: '/admin/reports',   icon: '📈', label: 'Báo cáo' },
 ];
 
 const TABS = [
