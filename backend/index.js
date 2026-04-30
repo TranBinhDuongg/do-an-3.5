@@ -26,6 +26,7 @@ app.use('/api/favorites', require('./src/routes/favorites'));
 app.use('/api/employer', require('./src/routes/employer'));
 app.use('/api/admin',   require('./src/routes/admin'));
 app.use('/api/notifications', require('./src/routes/notifications'));
+app.use('/api/reviews',      require('./src/routes/reviews'));
 app.use('/api/wallet',       require('./src/routes/wallet'));
 app.use('/api/admin',        require('./src/routes/payment_admin'));
 

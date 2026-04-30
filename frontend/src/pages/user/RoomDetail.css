@@ -285,3 +285,97 @@
   font-size: 13px; font-weight: 600; color: #2563eb; text-decoration: none;
 }
 .rd-map-ext-link:hover { background: #eff6ff; }
+
+/* ===== REVIEWS ===== */
+.rd-review-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px; flex-wrap: wrap; gap: 10px;
+}
+.rd-review-avg { display: flex; align-items: center; gap: 8px; }
+.rd-review-avg-num { font-size: 22px; font-weight: 800; color: #f59e0b; }
+
+.rd-star-display { display: flex; gap: 2px; }
+.rd-star { font-size: 16px; }
+.rd-star.full  { color: #f59e0b; }
+.rd-star.half  { color: #f59e0b; opacity: 0.6; }
+.rd-star.empty { color: #d1d5db; }
+
+.rd-review-action { margin-bottom: 20px; }
+
+.rd-write-review-btn {
+  padding: 10px 20px; background: #eff6ff; border: 1.5px solid #bfdbfe;
+  border-radius: 8px; color: #2563eb; font-weight: 600; font-size: 14px;
+  cursor: pointer; transition: all 0.15s;
+}
+.rd-write-review-btn:hover { background: #dbeafe; }
+
+.rd-review-form {
+  background: #f8fafc; border: 1px solid #e2e8f0;
+  border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 12px;
+}
+.rd-review-form-title { font-size: 14px; font-weight: 700; color: #1e293b; margin: 0; }
+
+.rd-star-picker { display: flex; align-items: center; gap: 4px; }
+.rd-star-btn {
+  font-size: 28px; background: none; border: none; cursor: pointer;
+  color: #d1d5db; transition: color 0.1s; padding: 0; line-height: 1;
+}
+.rd-star-btn.active { color: #f59e0b; }
+.rd-star-btn:hover  { color: #f59e0b; }
+.rd-star-label { font-size: 13px; color: #64748b; margin-left: 6px; }
+
+.rd-review-textarea {
+  width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0;
+  border-radius: 8px; font-size: 14px; color: #374151; resize: vertical;
+  font-family: inherit; box-sizing: border-box;
+}
+.rd-review-textarea:focus { outline: none; border-color: #2563eb; }
+
+.rd-review-error { font-size: 13px; color: #ef4444; margin: 0; }
+
+.rd-review-form-btns { display: flex; gap: 10px; }
+.rd-review-submit-btn {
+  padding: 9px 20px; background: #2563eb; color: #fff;
+  border: none; border-radius: 8px; font-weight: 600; font-size: 14px;
+  cursor: pointer; transition: background 0.15s;
+}
+.rd-review-submit-btn:hover:not(:disabled) { background: #1d4ed8; }
+.rd-review-submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.rd-review-cancel-btn {
+  padding: 9px 16px; background: #fff; border: 1.5px solid #e2e8f0;
+  border-radius: 8px; font-size: 14px; color: #64748b; cursor: pointer;
+}
+.rd-review-cancel-btn:hover { border-color: #94a3b8; }
+
+.rd-my-review {
+  background: #fffbeb; border: 1px solid #fde68a;
+  border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 6px;
+}
+.rd-my-review-label { font-size: 12px; font-weight: 700; color: #92400e; margin: 0; }
+.rd-my-review-content { font-size: 13px; color: #78350f; margin: 0; font-style: italic; }
+.rd-review-delete-btn {
+  align-self: flex-start; padding: 6px 12px; background: none;
+  border: 1px solid #fca5a5; border-radius: 6px; color: #ef4444;
+  font-size: 12px; cursor: pointer; margin-top: 4px;
+}
+.rd-review-delete-btn:hover { background: #fee2e2; }
+
+.rd-no-reviews { font-size: 14px; color: #94a3b8; text-align: center; padding: 24px 0; margin: 0; }
+
+.rd-review-list { display: flex; flex-direction: column; gap: 16px; }
+.rd-review-item {
+  padding: 14px 0; border-bottom: 1px solid #f1f5f9;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.rd-review-item:last-child { border-bottom: none; padding-bottom: 0; }
+
+.rd-review-user { display: flex; align-items: center; gap: 10px; }
+.rd-review-avatar {
+  width: 36px; height: 36px; border-radius: 50%; background: #2563eb;
+  color: #fff; display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 14px; overflow: hidden; flex-shrink: 0;
+}
+.rd-review-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.rd-review-name { font-size: 14px; font-weight: 600; color: #1e293b; margin: 0; }
+.rd-review-date { font-size: 11px; color: #94a3b8; margin: 0; }
+.rd-review-content { font-size: 14px; color: #475569; margin: 0; line-height: 1.6; }

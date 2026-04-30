@@ -90,3 +90,49 @@
 .erd-map-placeholder span { font-size: 36px; }
 .erd-map-placeholder p { font-size: 13px; color: #64748b; margin: 0; }
 .erd-map-link { font-size: 13px; color: #2563eb; font-weight: 600; text-decoration: none; }
+
+/* ===== REVIEWS (employer view) ===== */
+.erd-review-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px; flex-wrap: wrap; gap: 10px;
+}
+.erd-review-avg { display: flex; align-items: center; gap: 8px; }
+.erd-review-avg-num { font-size: 22px; font-weight: 800; color: #f59e0b; }
+
+.erd-stars { display: flex; gap: 2px; }
+.erd-star-icon { font-size: 15px; }
+.erd-star-icon.full  { color: #f59e0b; }
+.erd-star-icon.half  { color: #f59e0b; opacity: 0.55; }
+.erd-star-icon.empty { color: #d1d5db; }
+
+/* Phân bổ sao */
+.erd-star-breakdown {
+  display: flex; flex-direction: column; gap: 6px;
+  margin-bottom: 20px; padding: 14px 16px;
+  background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;
+}
+.erd-star-row { display: flex; align-items: center; gap: 10px; }
+.erd-star-row-label { font-size: 13px; color: #f59e0b; font-weight: 600; width: 32px; flex-shrink: 0; }
+.erd-star-bar-wrap { flex: 1; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
+.erd-star-bar-fill { height: 100%; background: #f59e0b; border-radius: 4px; transition: width 0.3s; }
+.erd-star-row-count { font-size: 12px; color: #94a3b8; width: 20px; text-align: right; flex-shrink: 0; }
+
+.erd-no-reviews { font-size: 14px; color: #94a3b8; text-align: center; padding: 20px 0; margin: 0; }
+
+.erd-review-list { display: flex; flex-direction: column; gap: 14px; }
+.erd-review-item {
+  padding: 14px 0; border-bottom: 1px solid #f1f5f9;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.erd-review-item:last-child { border-bottom: none; padding-bottom: 0; }
+
+.erd-review-user { display: flex; align-items: center; gap: 10px; }
+.erd-review-avatar {
+  width: 34px; height: 34px; border-radius: 50%; background: #2563eb;
+  color: #fff; display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 13px; overflow: hidden; flex-shrink: 0;
+}
+.erd-review-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.erd-review-name { font-size: 13px; font-weight: 600; color: #1e293b; margin: 0; }
+.erd-review-date { font-size: 11px; color: #94a3b8; margin: 0; }
+.erd-review-content { font-size: 13px; color: #475569; margin: 0; line-height: 1.6; padding-left: 44px; }

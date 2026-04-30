@@ -63,3 +63,33 @@ export async function getRoomDetailApi(roomId) {
   if (!res.ok) throw new Error(data.message);
   return data; // { room, related }
 }
+
+const REVIEW_BASE = 'http://localhost:5000/api/reviews';
+
+export async function getReviewsApi(roomId) {
+  const res = await fetch(`${REVIEW_BASE}/${roomId}`);
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message);
+  return data; // { reviews, total, average }
+}
+
+export async function postReviewApi(roomId, { stars, content }) {
+  const res = await fetch(`${REVIEW_BASE}/${roomId}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeader() },
+    body: JSON.stringify({ stars, content }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message);
+  return data;
+}
+
+export async function deleteReviewApi(roomId) {
+  const res = await fetch(`${REVIEW_BASE}/${roomId}`, {
+    method: 'DELETE',
+    headers: authHeader(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message);
+  return data;
+}

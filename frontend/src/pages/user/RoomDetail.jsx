@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { getRoomDetailApi, addFavoriteApi, removeFavoriteApi, checkFavoriteApi } from '../../api/rooms';
+import { getRoomDetailApi, addFavoriteApi, removeFavoriteApi, checkFavoriteApi, getReviewsApi, postReviewApi, deleteReviewApi } from '../../api/rooms';
 import './RoomDetail.css';
 
 const FALLBACK_IMG = 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=800&h=500&fit=crop';
@@ -93,6 +93,15 @@ export default function RoomDetail({ user, onLogout }) {
   const [showPhone, setShowPhone] = useState(false);
   const [lightbox, setLightbox] = useState(false);
 
+  // Reviews state
+  const [reviews, setReviews] = useState([]);
+  const [reviewStats, setReviewStats] = useState({ total: 0, average: 0 });
+  const [myReview, setMyReview] = useState(null);
+  const [reviewForm, setReviewForm] = useState({ stars: 5, content: '' });
+  const [reviewLoading, setReviewLoading] = useState(false);
+  const [reviewError, setReviewError] = useState('');
+  const [showReviewForm, setShowReviewForm] = useState(false);
+
   useEffect(() => {
     setLoading(true);
     setImgIdx(0);
@@ -107,11 +116,58 @@ export default function RoomDetail({ user, onLogout }) {
     checkFavoriteApi(id).then(d => setSaved(d.saved)).catch(() => {});
   }, [id, user]);
 
+  // Load reviews
+  useEffect(() => {
+    if (!id) return;
+    getReviewsApi(id)
+      .then(d => {
+        setReviews(d.reviews);
+        setReviewStats({ total: d.total, average: d.average });
+        if (user) {
+          const mine = d.reviews.find(r => r.userName === user.name);
+          setMyReview(mine || null);
+        }
+      })
+      .catch(() => {});
+  }, [id, user]);
+
   const toggleFav = async () => {
     if (!user) { navigate('/login'); return; }
     try {
       if (saved) { await removeFavoriteApi(id); setSaved(false); }
       else        { await addFavoriteApi(id);    setSaved(true);  }
+    } catch {}
+  };
+
+  const handleSubmitReview = async (e) => {
+    e.preventDefault();
+    if (!user) { navigate('/login'); return; }
+    setReviewLoading(true);
+    setReviewError('');
+    try {
+      await postReviewApi(id, reviewForm);
+      const d = await getReviewsApi(id);
+      setReviews(d.reviews);
+      setReviewStats({ total: d.total, average: d.average });
+      const mine = d.reviews.find(r => r.userName === user.name);
+      setMyReview(mine || null);
+      setShowReviewForm(false);
+      setReviewForm({ stars: 5, content: '' });
+    } catch (err) {
+      setReviewError(err.message);
+    } finally {
+      setReviewLoading(false);
+    }
+  };
+
+  const handleDeleteReview = async () => {
+    if (!window.confirm('Xóa đánh giá của bạn?')) return;
+    try {
+      await deleteReviewApi(id);
+      const d = await getReviewsApi(id);
+      setReviews(d.reviews);
+      setReviewStats({ total: d.total, average: d.average });
+      setMyReview(null);
     } catch {}
   };
 
@@ -289,6 +345,95 @@ export default function RoomDetail({ user, onLogout }) {
             <RoomMap lat={room.lat} lon={room.lon} address={room.address} city={room.city} />
           </div>
 
+          {/* REVIEWS */}
+          <div className="rd-section">
+            <div className="rd-review-header">
+              <h2 className="rd-section-title" style={{ margin: 0 }}>
+                ⭐ Đánh giá ({reviewStats.total})
+              </h2>
+              {reviewStats.total > 0 && (
+                <div className="rd-review-avg">
+                  <span className="rd-review-avg-num">{reviewStats.average}</span>
+                  <StarDisplay stars={reviewStats.average} />
+                </div>
+              )}
+            </div>
+
+            {/* Form đánh giá */}
+            {user?.role === 'user' && (
+              <div className="rd-review-action">
+                {myReview ? (
+                  <div className="rd-my-review">
+                    <p className="rd-my-review-label">Đánh giá của bạn:</p>
+                    <StarDisplay stars={myReview.stars} />
+                    {myReview.content && <p className="rd-my-review-content">"{myReview.content}"</p>}
+                    <button className="rd-review-delete-btn" onClick={handleDeleteReview}>🗑 Xóa đánh giá</button>
+                  </div>
+                ) : showReviewForm ? (
+                  <form className="rd-review-form" onSubmit={handleSubmitReview}>
+                    <p className="rd-review-form-title">Đánh giá phòng này</p>
+                    <div className="rd-star-picker">
+                      {[1,2,3,4,5].map(s => (
+                        <button
+                          key={s} type="button"
+                          className={`rd-star-btn ${s <= reviewForm.stars ? 'active' : ''}`}
+                          onClick={() => setReviewForm(f => ({ ...f, stars: s }))}
+                        >★</button>
+                      ))}
+                      <span className="rd-star-label">{reviewForm.stars}/5 sao</span>
+                    </div>
+                    <textarea
+                      className="rd-review-textarea"
+                      placeholder="Nhận xét của bạn về phòng trọ này... (không bắt buộc)"
+                      value={reviewForm.content}
+                      onChange={e => setReviewForm(f => ({ ...f, content: e.target.value }))}
+                      rows={3}
+                      maxLength={500}
+                    />
+                    {reviewError && <p className="rd-review-error">{reviewError}</p>}
+                    <div className="rd-review-form-btns">
+                      <button type="submit" className="rd-review-submit-btn" disabled={reviewLoading}>
+                        {reviewLoading ? 'Đang gửi...' : '✅ Gửi đánh giá'}
+                      </button>
+                      <button type="button" className="rd-review-cancel-btn" onClick={() => { setShowReviewForm(false); setReviewError(''); }}>
+                        Hủy
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <button className="rd-write-review-btn" onClick={() => setShowReviewForm(true)}>
+                    ✏️ Viết đánh giá
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Danh sách đánh giá */}
+            {reviews.length === 0 ? (
+              <p className="rd-no-reviews">Chưa có đánh giá nào. Hãy là người đầu tiên!</p>
+            ) : (
+              <div className="rd-review-list">
+                {reviews.map(rv => (
+                  <div key={rv.id} className="rd-review-item">
+                    <div className="rd-review-user">
+                      <div className="rd-review-avatar">
+                        {rv.userAvatar
+                          ? <img src={rv.userAvatar} alt={rv.userName} />
+                          : rv.userName?.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="rd-review-name">{rv.userName}</p>
+                        <p className="rd-review-date">{new Date(rv.createdAt).toLocaleDateString('vi-VN')}</p>
+                      </div>
+                    </div>
+                    <StarDisplay stars={rv.stars} />
+                    {rv.content && <p className="rd-review-content">{rv.content}</p>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* RELATED */}
           {related.length > 0 && (
             <div className="rd-section">
@@ -373,6 +518,18 @@ export default function RoomDetail({ user, onLogout }) {
           <span className="rd-lb-count">{imgIdx + 1} / {images.length}</span>
         </div>
       )}
+    </div>
+  );
+}
+
+function StarDisplay({ stars }) {
+  const full = Math.floor(stars);
+  const half = stars - full >= 0.5;
+  return (
+    <div className="rd-star-display">
+      {[1,2,3,4,5].map(i => (
+        <span key={i} className={`rd-star ${i <= full ? 'full' : (i === full + 1 && half ? 'half' : 'empty')}`}>★</span>
+      ))}
     </div>
   );
 }

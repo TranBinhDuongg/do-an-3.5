@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { getRoomDetailEmployerApi, updateRoomStatusApi, deleteRoomApi } from '../../api/employer';
+import { getReviewsApi } from '../../api/rooms';
 import NotificationBell from '../../components/NotificationBell';
 import './Home.css';
 import './RoomDetail.css';
@@ -13,6 +14,18 @@ const STATUS_LABEL = {
   rejected: { text: 'Từ chối',   cls: 'rejected', icon: '❌' },
   paused:   { text: 'Tạm dừng',  cls: 'paused',   icon: '⏸' },
 };
+
+function ErdStars({ stars }) {
+  const full = Math.floor(stars);
+  const half = stars - full >= 0.5;
+  return (
+    <div className="erd-stars">
+      {[1,2,3,4,5].map(i => (
+        <span key={i} className={`erd-star-icon ${i <= full ? 'full' : (i === full + 1 && half ? 'half' : 'empty')}`}>★</span>
+      ))}
+    </div>
+  );
+}
 
 function RoomMap({ lat, lon, address, city }) {
   const mapRef  = useRef(null);
@@ -89,12 +102,21 @@ export default function EmployerRoomDetail({ user, onLogout }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [lightbox, setLightbox] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [reviews, setReviews]       = useState([]);
+  const [reviewStats, setReviewStats] = useState({ total: 0, average: 0 });
 
   useEffect(() => {
     getRoomDetailEmployerApi(id)
       .then(d => setRoom(d.room))
       .catch(() => navigate('/employer/rooms'))
       .finally(() => setLoading(false));
+  }, [id]);
+
+  useEffect(() => {
+    if (!id) return;
+    getReviewsApi(id)
+      .then(d => { setReviews(d.reviews); setReviewStats({ total: d.total, average: d.average }); })
+      .catch(() => {});
   }, [id]);
 
   const handleToggleStatus = async () => {
@@ -259,6 +281,64 @@ export default function EmployerRoomDetail({ user, onLogout }) {
             <div className="erd-card">
               <h2 className="erd-section-title">📍 Vị trí trên bản đồ</h2>
               <RoomMap lat={room.lat} lon={room.lon} address={room.address} city={room.city} />
+            </div>
+
+            {/* REVIEWS */}
+            <div className="erd-card">
+              <div className="erd-review-header">
+                <h2 className="erd-section-title" style={{ margin: 0 }}>
+                  ⭐ Đánh giá từ người thuê ({reviewStats.total})
+                </h2>
+                {reviewStats.total > 0 && (
+                  <div className="erd-review-avg">
+                    <span className="erd-review-avg-num">{reviewStats.average}</span>
+                    <ErdStars stars={reviewStats.average} />
+                  </div>
+                )}
+              </div>
+
+              {/* Phân bổ sao */}
+              {reviewStats.total > 0 && (
+                <div className="erd-star-breakdown">
+                  {[5,4,3,2,1].map(s => {
+                    const count = reviews.filter(r => r.stars === s).length;
+                    const pct = reviewStats.total ? Math.round((count / reviewStats.total) * 100) : 0;
+                    return (
+                      <div key={s} className="erd-star-row">
+                        <span className="erd-star-row-label">{s} ★</span>
+                        <div className="erd-star-bar-wrap">
+                          <div className="erd-star-bar-fill" style={{ width: `${pct}%` }} />
+                        </div>
+                        <span className="erd-star-row-count">{count}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {reviews.length === 0 ? (
+                <p className="erd-no-reviews">Chưa có đánh giá nào cho phòng này.</p>
+              ) : (
+                <div className="erd-review-list">
+                  {reviews.map(rv => (
+                    <div key={rv.id} className="erd-review-item">
+                      <div className="erd-review-user">
+                        <div className="erd-review-avatar">
+                          {rv.userAvatar
+                            ? <img src={rv.userAvatar} alt={rv.userName} />
+                            : rv.userName?.charAt(0)}
+                        </div>
+                        <div>
+                          <p className="erd-review-name">{rv.userName}</p>
+                          <p className="erd-review-date">{new Date(rv.createdAt).toLocaleDateString('vi-VN')}</p>
+                        </div>
+                        <ErdStars stars={rv.stars} />
+                      </div>
+                      {rv.content && <p className="erd-review-content">{rv.content}</p>}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
