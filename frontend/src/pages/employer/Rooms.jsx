@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getRoomsEmployerApi, updateRoomStatusApi, deleteRoomApi, getNotificationsApi, readAllNotificationsApi } from '../../api/employer';
+import EmployerNavbar from '../../components/EmployerNavbar';
 import './Home.css';
 import './Rooms.css';
 
@@ -24,8 +25,6 @@ export default function Rooms({ user, onLogout }) {
   const [rooms, setRooms]     = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState('');
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [notiOpen, setNotiOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [confirmDelete, setConfirmDelete] = useState(null); // roomId to delete
   const navigate = useNavigate();
@@ -92,60 +91,7 @@ export default function Rooms({ user, onLogout }) {
   return (
     <div className="emp-page">
       {/* NAVBAR */}
-      <nav className="emp-nav">
-        <div className="emp-nav-inner">
-          <Link to="/employer" className="emp-nav-logo">🏠 PhòngTrọ<span>VN</span></Link>
-          <div className="emp-nav-links">
-            <Link to="/employer"         className="emp-nav-link">Tổng quan</Link>
-            <Link to="/employer/rooms"   className="emp-nav-link active">Tin đăng</Link>
-            <Link to="/employer/wallet"  className="emp-nav-link">Ví của tôi</Link>
-            <Link to="/employer/pricing" className="emp-nav-link emp-nav-link-pricing">Dịch vụ</Link>
-          </div>
-          <div className="emp-nav-right">
-            <div className="emp-noti-wrap">
-              <button className="emp-noti-btn" onClick={() => { setNotiOpen(!notiOpen); setMenuOpen(false); }}>
-                🔔
-                {unreadCount > 0 && <span className="emp-noti-dot">{unreadCount}</span>}
-              </button>
-              {notiOpen && (
-                <div className="emp-noti-dropdown">
-                  <div className="emp-noti-header">
-                    <strong>Thông báo</strong>
-                    {unreadCount > 0 && <button onClick={handleReadAll}>Đánh dấu đã đọc</button>}
-                  </div>
-                  {notifications.length ? notifications.map(n => (
-                    <div key={n.id} className={`emp-noti-item ${n.unread ? 'unread' : ''}`}>
-                      <span className="emp-noti-icon">{n.icon}</span>
-                      <div><p>{n.text}</p><span>{n.time}</span></div>
-                    </div>
-                  )) : <p className="emp-noti-empty">Không có thông báo</p>}
-                </div>
-              )}
-            </div>
-            <div className="emp-user-wrap">
-              <button className="emp-user-btn" onClick={() => { setMenuOpen(!menuOpen); setNotiOpen(false); }}>
-                <div className="emp-avatar">
-                  {user?.avatar_url
-                    ? <img src={user.avatar_url} alt="avatar" />
-                    : (user?.name?.charAt(0) || 'C')}
-                </div>
-                <div className="emp-user-info">
-                  <span className="emp-user-name">{user?.name || 'Chủ trọ'}</span>
-                  <span className="emp-user-role">Chủ trọ</span>
-                </div>
-                <span>▾</span>
-              </button>
-              {menuOpen && (
-                <div className="emp-user-dropdown">
-                  <Link to="/profile" className="emp-drop-item" onClick={() => setMenuOpen(false)}>👤 Hồ sơ</Link>
-                  <hr className="emp-drop-hr" />
-                  <button className="emp-drop-logout" onClick={() => { onLogout?.(); navigate('/login'); }}>🚪 Đăng xuất</button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
+      <EmployerNavbar user={user} onLogout={onLogout} />
 
       <div className="emp-body">
         <div className="emp-page-header">

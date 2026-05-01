@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getProfileApi, updateProfileApi, changePasswordApi, updateAvatarApi } from '../api/auth';
+import UserNavbar from '../components/UserNavbar';
+import EmployerNavbar from '../components/EmployerNavbar';
 import './Profile.css';
 
 export default function Profile({ user, onLogin, onLogout }) {
@@ -111,17 +113,10 @@ export default function Profile({ user, onLogin, onLogout }) {
 
   return (
     <div className="prof-page">
-      <nav className="prof-nav">
-        <div className="prof-nav-inner">
-          <Link to={backPath} className="prof-nav-logo">🏠 PhòngTrọ<span>VN</span></Link>
-          <div className="prof-nav-right">
-            <Link to={backPath} className="prof-nav-back">← Quay lại</Link>
-            <button className="prof-nav-logout" onClick={() => { onLogout(); navigate('/login'); }}>
-              🚪 Đăng xuất
-            </button>
-          </div>
-        </div>
-      </nav>
+      {user?.role === 'employer'
+        ? <EmployerNavbar user={user} onLogout={onLogout} />
+        : <UserNavbar user={user} onLogout={onLogout} />
+      }
 
       <div className="prof-body">
         <aside className="prof-sidebar">

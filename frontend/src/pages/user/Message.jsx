@@ -1,11 +1,10 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import {
   getConversationsApi,
   getMessagesApi,
   sendMessageApi,
-  startConversationApi,
 } from '../../api/messages';
 import './Message.css';
 
@@ -32,7 +31,6 @@ export default function Message({ user, onLogout }) {
   const [input, setInput]                 = useState('');
   const [loading, setLoading]             = useState(true);
   const [sending, setSending]             = useState(false);
-  const [menuOpen, setMenuOpen]           = useState(false);
   const [searchParams]                    = useSearchParams();
 
   const bottomRef   = useRef(null);

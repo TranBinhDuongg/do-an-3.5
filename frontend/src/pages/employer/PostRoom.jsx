@@ -2,6 +2,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { postRoomApi } from '../../api/employer';
 import NotificationBell from '../../components/NotificationBell';
+import EmployerNavbar from '../../components/EmployerNavbar';
 import LocationPicker from '../../components/LocationPicker';
 import './PostRoom.css';
 
@@ -41,7 +42,6 @@ export default function PostRoom({ user, onLogout }) {
   const [success, setSuccess]     = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
-  const [menuOpen, setMenuOpen]   = useState(false);
   const [previewImgs, setPreviewImgs] = useState([]);
 
   const set = (k, v) => { setForm(p => ({ ...p, [k]: v })); setErrors(p => ({ ...p, [k]: '' })); };
@@ -147,40 +147,7 @@ export default function PostRoom({ user, onLogout }) {
 
   return (
     <div className="pr-page">
-      <nav className="pr-nav">
-        <div className="pr-nav-inner">
-          <Link to="/employer" className="pr-nav-logo">🏠 PhòngTrọ<span>VN</span></Link>
-          <div className="pr-nav-links">
-            <Link to="/employer"         className="pr-nav-link">Tổng quan</Link>
-            <Link to="/employer/rooms"   className="pr-nav-link">Tin đăng</Link>
-            <Link to="/employer/wallet"  className="pr-nav-link">Ví của tôi</Link>
-            <Link to="/employer/pricing" className="pr-nav-link pr-nav-link-gold">Dịch vụ</Link>
-          </div>
-          <div className="pr-nav-right">
-            <NotificationBell user={user} />
-            <div className="pr-user-wrap">
-              <button className="pr-user-btn" onClick={() => setMenuOpen(!menuOpen)}>
-                <div className="pr-avatar">
-                  {user?.avatar_url ? <img src={user.avatar_url} alt="avatar" /> : user?.name?.charAt(0) || 'C'}
-                </div>
-                <div className="pr-user-info">
-                  <span className="pr-user-name">{user?.name || 'Chủ trọ'}</span>
-                  <span className="pr-user-role">Chủ trọ</span>
-                </div>
-                <span>▾</span>
-              </button>
-              {menuOpen && (
-                <div className="pr-dropdown">
-                  <Link to="/profile"  className="pr-drop-item" onClick={() => setMenuOpen(false)}>👤 Hồ sơ</Link>
-                  <Link to="/employer" className="pr-drop-item" onClick={() => setMenuOpen(false)}>🏠 Trang chủ</Link>
-                  <hr className="pr-drop-hr" />
-                  <button className="pr-drop-logout" onClick={() => { onLogout?.(); setMenuOpen(false); navigate('/login'); }}>🚪 Đăng xuất</button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
+      <EmployerNavbar user={user} onLogout={onLogout} />
 
       <div className="pr-body">
         <div className="pr-page-title">

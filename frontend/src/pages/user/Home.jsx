@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { getHomeDataApi } from '../../api/rooms';
+import UserNavbar from '../../components/UserNavbar';
 import './Home.css';
 
 const FALLBACK_IMG = 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400&h=250&fit=crop';
@@ -22,7 +23,6 @@ const mockNotifications = [
 
 export default function Home({ user, onLogout }) {
   const [search, setSearch] = useState({ keyword: '', city: '', type: '' });
-  const [menuOpen, setMenuOpen] = useState(false);
   const [newRooms, setNewRooms] = useState([]);
   const [featuredRooms, setFeaturedRooms] = useState([]);
   const [stats, setStats] = useState({ total_rooms: 0, total_employers: 0, total_users: 0 });
@@ -41,50 +41,7 @@ export default function Home({ user, onLogout }) {
   return (
     <div className="home-wrap">
       {/* NAVBAR */}
-      <nav className="home-nav">
-        <div className="home-nav-inner">
-          <Link to="/" className="home-nav-logo">🏠 PhòngTrọ<span>VN</span></Link>
-          <div className="home-nav-links">
-            <Link to="/" className="home-nav-link active">Trang chủ</Link>
-            <Link to="/search" className="home-nav-link">Tìm phòng</Link>
-            <Link to="/favorites" className="home-nav-link">Yêu thích</Link>
-          </div>
-          <div className="home-nav-auth">
-            {user ? (
-              <div className="home-nav-user">
-                {/* NOTIFICATION BELL */}
-
-                <div className="home-nav-avatar-wrap">
-                  <button className="home-nav-avatar-btn" onClick={() => { setMenuOpen(!menuOpen); }}>
-                  <div className="home-nav-avatar">
-                    {user.avatar_url
-                      ? <img src={user.avatar_url} alt="avatar" />
-                      : user.name?.charAt(0)}
-                  </div>
-                  <div className="home-nav-user-info">
-                    <span className="home-nav-user-name">{user.name}</span>
-                    <span className="home-nav-user-role">{user.role === 'employer' ? 'Chủ trọ' : user.role === 'admin' ? 'Quản trị viên' : 'Người thuê'}</span>
-                  </div>
-                  <span>▾</span>
-                </button>
-                {menuOpen && (
-                  <div className="home-nav-dropdown">
-                    <Link to="/profile" className="home-nav-drop-item" onClick={() => setMenuOpen(false)}>👤 Hồ sơ</Link>
-                    <hr className="home-nav-drop-hr" />
-                    <button className="home-nav-drop-logout" onClick={() => { onLogout(); setMenuOpen(false); navigate('/login'); }}>🚪 Đăng xuất</button>
-                  </div>
-                )}
-                </div>
-              </div>
-            ) : (
-              <>
-                <Link to="/login" className="home-nav-btn-outline">Đăng nhập</Link>
-                <Link to="/register" className="home-nav-btn-primary">Đăng ký</Link>
-              </>
-            )}
-          </div>
-        </div>
-      </nav>
+      <UserNavbar user={user} onLogout={onLogout} />
 
       {/* HERO */}
       <section className="home-hero">

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import NotificationBell from '../../components/NotificationBell';
+import EmployerNavbar from '../../components/EmployerNavbar';
 import { getBalanceApi, getTransactionsApi, topupApi } from '../../api/wallet';
 import './Wallet.css';
 
@@ -14,7 +15,6 @@ const METHODS = [
 
 export default function Wallet({ user, onLogout }) {
   const navigate = useNavigate();
-  const [menuOpen, setMenuOpen]         = useState(false);
   const [showModal, setShowModal]       = useState(false);
   const [amount, setAmount]             = useState(null);
   const [customAmt, setCustomAmt]       = useState('');
@@ -72,39 +72,7 @@ export default function Wallet({ user, onLogout }) {
 
   return (
     <div className="wallet-page">
-      <nav className="pricing-nav">
-        <div className="pricing-nav-inner">
-          <Link to="/employer" className="pricing-nav-logo">🏠 PhòngTrọ<span>VN</span></Link>
-          <div className="pricing-nav-links">
-            <Link to="/employer"         className="pricing-nav-link">Tổng quan</Link>
-            <Link to="/employer/rooms"   className="pricing-nav-link">Tin đăng</Link>
-            <Link to="/employer/wallet"  className="pricing-nav-link active">Ví của tôi</Link>
-            <Link to="/employer/pricing" className="pricing-nav-link pricing-nav-link-gold">Dịch vụ</Link>
-          </div>
-          <div className="pricing-nav-right">
-            <NotificationBell user={user} />
-            <div className="pricing-user-wrap">
-              <button className="pricing-user-btn" onClick={() => setMenuOpen(!menuOpen)}>
-                <div className="pricing-avatar">
-                  {user?.avatar_url ? <img src={user.avatar_url} alt="avatar" /> : (user?.name?.charAt(0) || 'C')}
-                </div>
-                <div className="emp-user-info">
-                  <span className="emp-user-name">{user?.name || 'Chủ trọ'}</span>
-                  <span className="emp-user-role">Chủ trọ</span>
-                </div>
-                <span>▾</span>
-              </button>
-              {menuOpen && (
-                <div className="pricing-dropdown">
-                  <Link to="/profile" className="pricing-drop-item" onClick={() => setMenuOpen(false)}>👤 Hồ sơ</Link>
-                  <hr className="pricing-drop-hr" />
-                  <button className="pricing-drop-logout" onClick={() => { onLogout?.(); navigate('/login'); }}>🚪 Đăng xuất</button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
+      <EmployerNavbar user={user} onLogout={onLogout} />
 
       <div className="wallet-body">
         {loading ? (

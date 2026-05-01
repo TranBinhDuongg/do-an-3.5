@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { getRoomDetailApi, addFavoriteApi, removeFavoriteApi, checkFavoriteApi, getReviewsApi, postReviewApi, deleteReviewApi, updateReviewApi } from '../../api/rooms';
 import { startConversationApi } from '../../api/messages';
+import UserNavbar from '../../components/UserNavbar';
 import './RoomDetail.css';
 
 const FALLBACK_IMG = 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=800&h=500&fit=crop';
@@ -90,7 +91,6 @@ export default function RoomDetail({ user, onLogout }) {
   const [loading, setLoading] = useState(true);
   const [imgIdx, setImgIdx] = useState(0);
   const [saved, setSaved] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [showPhone, setShowPhone] = useState(false);
   const [lightbox, setLightbox] = useState(false);
   const [chatLoading, setChatLoading] = useState(false);
@@ -207,46 +207,7 @@ export default function RoomDetail({ user, onLogout }) {
   return (
     <div className="rd-wrap">
       {/* NAVBAR */}
-      <nav className="rd-nav">
-        <div className="rd-nav-inner">
-          <Link to="/" className="rd-nav-logo">🏠 PhòngTrọ<span>VN</span></Link>
-          <div className="rd-nav-links">
-            <Link to="/" className="rd-nav-link">Trang chủ</Link>
-            <Link to="/search" className="rd-nav-link">Tìm phòng</Link>
-            <Link to="/favorites" className="rd-nav-link">Yêu thích</Link>
-          </div>
-          <div className="rd-nav-auth">
-            {user ? (
-              <div className="rd-nav-user">
-                <div className="rd-nav-avatar-wrap">
-                  <button className="rd-nav-avatar-btn" onClick={() => setMenuOpen(!menuOpen)}>
-                    <div className="rd-nav-avatar">
-                      {user.avatar_url ? <img src={user.avatar_url} alt="avatar" /> : user.name?.charAt(0)}
-                    </div>
-                    <div className="rd-nav-user-info">
-                      <span className="rd-nav-user-name">{user.name}</span>
-                      <span className="rd-nav-user-role">{user.role === 'employer' ? 'Chủ trọ' : user.role === 'admin' ? 'Quản trị viên' : 'Người thuê'}</span>
-                    </div>
-                    <span>▾</span>
-                  </button>
-                  {menuOpen && (
-                    <div className="rd-nav-dropdown">
-                      <Link to="/profile" className="rd-nav-drop-item" onClick={() => setMenuOpen(false)}>👤 Hồ sơ</Link>
-                      <hr className="rd-nav-drop-hr" />
-                      <button className="rd-nav-drop-logout" onClick={() => { onLogout(); setMenuOpen(false); navigate('/login'); }}>🚪 Đăng xuất</button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <>
-                <Link to="/login" className="rd-nav-btn-outline">Đăng nhập</Link>
-                <Link to="/register" className="rd-nav-btn-primary">Đăng ký</Link>
-              </>
-            )}
-          </div>
-        </div>
-      </nav>
+      <UserNavbar user={user} onLogout={onLogout} />
 
       {/* BREADCRUMB */}
       <div className="rd-breadcrumb">

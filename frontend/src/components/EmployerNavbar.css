@@ -1,0 +1,65 @@
+.emp-nav {
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.emp-nav-inner {
+  max-width: 1280px; margin: 0 auto; padding: 0 24px;
+  height: 64px; display: flex; align-items: center; gap: 32px;
+}
+.emp-nav-logo { font-size: 20px; font-weight: 800; color: #1e293b; text-decoration: none; flex-shrink: 0; }
+.emp-nav-logo span { color: #2563eb; }
+.emp-nav-links { display: flex; gap: 4px; flex: 1; }
+.emp-nav-link {
+  font-size: 14px; font-weight: 500; color: #64748b;
+  text-decoration: none; padding: 8px 14px; border-radius: 8px;
+  transition: all 0.15s;
+}
+.emp-nav-link:hover { background: #f8fafc; color: #1e293b; }
+.emp-nav-link.active { background: #eff6ff; color: #2563eb; font-weight: 600; }
+.emp-nav-link-pricing {
+  padding: 8px 16px; border-radius: 8px;
+  background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+  color: #fff !important;
+  font-weight: 700 !important;
+}
+.emp-nav-link-pricing:hover { opacity: 0.9; background: linear-gradient(135deg, #d97706, #b45309) !important; }
+
+.emp-nav-right { display: flex; align-items: center; gap: 8px; }
+
+.emp-user-wrap { position: relative; }
+.emp-user-btn {
+  display: flex; align-items: center; gap: 8px;
+  background: none; border: none; border-radius: 8px; padding: 6px 10px;
+  cursor: pointer; font-size: 14px; color: #1e293b; font-weight: 500;
+}
+.emp-user-btn:hover { background: #f8fafc; }
+.emp-avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: #2563eb; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 15px; overflow: hidden; flex-shrink: 0;
+}
+.emp-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.emp-user-info { display: flex; flex-direction: column; align-items: flex-start; }
+.emp-user-name { font-size: 13px; font-weight: 600; color: #1e293b; }
+.emp-user-role { font-size: 11px; color: #64748b; }
+.emp-user-dropdown {
+  position: absolute; right: 0; top: 110%;
+  background: #fff; border: 1px solid #e2e8f0;
+  border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  min-width: 200px; padding: 6px 0; z-index: 200;
+}
+.emp-drop-item {
+  display: block; padding: 10px 16px;
+  color: #374151; font-size: 14px; font-weight: 500; text-decoration: none;
+}
+.emp-drop-item:hover { background: #f8fafc; }
+.emp-drop-hr { border: none; border-top: 1px solid #e2e8f0; margin: 4px 0; }
+.emp-drop-logout {
+  display: block; width: 100%; text-align: left;
+  padding: 10px 16px; color: #ef4444; font-size: 14px;
+  background: none; border: none; cursor: pointer;
+}
+.emp-drop-logout:hover { background: #fef2f2; }

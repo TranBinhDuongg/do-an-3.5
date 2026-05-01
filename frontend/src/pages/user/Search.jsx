@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { getRoomsApi, addFavoriteApi, removeFavoriteApi, checkFavoriteApi } from '../../api/rooms';
+import UserNavbar from '../../components/UserNavbar';
 import './Search.css';
 
 const FALLBACK_IMG = 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400&h=250&fit=crop';
@@ -28,7 +29,6 @@ export default function Search({ user, onLogout }) {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading]     = useState(false);
   const [viewMode, setViewMode]   = useState('grid');
-  const [menuOpen, setMenuOpen]   = useState(false);
   const navigate = useNavigate();
 
   const priceFilter = PRICES[priceIdx];
@@ -51,46 +51,7 @@ export default function Search({ user, onLogout }) {
   return (
     <div className="search-page">
       {/* NAVBAR */}
-      <nav className="search-nav">
-        <div className="search-nav-inner">
-          <Link to="/" className="search-nav-logo">🏠 PhòngTrọ<span>VN</span></Link>
-          <div className="search-nav-links">
-            <Link to="/" className="search-nav-link">Trang chủ</Link>
-            <Link to="/search" className="search-nav-link active">Tìm phòng</Link>
-            <Link to="/favorites" className="search-nav-link">Yêu thích</Link>
-          </div>
-          <div className="search-nav-auth">
-            {user ? (
-              <div className="search-nav-user">
-                <div className="search-nav-avatar-wrap">
-                  <button className="search-nav-avatar-btn" onClick={() => setMenuOpen(!menuOpen)}>
-                    <div className="search-nav-avatar">
-                      {user.avatar_url ? <img src={user.avatar_url} alt="avatar" /> : user.name?.charAt(0)}
-                    </div>
-                    <div className="search-nav-user-info">
-                      <span className="search-nav-user-name">{user.name}</span>
-                      <span className="search-nav-user-role">Người thuê</span>
-                    </div>
-                    <span>▾</span>
-                  </button>
-                  {menuOpen && (
-                    <div className="search-nav-dropdown">
-                      <Link to="/profile" className="search-nav-drop-item" onClick={() => setMenuOpen(false)}>👤 Hồ sơ</Link>
-                      <hr className="search-nav-drop-hr" />
-                      <button className="search-nav-drop-logout" onClick={() => { onLogout(); setMenuOpen(false); navigate('/login'); }}>🚪 Đăng xuất</button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <>
-                <Link to="/login" className="search-nav-btn-outline">Đăng nhập</Link>
-                <Link to="/register" className="search-nav-btn-primary">Đăng ký</Link>
-              </>
-            )}
-          </div>
-        </div>
-      </nav>
+      <UserNavbar user={user} onLogout={onLogout} />
 
       {/* TOP SEARCH BAR */}
       <div className="search-topbar">

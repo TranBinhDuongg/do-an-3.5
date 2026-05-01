@@ -3,6 +3,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { getRoomDetailEmployerApi, updateRoomStatusApi, deleteRoomApi } from '../../api/employer';
 import { getReviewsApi } from '../../api/rooms';
 import NotificationBell from '../../components/NotificationBell';
+import EmployerNavbar from '../../components/EmployerNavbar';
 import './Home.css';
 import './RoomDetail.css';
 
@@ -99,7 +100,6 @@ export default function EmployerRoomDetail({ user, onLogout }) {
   const [room, setRoom]         = useState(null);
   const [loading, setLoading]   = useState(true);
   const [imgIdx, setImgIdx]     = useState(0);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [lightbox, setLightbox] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [reviews, setReviews]       = useState([]);
@@ -147,39 +147,7 @@ export default function EmployerRoomDetail({ user, onLogout }) {
   return (
     <div className="emp-page">
       {/* NAVBAR */}
-      <nav className="emp-nav">
-        <div className="emp-nav-inner">
-          <Link to="/employer" className="emp-nav-logo">🏠 PhòngTrọ<span>VN</span></Link>
-          <div className="emp-nav-links">
-            <Link to="/employer"         className="emp-nav-link">Tổng quan</Link>
-            <Link to="/employer/rooms"   className="emp-nav-link active">Tin đăng</Link>
-            <Link to="/employer/wallet"  className="emp-nav-link">Ví của tôi</Link>
-            <Link to="/employer/pricing" className="emp-nav-link emp-nav-link-pricing">Dịch vụ</Link>
-          </div>
-          <div className="emp-nav-right">
-            <NotificationBell user={user} />
-            <div className="emp-user-wrap">
-              <button className="emp-user-btn" onClick={() => setMenuOpen(!menuOpen)}>
-                <div className="emp-avatar">
-                  {user?.avatar_url ? <img src={user.avatar_url} alt="avatar" /> : user?.name?.charAt(0) || 'C'}
-                </div>
-                <div className="emp-user-info">
-                  <span className="emp-user-name">{user?.name || 'Chủ trọ'}</span>
-                  <span className="emp-user-role">Chủ trọ</span>
-                </div>
-                <span>▾</span>
-              </button>
-              {menuOpen && (
-                <div className="emp-user-dropdown">
-                  <Link to="/profile" className="emp-drop-item" onClick={() => setMenuOpen(false)}>👤 Hồ sơ</Link>
-                  <hr className="emp-drop-hr" />
-                  <button className="emp-drop-logout" onClick={() => { onLogout?.(); navigate('/login'); }}>🚪 Đăng xuất</button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
+      <EmployerNavbar user={user} onLogout={onLogout} />
 
       <div className="emp-body">
         {/* BREADCRUMB */}
