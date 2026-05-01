@@ -72,7 +72,7 @@ app.use('/api/wallet',       require('./src/routes/wallet'));
 app.use('/api/admin',        require('./src/routes/payment_admin'));
 app.use('/api/messages',     require('./src/routes/messages'));
 
-app.get('/', (req, res) => res.json({ message: 'PhòngTrọVN API running' }));
+app.get('/', (req, res) => res.json({ message: 'ThueNhaVN API running' }));
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));

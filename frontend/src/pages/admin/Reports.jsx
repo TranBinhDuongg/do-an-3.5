@@ -114,7 +114,7 @@ export default function AdminReports({ user, onLogout }) {
   return (
     <div className="adm-layout">
       <aside className="adm-sidebar">
-        <div className="adm-sidebar-logo"><span>🏠</span><span>PhòngTrọ<b>VN</b></span></div>
+        <div className="adm-sidebar-logo"><span>🏠</span><span>ThueNha<b>VN</b></span></div>
         <p className="adm-sidebar-role">Quản trị viên</p>
         <nav className="adm-nav">
           {NAV.map(n => (

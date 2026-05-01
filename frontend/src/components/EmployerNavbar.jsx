@@ -23,7 +23,7 @@ export default function EmployerNavbar({ user, onLogout }) {
   return (
     <nav className="emp-nav">
       <div className="emp-nav-inner">
-        <Link to="/employer" className="emp-nav-logo">🏠 PhòngTrọ<span>VN</span></Link>
+        <Link to="/employer" className="emp-nav-logo">🏠 ThueNha<span>VN</span></Link>
 
         <div className="emp-nav-links">
           {NAV_LINKS.map(link => (

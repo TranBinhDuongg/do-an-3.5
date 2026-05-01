@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+﻿import { Link } from 'react-router-dom';
 import './Legal.css';
 
 const sections = [
@@ -7,7 +7,7 @@ const sections = [
     content: (
       <>
         <p>
-          Chào mừng bạn đến với PhòngTrọVN. Bằng việc truy cập hoặc sử dụng dịch vụ của chúng tôi,
+          Chào mừng bạn đến với ThueNhaVN. Bằng việc truy cập hoặc sử dụng dịch vụ của chúng tôi,
           bạn đồng ý tuân thủ các điều khoản và điều kiện được nêu trong tài liệu này.
         </p>
         <p>
@@ -21,7 +21,7 @@ const sections = [
     title: 'Định nghĩa',
     content: (
       <ul>
-        <li>"Dịch vụ" là nền tảng PhòngTrọVN bao gồm website và ứng dụng di động.</li>
+        <li>"Dịch vụ" là nền tảng ThueNhaVN bao gồm website và ứng dụng di động.</li>
         <li>"Người dùng" là bất kỳ cá nhân nào truy cập hoặc sử dụng dịch vụ.</li>
         <li>"Chủ trọ" là người dùng đăng tin cho thuê phòng trọ trên nền tảng.</li>
         <li>"Người thuê" là người dùng tìm kiếm và liên hệ thuê phòng trọ.</li>
@@ -57,7 +57,7 @@ const sections = [
           <li>Không đăng nội dung vi phạm pháp luật, thuần phong mỹ tục.</li>
         </ul>
         <div className="legal-highlight">
-          PhòngTrọVN có quyền xóa bất kỳ tin đăng nào vi phạm quy tắc mà không cần thông báo trước.
+          ThueNhaVN có quyền xóa bất kỳ tin đăng nào vi phạm quy tắc mà không cần thông báo trước.
         </div>
       </>
     ),
@@ -82,7 +82,7 @@ const sections = [
     content: (
       <>
         <p>
-          Việc tìm kiếm và xem tin đăng trên PhòngTrọVN hoàn toàn miễn phí đối với người thuê.
+          Việc tìm kiếm và xem tin đăng trên ThueNhaVN hoàn toàn miễn phí đối với người thuê.
         </p>
         <p>
           Đối với chủ trọ, một số tính năng nâng cao có thể yêu cầu thanh toán theo gói dịch vụ.
@@ -100,7 +100,7 @@ const sections = [
     content: (
       <>
         <p>
-          PhòngTrọVN là nền tảng kết nối, không phải bên trung gian trong giao dịch thuê phòng.
+          ThueNhaVN là nền tảng kết nối, không phải bên trung gian trong giao dịch thuê phòng.
           Chúng tôi không chịu trách nhiệm về:
         </p>
         <ul>
@@ -159,7 +159,7 @@ export default function Terms() {
         <div className="legal-header-inner">
           <Link to="/" className="legal-logo">
             <span className="legal-logo-icon">🏠</span>
-            PhòngTrọVN
+            ThueNhaVN
           </Link>
           <Link to="/register" className="legal-back-btn">← Quay lại đăng ký</Link>
         </div>
@@ -191,7 +191,7 @@ export default function Terms() {
       </main>
 
       <footer className="legal-footer">
-        © 2025 PhòngTrọVN · <Link to="/privacy">Chính sách bảo mật</Link> · <Link to="/terms">Điều khoản sử dụng</Link>
+        © 2025 ThueNhaVN · <Link to="/privacy">Chính sách bảo mật</Link> · <Link to="/terms">Điều khoản sử dụng</Link>
       </footer>
     </div>
   );

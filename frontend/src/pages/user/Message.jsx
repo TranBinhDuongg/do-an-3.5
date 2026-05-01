@@ -161,7 +161,7 @@ export default function Message({ user, onLogout }) {
       {/* NAVBAR */}
       <nav className="msg-nav">
         <div className="msg-nav-inner">
-          <Link to="/" className="msg-nav-logo">🏠 PhòngTrọ<span>VN</span></Link>
+          <Link to="/" className="msg-nav-logo">🏠 ThueNha<span>VN</span></Link>
           <div className="msg-nav-right">
             <Link to={backPath} className="msg-nav-back">← Quay lại</Link>
             {user && (

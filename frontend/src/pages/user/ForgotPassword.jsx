@@ -60,7 +60,7 @@ export default function ForgotPassword() {
         <div className="login-left-inner">
           <div className="login-logo">
             <span className="login-logo-icon">🏠</span>
-            <span className="login-logo-text">PhòngTrọVN</span>
+            <span className="login-logo-text">ThueNhaVN</span>
           </div>
           <div className="login-hero-text">
             <h1>Khôi phục<br />tài khoản của bạn</h1>

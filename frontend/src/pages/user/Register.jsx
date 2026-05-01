@@ -49,11 +49,11 @@ export default function Register({ onLogin }) {
         <div className="login-left-inner">
           <div className="login-logo">
             <span className="login-logo-icon">🏠</span>
-            <span className="login-logo-text">PhòngTrọVN</span>
+            <span className="login-logo-text">ThueNhaVN</span>
           </div>
 
           <div className="login-hero-text">
-            <h1>Tham gia cộng đồng<br />PhòngTrọVN</h1>
+            <h1>Tham gia cộng đồng<br />ThueNhaVN</h1>
             <p>Đăng ký miễn phí và bắt đầu tìm kiếm hoặc đăng tin phòng trọ ngay hôm nay.</p>
           </div>
 

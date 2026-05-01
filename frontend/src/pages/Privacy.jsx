@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+﻿import { Link } from 'react-router-dom';
 import './Legal.css';
 
 const sections = [
@@ -7,7 +7,7 @@ const sections = [
     content: (
       <>
         <p>
-          PhòngTrọVN cam kết bảo vệ quyền riêng tư của bạn. Chính sách này mô tả cách chúng tôi
+          ThueNhaVN cam kết bảo vệ quyền riêng tư của bạn. Chính sách này mô tả cách chúng tôi
           thu thập, sử dụng và bảo vệ thông tin cá nhân khi bạn sử dụng dịch vụ.
         </p>
         <div className="legal-highlight">
@@ -154,7 +154,7 @@ export default function Privacy() {
         <div className="legal-header-inner">
           <Link to="/" className="legal-logo">
             <span className="legal-logo-icon">🏠</span>
-            PhòngTrọVN
+            ThueNhaVN
           </Link>
           <Link to="/register" className="legal-back-btn">← Quay lại đăng ký</Link>
         </div>
@@ -186,7 +186,7 @@ export default function Privacy() {
       </main>
 
       <footer className="legal-footer">
-        © 2025 PhòngTrọVN · <Link to="/privacy">Chính sách bảo mật</Link> · <Link to="/terms">Điều khoản sử dụng</Link>
+        © 2025 ThueNhaVN · <Link to="/privacy">Chính sách bảo mật</Link> · <Link to="/terms">Điều khoản sử dụng</Link>
       </footer>
     </div>
   );

@@ -20,7 +20,7 @@ export default function UserNavbar({ user, onLogout }) {
   return (
     <nav className="unav">
       <div className="unav-inner">
-        <Link to="/" className="unav-logo">🏠 PhòngTrọ<span>VN</span></Link>
+        <Link to="/" className="unav-logo">🏠 ThueNha<span>VN</span></Link>
 
         <div className="unav-links">
           {NAV_LINKS.map(link => (

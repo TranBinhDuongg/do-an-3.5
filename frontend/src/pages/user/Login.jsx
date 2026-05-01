@@ -51,7 +51,7 @@ export default function Login({ onLogin }) {
         <div className="login-left-inner">
           <div className="login-logo">
             <span className="login-logo-icon">🏠</span>
-            <span className="login-logo-text">PhòngTrọVN</span>
+            <span className="login-logo-text">ThueNhaVN</span>
           </div>
 
           <div className="login-hero-text">

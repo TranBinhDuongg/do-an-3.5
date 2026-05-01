@@ -152,8 +152,8 @@ export default function Home({ user, onLogout }) {
         <div className="home-container">
           <div className="home-footer-grid">
             <div>
-              <div className="home-footer-logo">🏠 PhòngTrọ<span>VN</span></div>
-              <p>Nền tảng tìm và đăng phòng trọ uy tín, nhanh chóng nhất Việt Nam.</p>
+              <div className="home-footer-logo">🏠 ThueNha<span>VN</span></div>
+              <p>Nền tảng tìm và đăng thuê nhà uy tín, nhanh chóng nhất Việt Nam.</p>
             </div>
             <div>
               <h4>Người thuê</h4>
@@ -179,7 +179,7 @@ export default function Home({ user, onLogout }) {
               </ul>
             </div>
           </div>
-          <div className="home-footer-bottom">© 2025 PhòngTrọVN. Tất cả quyền được bảo lưu.</div>
+          <div className="home-footer-bottom">© 2025 ThueNhaVN. Tất cả quyền được bảo lưu.</div>
         </div>
       </footer>
     </div>
