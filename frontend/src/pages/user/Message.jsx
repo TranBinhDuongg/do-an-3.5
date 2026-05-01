@@ -31,6 +31,7 @@ export default function Message({ user, onLogout }) {
   const [input, setInput]                 = useState('');
   const [loading, setLoading]             = useState(true);
   const [sending, setSending]             = useState(false);
+  const [menuOpen, setMenuOpen]           = useState(false);
   const [searchParams]                    = useSearchParams();
 
   const bottomRef   = useRef(null);
