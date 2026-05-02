@@ -153,18 +153,29 @@ export default function EmployerHome({ user, onLogout }) {
                   <h3 className="emp-widget-title">💎 Gói đăng tin</h3>
                   {goi ? (
                     <div className="emp-goi-info">
-                      <p className="emp-goi-name">{goi.tenGoi}</p>
+                      <p className="emp-goi-name">{goi.tenGoi} {goi.huy_hieu && <span style={{fontSize: '0.8em', color: '#eab308', marginLeft: 4}}>({goi.huy_hieu})</span>}</p>
                       <div className="emp-goi-meta">
                         <span>Còn <strong>{goi.ngayConLai}</strong> ngày</span>
-                        <span>Giới hạn: <strong>{goi.gioi_han_tin} tin</strong></span>
+                        <span>Tin: <strong>{goi.tin_da_dang || 0}/{goi.gioi_han_tin}</strong></span>
                       </div>
                       <div className="emp-goi-bar-wrap">
                         <div
                           className="emp-goi-bar"
-                          style={{ width: `${Math.max(0, Math.min(100, (goi.ngayConLai / 30) * 100))}%` }}
+                          style={{ width: `${Math.max(0, Math.min(100, ((goi.tin_da_dang || 0) / goi.gioi_han_tin) * 100))}%` }}
                         />
                       </div>
-                      <Link to="/employer/pricing" className="emp-goi-upgrade">Nâng cấp gói →</Link>
+                      
+                      <div className="emp-goi-meta" style={{ marginTop: '10px' }}>
+                        <span>Lượt đẩy tin: <strong>{goi.day_tin_da_dung || 0}/{goi.luot_day_tin || 0}</strong></span>
+                      </div>
+                      <div className="emp-goi-bar-wrap">
+                        <div
+                          className="emp-goi-bar"
+                          style={{ width: `${Math.max(0, Math.min(100, goi.luot_day_tin ? ((goi.day_tin_da_dung || 0) / goi.luot_day_tin) * 100 : 0))}%`, backgroundColor: '#eab308' }}
+                        />
+                      </div>
+
+                      <Link to="/employer/pricing" className="emp-goi-upgrade" style={{marginTop: '15px'}}>Nâng cấp gói →</Link>
                     </div>
                   ) : (
                     <div className="emp-goi-empty">

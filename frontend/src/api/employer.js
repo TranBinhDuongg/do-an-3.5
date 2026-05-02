@@ -76,13 +76,23 @@ export async function getRoomDetailEmployerApi(roomId) {
   return data; // { room }
 }
 
-export async function updateRoomApi(roomId, payload) {
-  const res = await fetch(`${BASE}/rooms/${roomId}`, {
+export async function updateRoomApi(id, data) {
+  const res = await fetch(`${BASE}/rooms/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json', ...authHeader() },
-    body: JSON.stringify(payload),
+    headers: { ...authHeader(), 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
   });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.message);
-  return data;
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.message);
+  return json;
+}
+
+export async function pushRoomApi(id) {
+  const res = await fetch(`${BASE}/rooms/${id}/push`, {
+    method: 'POST',
+    headers: authHeader()
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.message);
+  return json;
 }

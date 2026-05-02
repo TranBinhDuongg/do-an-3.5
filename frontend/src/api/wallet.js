@@ -88,3 +88,10 @@ export async function getPackagesApi() {
   if (!res.ok) throw new Error(data.message);
   return data; // { packages }
 }
+
+export async function getMyPackageApi() {
+  const res = await fetch(`${BASE}/my-package`, { headers: authHeader() });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message);
+  return data; // { package }
+}

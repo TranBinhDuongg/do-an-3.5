@@ -38,6 +38,12 @@ CREATE TABLE goi_dang_tin (
     gioi_han_tin  INT            NOT NULL DEFAULT 1,
     noi_bat       BIT            NOT NULL DEFAULT 0,
     mo_ta         NVARCHAR(MAX),
+    duyet_tu_dong BIT            NOT NULL DEFAULT 0,
+    so_anh_toi_da INT            NOT NULL DEFAULT 5,
+    luot_day_tin  INT            NOT NULL DEFAULT 0,
+    huy_hieu      NVARCHAR(50)   NULL,
+    muc_do_uu_tien INT           NOT NULL DEFAULT 3,
+    ho_tro_video  BIT            NOT NULL DEFAULT 0,
     ngay_tao      DATETIME2      NOT NULL DEFAULT GETDATE()
 );
 GO
@@ -52,6 +58,8 @@ CREATE TABLE nguoi_dung_goi (
     bat_dau       DATETIME2 NOT NULL DEFAULT GETDATE(),
     het_han       DATETIME2 NOT NULL,
     con_hieu_luc  BIT       NOT NULL DEFAULT 1,
+    tin_da_dang   INT       NOT NULL DEFAULT 0,
+    day_tin_da_dung INT     NOT NULL DEFAULT 0,
     FOREIGN KEY (ma_nd)  REFERENCES nguoi_dung(ma_nd),
     FOREIGN KEY (ma_goi) REFERENCES goi_dang_tin(ma_goi)
 );
@@ -83,6 +91,8 @@ CREATE TABLE phong_tro (
     noi_bat       BIT            NOT NULL DEFAULT 0,
     luot_xem      INT            NOT NULL DEFAULT 0,
     so_lien_he    INT            NOT NULL DEFAULT 0,
+    ngay_up_top   DATETIME2      NOT NULL DEFAULT GETDATE(),
+    video_url     NVARCHAR(255)  NULL,
     ngay_tao      DATETIME2      NOT NULL DEFAULT GETDATE(),
     ngay_cap_nhat DATETIME2      NOT NULL DEFAULT GETDATE(),
     FOREIGN KEY (ma_chu_tro) REFERENCES nguoi_dung(ma_nd)

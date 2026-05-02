@@ -82,10 +82,13 @@ BEGIN
     SET NOCOUNT ON;
     SELECT
         p.ma_phong, p.tieu_de, p.loai_phong, p.tinh_thanh, p.quan_huyen, p.dia_chi,
-        p.gia_thue, p.dien_tich, p.con_phong, p.noi_bat, p.luot_xem, p.ngay_tao,
+        p.gia_thue, p.dien_tich, p.con_phong, p.noi_bat, p.luot_xem, p.ngay_tao, p.ngay_up_top,
+        ISNULL(g.muc_do_uu_tien, 3) AS muc_do_uu_tien, g.huy_hieu,
         (SELECT TOP 1 duong_dan FROM anh_phong ap WHERE ap.ma_phong=p.ma_phong AND ap.la_anh_bia=1) AS anh_bia,
         (SELECT TOP 1 duong_dan FROM anh_phong ap WHERE ap.ma_phong=p.ma_phong ORDER BY ap.thu_tu) AS anh_dau_tien
     FROM phong_tro p
+    LEFT JOIN nguoi_dung_goi ndg ON ndg.ma_nd = p.ma_chu_tro AND ndg.con_hieu_luc = 1
+    LEFT JOIN goi_dang_tin g ON g.ma_goi = ndg.ma_goi
     WHERE p.trang_thai='approved'
       AND (@tu_khoa    IS NULL OR p.tieu_de LIKE '%'+@tu_khoa+'%' OR p.dia_chi LIKE '%'+@tu_khoa+'%')
       AND (@tinh_thanh IS NULL OR p.tinh_thanh=@tinh_thanh)
@@ -94,7 +97,8 @@ BEGIN
       AND (@gia_max    IS NULL OR p.gia_thue<=@gia_max)
       AND (@dt_min     IS NULL OR p.dien_tich>=@dt_min)
     ORDER BY
-        CASE WHEN @sap_xep='newest'     THEN p.ngay_tao  END DESC,
+        CASE WHEN @sap_xep='newest'     THEN ISNULL(g.muc_do_uu_tien, 3) END ASC,
+        CASE WHEN @sap_xep='newest'     THEN p.ngay_up_top END DESC,
         CASE WHEN @sap_xep='price-asc'  THEN p.gia_thue  END ASC,
         CASE WHEN @sap_xep='price-desc' THEN p.gia_thue  END DESC,
         CASE WHEN @sap_xep='area-desc'  THEN p.dien_tich END DESC
@@ -226,17 +230,25 @@ CREATE OR ALTER PROCEDURE sp_SuaPhong
     @tinh_thanh NVARCHAR(100), @quan_huyen NVARCHAR(100)=NULL, @dia_chi NVARCHAR(300),
     @gia_thue DECIMAL(12,0), @tien_coc DECIMAL(12,0)=NULL, @dien_tich DECIMAL(6,1),
     @mo_ta NVARCHAR(MAX)=NULL, @ten_lien_he NVARCHAR(100), @sdt_lien_he NVARCHAR(20),
-    @email_lien_he NVARCHAR(150)=NULL, @hien_sdt BIT=1
+    @email_lien_he NVARCHAR(150)=NULL, @hien_sdt BIT=1, @video_url NVARCHAR(255)=NULL
 AS
 BEGIN
     SET NOCOUNT ON;
+    DECLARE @duyet_tu_dong BIT = 0;
+    SELECT TOP 1 @duyet_tu_dong = g.duyet_tu_dong
+    FROM nguoi_dung_goi ndg JOIN goi_dang_tin g ON ndg.ma_goi = g.ma_goi
+    WHERE ndg.ma_nd = @ma_chu_tro AND ndg.con_hieu_luc = 1 ORDER BY ndg.het_han DESC;
+
+    DECLARE @trang_thai NVARCHAR(20) = 'pending';
+    IF @duyet_tu_dong = 1 SET @trang_thai = 'approved';
+
     UPDATE phong_tro SET
         tieu_de=@tieu_de, loai_phong=@loai_phong,
         tinh_thanh=@tinh_thanh, quan_huyen=@quan_huyen, dia_chi=@dia_chi,
         gia_thue=@gia_thue, tien_coc=@tien_coc, dien_tich=@dien_tich,
         mo_ta=@mo_ta, ten_lien_he=@ten_lien_he, sdt_lien_he=@sdt_lien_he,
-        email_lien_he=@email_lien_he, hien_sdt=@hien_sdt,
-        trang_thai='pending', ngay_cap_nhat=GETDATE()
+        email_lien_he=@email_lien_he, hien_sdt=@hien_sdt, video_url=@video_url,
+        trang_thai=@trang_thai, ngay_cap_nhat=GETDATE()
     WHERE ma_phong=@ma_phong AND ma_chu_tro=@ma_chu_tro;
     SELECT @@ROWCOUNT AS affected;
 END
@@ -247,13 +259,48 @@ CREATE OR ALTER PROCEDURE sp_DangTinPhong
     @tinh_thanh NVARCHAR(100), @quan_huyen NVARCHAR(100)=NULL, @dia_chi NVARCHAR(300),
     @gia_thue DECIMAL(12,0), @tien_coc DECIMAL(12,0)=NULL, @dien_tich DECIMAL(6,1),
     @mo_ta NVARCHAR(MAX)=NULL, @ten_lien_he NVARCHAR(100), @sdt_lien_he NVARCHAR(20),
-    @email_lien_he NVARCHAR(150)=NULL, @hien_sdt BIT=1
+    @email_lien_he NVARCHAR(150)=NULL, @hien_sdt BIT=1, @video_url NVARCHAR(255)=NULL
 AS
 BEGIN
     SET NOCOUNT ON;
-    INSERT INTO phong_tro (ma_chu_tro,tieu_de,loai_phong,tinh_thanh,quan_huyen,dia_chi,gia_thue,tien_coc,dien_tich,mo_ta,ten_lien_he,sdt_lien_he,email_lien_he,hien_sdt,trang_thai)
+    DECLARE @ma_goi_nd INT, @gioi_han_tin INT, @tin_da_dang INT, @duyet_tu_dong BIT;
+    
+    SELECT TOP 1 @ma_goi_nd = ndg.ma, @gioi_han_tin = g.gioi_han_tin, @tin_da_dang = ndg.tin_da_dang, @duyet_tu_dong = g.duyet_tu_dong
+    FROM nguoi_dung_goi ndg
+    JOIN goi_dang_tin g ON ndg.ma_goi = g.ma_goi
+    WHERE ndg.ma_nd = @ma_chu_tro AND ndg.con_hieu_luc = 1
+    ORDER BY ndg.het_han DESC;
+    
+    IF @ma_goi_nd IS NULL BEGIN RAISERROR('NO_ACTIVE_PACKAGE', 16, 1); RETURN; END
+    IF @tin_da_dang >= @gioi_han_tin BEGIN RAISERROR('PACKAGE_LIMIT_REACHED', 16, 1); RETURN; END
+
+    DECLARE @trang_thai NVARCHAR(20) = 'pending';
+    IF @duyet_tu_dong = 1 SET @trang_thai = 'approved';
+
+    INSERT INTO phong_tro (ma_chu_tro,tieu_de,loai_phong,tinh_thanh,quan_huyen,dia_chi,gia_thue,tien_coc,dien_tich,mo_ta,ten_lien_he,sdt_lien_he,email_lien_he,hien_sdt,trang_thai, video_url, ngay_up_top)
     OUTPUT INSERTED.ma_phong
-    VALUES (@ma_chu_tro,@tieu_de,@loai_phong,@tinh_thanh,@quan_huyen,@dia_chi,@gia_thue,@tien_coc,@dien_tich,@mo_ta,@ten_lien_he,@sdt_lien_he,@email_lien_he,@hien_sdt,'pending');
+    VALUES (@ma_chu_tro,@tieu_de,@loai_phong,@tinh_thanh,@quan_huyen,@dia_chi,@gia_thue,@tien_coc,@dien_tich,@mo_ta,@ten_lien_he,@sdt_lien_he,@email_lien_he,@hien_sdt,@trang_thai, @video_url, GETDATE());
+
+    UPDATE nguoi_dung_goi SET tin_da_dang = tin_da_dang + 1 WHERE ma = @ma_goi_nd;
+END
+GO
+
+CREATE OR ALTER PROCEDURE sp_DayTinPhong @ma_phong INT, @ma_chu_tro INT AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @ma_goi_nd INT, @day_tin_da_dung INT, @luot_day_tin INT;
+    
+    SELECT TOP 1 @ma_goi_nd = ndg.ma, @day_tin_da_dung = ndg.day_tin_da_dung, @luot_day_tin = g.luot_day_tin
+    FROM nguoi_dung_goi ndg JOIN goi_dang_tin g ON ndg.ma_goi = g.ma_goi
+    WHERE ndg.ma_nd = @ma_chu_tro AND ndg.con_hieu_luc = 1 ORDER BY ndg.het_han DESC;
+    
+    IF @ma_goi_nd IS NULL BEGIN RAISERROR('NO_ACTIVE_PACKAGE', 16, 1); RETURN; END
+    IF @day_tin_da_dung >= @luot_day_tin BEGIN RAISERROR('PUSH_LIMIT_REACHED', 16, 1); RETURN; END
+    IF NOT EXISTS (SELECT 1 FROM phong_tro WHERE ma_phong = @ma_phong AND ma_chu_tro = @ma_chu_tro)
+    BEGIN RAISERROR('NOT_FOUND', 16, 1); RETURN; END
+
+    UPDATE phong_tro SET ngay_up_top = GETDATE() WHERE ma_phong = @ma_phong;
+    UPDATE nguoi_dung_goi SET day_tin_da_dung = day_tin_da_dung + 1 WHERE ma = @ma_goi_nd;
 END
 GO
 
@@ -294,6 +341,8 @@ BEGIN
     SET NOCOUNT ON;
     SELECT TOP 1
         ndg.ma, g.ten_goi, g.gia, g.so_ngay, g.gioi_han_tin,
+        g.duyet_tu_dong, g.so_anh_toi_da, g.luot_day_tin, g.huy_hieu, g.ho_tro_video,
+        ndg.tin_da_dang, ndg.day_tin_da_dung,
         ndg.bat_dau, ndg.het_han, ndg.con_hieu_luc,
         DATEDIFF(DAY,GETDATE(),ndg.het_han) AS ngay_con_lai
     FROM nguoi_dung_goi ndg JOIN goi_dang_tin g ON ndg.ma_goi=g.ma_goi

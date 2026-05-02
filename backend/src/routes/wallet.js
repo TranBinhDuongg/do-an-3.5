@@ -112,14 +112,48 @@ router.post('/purchase', auth(['employer', 'admin']), async (req, res) => {
   }
 });
 
-module.exports = router;
+// GET /api/wallet/my-package — lấy thông tin gói hiện tại
+router.get('/my-package', auth(['employer', 'admin']), async (req, res) => {
+  try {
+    await poolConnect;
+    const result = await pool.request()
+      .input('ma_nd', sql.Int, req.user.id)
+      .execute('sp_LayGoiHienTai');
+    
+    if (result.recordset.length === 0) {
+      return res.json({ package: null });
+    }
+    
+    const p = result.recordset[0];
+    return res.json({
+      package: {
+        id: p.ma,
+        name: p.ten_goi,
+        limit: p.gioi_han_tin,
+        used: p.tin_da_dang || 0,
+        pushLimit: p.luot_day_tin || 0,
+        pushUsed: p.day_tin_da_dung || 0,
+        maxImages: p.so_anh_toi_da || 5,
+        autoApprove: p.duyet_tu_dong || false,
+        badge: p.huy_hieu,
+        hasVideo: p.ho_tro_video || false,
+        start: p.bat_dau,
+        end: p.het_han,
+        daysLeft: p.ngay_con_lai
+      }
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Lỗi server' });
+  }
+});
 
 // GET /api/wallet/packages — danh sách gói đăng tin
 router.get('/packages', auth(['employer', 'admin']), async (req, res) => {
   try {
     await poolConnect;
     const result = await pool.request().query(
-      `SELECT ma_goi, ten_goi, gia, so_ngay, gioi_han_tin, noi_bat, mo_ta FROM goi_dang_tin ORDER BY gia ASC`
+      `SELECT ma_goi, ten_goi, gia, so_ngay, gioi_han_tin, noi_bat, mo_ta, duyet_tu_dong, so_anh_toi_da, luot_day_tin, huy_hieu, muc_do_uu_tien, ho_tro_video FROM goi_dang_tin ORDER BY gia ASC`
     );
     return res.json({ packages: result.recordset });
   } catch (err) {
@@ -127,3 +161,5 @@ router.get('/packages', auth(['employer', 'admin']), async (req, res) => {
     return res.status(500).json({ message: 'Lỗi server' });
   }
 });
+
+module.exports = router;

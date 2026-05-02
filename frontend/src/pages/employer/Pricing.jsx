@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { getPackagesApi, getBalanceApi, purchasePackageApi } from '../../api/wallet';
+import { getPackagesApi, getBalanceApi, purchasePackageApi, getMyPackageApi } from '../../api/wallet';
 import EmployerNavbar from '../../components/EmployerNavbar';
 import './Pricing.css';
 
@@ -94,16 +94,23 @@ export default function Pricing({ user, onLogout }) {
   const [buying, setBuying]       = useState(false);
   const [error, setError]         = useState('');
   const [success, setSuccess]     = useState('');
+  const [myPackage, setMyPackage] = useState(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    Promise.all([getPackagesApi(), getBalanceApi()])
-      .then(([pkgRes, balRes]) => {
+  const loadData = () => {
+    setLoading(true);
+    Promise.all([getPackagesApi(), getBalanceApi(), getMyPackageApi()])
+      .then(([pkgRes, balRes, myPkgRes]) => {
         setPackages(pkgRes.packages);
         setBalance(balRes.so_du);
+        setMyPackage(myPkgRes.package);
       })
-      .catch(() => {})
+      .catch((err) => console.error(err))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadData();
   }, []);
 
   const handleBuy = (pkg) => {
@@ -120,7 +127,7 @@ export default function Pricing({ user, onLogout }) {
     try {
       const res = await purchasePackageApi(selected.ma_goi);
       setSuccess(res.message);
-      setBalance(res.so_du_moi);
+      loadData(); // Tải lại thông tin gói sau khi mua
       setTimeout(() => {
         setShowModal(false);
         navigate('/employer/post');
@@ -147,8 +154,19 @@ export default function Pricing({ user, onLogout }) {
         {/* Current plan */}
         <div className="pricing-current">
           <span>📋 Gói hiện tại của bạn:</span>
-          <strong>Chưa có gói</strong>
-          <span className="pricing-current-exp">— Mua gói để bắt đầu đăng tin</span>
+          {myPackage ? (
+            <>
+              <strong>{myPackage.name} {myPackage.badge && <span style={{marginLeft: 5, color: '#eab308'}}>({myPackage.badge})</span>}</strong>
+              <span className="pricing-current-exp">
+                — Còn {myPackage.daysLeft} ngày (Đã đăng: {myPackage.used}/{myPackage.limit} tin, Đã đẩy tin: {myPackage.pushUsed}/{myPackage.pushLimit} lượt)
+              </span>
+            </>
+          ) : (
+            <>
+              <strong>Chưa có gói</strong>
+              <span className="pricing-current-exp">— Mua gói để bắt đầu đăng tin</span>
+            </>
+          )}
         </div>
 
         {/* Plans grid */}

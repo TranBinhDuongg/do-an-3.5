@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { getRoomsEmployerApi, updateRoomStatusApi, deleteRoomApi, getNotificationsApi, readAllNotificationsApi } from '../../api/employer';
+import { getRoomsEmployerApi, updateRoomStatusApi, deleteRoomApi, getNotificationsApi, readAllNotificationsApi, pushRoomApi } from '../../api/employer';
 import EmployerNavbar from '../../components/EmployerNavbar';
 import './Home.css';
 import './Rooms.css';
@@ -77,6 +77,15 @@ export default function Rooms({ user, onLogout }) {
       await deleteRoomApi(roomId);
       setRooms(prev => prev.filter(r => r.id !== roomId));
       setConfirmDelete(null);
+    } catch (e) {
+      alert('Lỗi: ' + e.message);
+    }
+  };
+
+  const handlePush = async (roomId) => {
+    try {
+      const res = await pushRoomApi(roomId);
+      alert(res.message);
     } catch (e) {
       alert('Lỗi: ' + e.message);
     }
@@ -168,6 +177,14 @@ export default function Rooms({ user, onLogout }) {
                         className={`emp-btn-toggle ${room.status === 'paused' ? 'inactive' : ''}`}
                         onClick={() => handleToggleStatus(room)}>
                         {room.status === 'paused' ? '▶ Kích hoạt' : '⏸ Tạm dừng'}
+                      </button>
+                    )}
+                    {room.status === 'approved' && (
+                      <button
+                        className="emp-btn-push"
+                        style={{ backgroundColor: '#eab308', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: '500', marginLeft: '5px' }}
+                        onClick={() => handlePush(room.id)}>
+                        🚀 Đẩy lên
                       </button>
                     )}
                     <button

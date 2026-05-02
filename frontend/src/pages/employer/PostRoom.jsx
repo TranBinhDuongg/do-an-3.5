@@ -1,6 +1,7 @@
-﻿import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { postRoomApi } from '../../api/employer';
+import { getMyPackageApi } from '../../api/wallet';
 import NotificationBell from '../../components/NotificationBell';
 import EmployerNavbar from '../../components/EmployerNavbar';
 import LocationPicker from '../../components/LocationPicker';
@@ -29,7 +30,7 @@ const TYPES  = ['Phòng trọ', 'Chung cư mini', 'Nhà nguyên căn', 'Studio',
 const initForm = {
   title: '', type: '', city: '', district: '', address: '',
   price: '', deposit: '', area: '', description: '',
-  amenities: [], images: [],
+  amenities: [], images: [], videoUrl: '',
   name: '', phone: '', email: '', showPhone: true,
   lat: null, lon: null,
 };
@@ -43,6 +44,11 @@ export default function PostRoom({ user, onLogout }) {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [previewImgs, setPreviewImgs] = useState([]);
+  const [myPackage, setMyPackage]     = useState(null);
+
+  useEffect(() => {
+    getMyPackageApi().then(d => setMyPackage(d.package)).catch(console.error);
+  }, []);
 
   const set = (k, v) => { setForm(p => ({ ...p, [k]: v })); setErrors(p => ({ ...p, [k]: '' })); };
 
@@ -62,7 +68,11 @@ export default function PostRoom({ user, onLogout }) {
   const toggleAmenity = (key) => set('amenities', form.amenities.includes(key) ? form.amenities.filter(a => a !== key) : [...form.amenities, key]);
 
   const handleImages = (e) => {
-    const combined = [...form.images, ...Array.from(e.target.files)].slice(0, 10);
+    const max = myPackage?.maxImages || 5;
+    const combined = [...form.images, ...Array.from(e.target.files)].slice(0, max);
+    if (combined.length < form.images.length + e.target.files.length) {
+      alert(`Gói hiện tại chỉ cho phép đăng tối đa ${max} ảnh.`);
+    }
     set('images', combined);
     setPreviewImgs(combined.map(f => URL.createObjectURL(f)));
     e.target.value = '';
@@ -120,7 +130,7 @@ export default function PostRoom({ user, onLogout }) {
         address: form.address, price: form.price, deposit: form.deposit, area: form.area,
         description: form.description, contactName: form.name, contactPhone: form.phone,
         contactEmail: form.email, showPhone: form.showPhone,
-        amenities: form.amenities, images: imageData,
+        amenities: form.amenities, images: imageData, videoUrl: form.videoUrl,
         lat: form.lat, lon: form.lon,
       });
       setSuccess(true);
@@ -286,7 +296,7 @@ export default function PostRoom({ user, onLogout }) {
                     <label className="pr-upload-area" htmlFor="img-upload">
                       <span className="pr-upload-icon">📷</span>
                       <p>Kéo thả hoặc <span>click để chọn ảnh</span></p>
-                      <small>Tối đa 10 ảnh · JPG, PNG · Mỗi ảnh ≤ 5MB</small>
+                      <small>Tối đa {myPackage?.maxImages || 5} ảnh · JPG, PNG · Mỗi ảnh ≤ 5MB</small>
                       <input id="img-upload" type="file" multiple accept="image/*" style={{ display: 'none' }} onChange={handleImages} />
                     </label>
                     {previewImgs.length > 0 && (
@@ -302,6 +312,14 @@ export default function PostRoom({ user, onLogout }) {
                       </div>
                     )}
                   </div>
+                  
+                  {myPackage?.hasVideo && (
+                    <div className="pr-field" style={{ marginTop: '20px' }}>
+                      <label>Video giới thiệu (Tùy chọn)</label>
+                      <input type="text" placeholder="Dán link YouTube (VD: https://www.youtube.com/watch?v=...)"
+                        value={form.videoUrl} onChange={e => set('videoUrl', e.target.value)} />
+                    </div>
+                  )}
                 </div>
               )}
 

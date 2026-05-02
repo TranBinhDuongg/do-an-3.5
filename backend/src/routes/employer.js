@@ -74,6 +74,10 @@ router.get('/dashboard', auth(['employer', 'admin']), async (req, res) => {
         hetHan:      goi.het_han,
         ngayConLai:  goi.ngay_con_lai,
         gioi_han_tin: goi.gioi_han_tin,
+        tin_da_dang:  goi.tin_da_dang,
+        luot_day_tin: goi.luot_day_tin,
+        day_tin_da_dung: goi.day_tin_da_dung,
+        huy_hieu:    goi.huy_hieu,
         conHieuLuc:  goi.con_hieu_luc,
       } : null,
     });
@@ -92,6 +96,7 @@ router.post('/rooms', auth(['employer', 'admin']), async (req, res) => {
     contactName, contactPhone, contactEmail, showPhone,
     amenities = [],   // string[]  e.g. ['wifi','ac']
     images    = [],   // string[]  base64 or URL
+    videoUrl  = '',   // string    YouTube link
   } = req.body;
 
   // Basic validation
@@ -117,6 +122,7 @@ router.post('/rooms', auth(['employer', 'admin']), async (req, res) => {
       .input('sdt_lien_he',   sql.NVarChar(20),  contactPhone)
       .input('email_lien_he', sql.NVarChar(150), contactEmail || null)
       .input('hien_sdt',      sql.Bit,           showPhone ? 1 : 0)
+      .input('video_url',     sql.NVarChar(255), videoUrl || null)
       .execute('sp_DangTinPhong');
 
     const ma_phong = insertRes.recordset[0].ma_phong;
@@ -145,9 +151,15 @@ router.post('/rooms', auth(['employer', 'admin']), async (req, res) => {
         .execute('sp_ThemTienIchPhong');
     }
 
-    return res.status(201).json({ message: 'Đăng tin thành công, đang chờ duyệt', roomId: ma_phong });
+    return res.status(201).json({ message: 'Đăng tin thành công', roomId: ma_phong });
   } catch (err) {
     console.error(err);
+    if (err.message?.includes('NO_ACTIVE_PACKAGE')) {
+      return res.status(403).json({ message: 'Bạn chưa có gói đăng tin nào đang hoạt động. Vui lòng mua gói.' });
+    }
+    if (err.message?.includes('PACKAGE_LIMIT_REACHED')) {
+      return res.status(403).json({ message: 'Bạn đã dùng hết số lượt đăng tin của gói hiện tại. Vui lòng nâng cấp gói.' });
+    }
     return res.status(500).json({ message: 'Lỗi server' });
   }
 });
@@ -198,6 +210,7 @@ router.put('/rooms/:id', auth(['employer', 'admin']), async (req, res) => {
     amenities = [],
     images    = [],   // base64 mới (nếu có), URL cũ giữ nguyên
     keepImages = [],  // URL ảnh cũ muốn giữ lại
+    videoUrl  = '',
   } = req.body;
 
   if (!title || !type || !city || !address || !price || !area || !contactName || !contactPhone)
@@ -223,6 +236,7 @@ router.put('/rooms/:id', auth(['employer', 'admin']), async (req, res) => {
       .input('sdt_lien_he',   sql.NVarChar(20),  contactPhone)
       .input('email_lien_he', sql.NVarChar(150), contactEmail || null)
       .input('hien_sdt',      sql.Bit,           showPhone ? 1 : 0)
+      .input('video_url',     sql.NVarChar(255), videoUrl || null)
       .execute('sp_SuaPhong');
 
     if (!upd.recordset[0]?.affected)
@@ -262,9 +276,31 @@ router.put('/rooms/:id', auth(['employer', 'admin']), async (req, res) => {
         .execute('sp_ThemTienIchPhong');
     }
 
-    return res.json({ message: 'Cập nhật tin đăng thành công, đang chờ duyệt lại' });
+    return res.json({ message: 'Cập nhật tin đăng thành công' });
   } catch (err) {
     console.error(err);
+    return res.status(500).json({ message: 'Lỗi server' });
+  }
+});
+
+// POST /api/employer/rooms/:id/push — đẩy tin lên top
+router.post('/rooms/:id/push', auth(['employer', 'admin']), async (req, res) => {
+  const ma_phong = parseInt(req.params.id);
+  try {
+    await poolConnect;
+    await pool.request()
+      .input('ma_phong',   sql.Int, ma_phong)
+      .input('ma_chu_tro', sql.Int, req.user.id)
+      .execute('sp_DayTinPhong');
+    return res.json({ message: 'Đã đẩy tin lên Top thành công!' });
+  } catch (err) {
+    console.error(err);
+    if (err.message?.includes('NO_ACTIVE_PACKAGE')) {
+      return res.status(403).json({ message: 'Bạn chưa có gói đăng tin đang hoạt động.' });
+    }
+    if (err.message?.includes('PUSH_LIMIT_REACHED')) {
+      return res.status(403).json({ message: 'Bạn đã hết lượt đẩy tin của gói hiện tại.' });
+    }
     return res.status(500).json({ message: 'Lỗi server' });
   }
 });
@@ -366,6 +402,7 @@ router.get('/rooms/:id/detail', auth(['employer', 'admin']), async (req, res) =>
         contactPhone: r.sdt_lien_he,
         contactEmail: r.email_lien_he,
         showPhone:    r.hien_sdt,
+        videoUrl:     r.video_url,
         postedAt:     timeAgo(r.ngay_tao),
         updatedAt:    timeAgo(r.ngay_cap_nhat),
         images:       imgRes.recordset.map(i => i.duong_dan),
