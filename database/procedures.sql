@@ -140,11 +140,34 @@ BEGIN
     SET NOCOUNT ON;
     SELECT TOP (@gioi_han)
         p.ma_phong, p.tieu_de, p.loai_phong, p.tinh_thanh, p.dia_chi,
-        p.gia_thue, p.dien_tich, p.con_phong, p.noi_bat, p.ngay_tao,
+        p.gia_thue, p.dien_tich, p.con_phong, p.noi_bat, p.ngay_tao, p.ngay_up_top,
+        ISNULL(g.muc_do_uu_tien, 3) AS muc_do_uu_tien,
+        g.huy_hieu,
         (SELECT TOP 1 duong_dan FROM anh_phong ap WHERE ap.ma_phong=p.ma_phong AND ap.la_anh_bia=1) AS anh_bia,
         (SELECT TOP 1 duong_dan FROM anh_phong ap WHERE ap.ma_phong=p.ma_phong ORDER BY ap.thu_tu) AS anh_dau_tien
-    FROM phong_tro p WHERE p.trang_thai='approved'
-    ORDER BY p.noi_bat DESC, p.luot_xem DESC, p.ngay_tao DESC;
+    FROM phong_tro p
+    LEFT JOIN nguoi_dung_goi ndg ON ndg.ma_nd = p.ma_chu_tro AND ndg.con_hieu_luc = 1
+    LEFT JOIN goi_dang_tin g ON g.ma_goi = ndg.ma_goi
+    WHERE p.trang_thai='approved'
+    ORDER BY ISNULL(g.muc_do_uu_tien,3) ASC, p.noi_bat DESC, p.ngay_up_top DESC;
+END
+GO
+
+CREATE OR ALTER PROCEDURE sp_LayPhongVIP @gioi_han INT=8 AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT TOP (@gioi_han)
+        p.ma_phong, p.tieu_de, p.loai_phong, p.tinh_thanh, p.dia_chi,
+        p.gia_thue, p.dien_tich, p.con_phong, p.noi_bat, p.ngay_tao, p.ngay_up_top,
+        ISNULL(g.muc_do_uu_tien, 3) AS muc_do_uu_tien,
+        g.huy_hieu,
+        (SELECT TOP 1 duong_dan FROM anh_phong ap WHERE ap.ma_phong=p.ma_phong AND ap.la_anh_bia=1) AS anh_bia,
+        (SELECT TOP 1 duong_dan FROM anh_phong ap WHERE ap.ma_phong=p.ma_phong ORDER BY ap.thu_tu) AS anh_dau_tien
+    FROM phong_tro p
+    INNER JOIN nguoi_dung_goi ndg ON ndg.ma_nd = p.ma_chu_tro AND ndg.con_hieu_luc = 1
+    INNER JOIN goi_dang_tin g ON g.ma_goi = ndg.ma_goi
+    WHERE p.trang_thai='approved'
+    ORDER BY g.muc_do_uu_tien ASC, p.ngay_up_top DESC;
 END
 GO
 

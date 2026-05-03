@@ -27,6 +27,8 @@ function formatRoom(r) {
     isFeatured: r.noi_bat,
     image:      r.anh_bia || r.anh_dau_tien || null,
     postedAt:   timeAgo(r.ngay_tao),
+    badge:      r.huy_hieu || null,
+    priority:   r.muc_do_uu_tien != null ? r.muc_do_uu_tien : 3,
   };
 }
 
@@ -75,9 +77,10 @@ router.get('/', async (req, res) => {
 // GET /api/rooms/home
 router.get('/home', async (req, res) => {  try {
     await poolConnect;
-    const [newRes, featRes, statsRes] = await Promise.all([
+    const [newRes, featRes, vipRes, statsRes] = await Promise.all([
       pool.request().input('gioi_han', sql.Int, 6).execute('sp_LayPhongMoi'),
       pool.request().input('gioi_han', sql.Int, 6).execute('sp_LayPhongNoiBat'),
+      pool.request().input('gioi_han', sql.Int, 8).execute('sp_LayPhongVIP'),
       pool.request().execute('sp_LayThongKe'),
     ]);
 
@@ -85,6 +88,7 @@ router.get('/home', async (req, res) => {  try {
     return res.json({
       newRooms:      newRes.recordset.map(formatRoom),
       featuredRooms: featRes.recordset.map(formatRoom),
+      vipRooms:      vipRes.recordset.map(formatRoom),
       stats: {
         total_rooms:     thongKe.tong_phong,
         total_employers: thongKe.tong_chu_tro,

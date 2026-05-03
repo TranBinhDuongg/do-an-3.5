@@ -15,6 +15,21 @@ const PRICES = [
   { label: 'Trên 6 triệu', min: '6000000', max: '' },
 ];
 
+const BADGE_CONFIG = {
+  'VIP Diamond': { bg: 'linear-gradient(135deg,#a855f7,#7c3aed)', icon: '💎' },
+  'VIP Gold':    { bg: 'linear-gradient(135deg,#f59e0b,#d97706)', icon: '👑' },
+  'VIP Silver':  { bg: 'linear-gradient(135deg,#64748b,#475569)', icon: '🥈' },
+  'Pro':         { bg: 'linear-gradient(135deg,#2563eb,#1d4ed8)', icon: '⚡' },
+  'Basic':       { bg: 'linear-gradient(135deg,#22c55e,#16a34a)', icon: '✅' },
+};
+function getBadgeStyle(badge) {
+  if (!badge) return null;
+  for (const key of Object.keys(BADGE_CONFIG)) {
+    if (badge.toLowerCase().includes(key.toLowerCase())) return { ...BADGE_CONFIG[key], label: badge };
+  }
+  return { bg: 'linear-gradient(135deg,#2563eb,#7c3aed)', icon: '⭐', label: badge };
+}
+
 export default function Search({ user, onLogout }) {
   const [searchParams] = useSearchParams();
   const [keyword, setKeyword]     = useState(searchParams.get('keyword') || '');
@@ -187,6 +202,7 @@ export default function Search({ user, onLogout }) {
 function RoomCard({ room, user }) {
   const [saved, setSaved] = useState(false);
   const navigate = useNavigate();
+  const badgeStyle = getBadgeStyle(room.badge);
   useEffect(() => {
     if (!user) return;
     checkFavoriteApi(room.id).then(d => setSaved(d.saved)).catch(() => {});
@@ -200,10 +216,15 @@ function RoomCard({ room, user }) {
     } catch {}
   };
   return (
-    <Link to={`/room/${room.id}`} className="sc-card">
+    <Link to={`/room/${room.id}`} className={`sc-card ${room.priority <= 1 ? 'sc-card-vip' : ''}`}>
       <div className="sc-card-img">
         <img src={room.image || FALLBACK_IMG} alt={room.title} />
         <span className={`sc-badge ${room.available ? 'green' : 'red'}`}>{room.available ? 'Còn phòng' : 'Hết phòng'}</span>
+        {badgeStyle && (
+          <span className="sc-pkg-badge" style={{ background: badgeStyle.bg }}>
+            {badgeStyle.icon} {badgeStyle.label}
+          </span>
+        )}
         <button className="sc-save" onClick={toggleFav}>{saved ? '❤️' : '🤍'}</button>
       </div>
       <div className="sc-body">
@@ -225,6 +246,7 @@ function RoomCard({ room, user }) {
 function RoomListItem({ room, user }) {
   const [saved, setSaved] = useState(false);
   const navigate = useNavigate();
+  const badgeStyle = getBadgeStyle(room.badge);
   useEffect(() => {
     if (!user) return;
     checkFavoriteApi(room.id).then(d => setSaved(d.saved)).catch(() => {});
@@ -238,10 +260,15 @@ function RoomListItem({ room, user }) {
     } catch {}
   };
   return (
-    <Link to={`/room/${room.id}`} className="sc-list-item">
+    <Link to={`/room/${room.id}`} className={`sc-list-item ${room.priority <= 1 ? 'sc-list-vip' : ''}`}>
       <div className="sc-list-img">
         <img src={room.image || FALLBACK_IMG} alt={room.title} />
         <span className={`sc-badge ${room.available ? 'green' : 'red'}`}>{room.available ? 'Còn phòng' : 'Hết phòng'}</span>
+        {badgeStyle && (
+          <span className="sc-pkg-badge" style={{ background: badgeStyle.bg }}>
+            {badgeStyle.icon} {badgeStyle.label}
+          </span>
+        )}
       </div>
       <div className="sc-list-body">
         <div className="sc-list-top">
