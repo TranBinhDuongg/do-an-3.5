@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { postRoomApi } from '../../api/employer';
 import { getMyPackageApi } from '../../api/wallet';
@@ -24,8 +24,8 @@ const AMENITIES = [
   { key: 'wardrobe', label: 'Tủ quần áo',  icon: '🗄️' },
 ];
 
-const CITIES = ['Hà Nội', 'TP. Hồ Chí Minh', 'Đà Nẵng', 'Cần Thơ', 'Hải Phòng', 'Bình Dương', 'Đồng Nai'];
-const TYPES  = ['Phòng trọ', 'Chung cư mini', 'Nhà nguyên căn', 'Studio', 'Ký túc xá', 'Căn hộ dịch vụ'];
+const CITIES = ['Hà Nội', 'TP. Hồ Chí Minh', 'Đà Nẵng', 'Cần Thơ', 'Hải Nhà', 'Bình Dương', 'Đồng Nai'];
+const TYPES  = ['Nhà cho thuê', 'Chung cư mini', 'Nhà nguyên căn', 'Studio', 'Ký túc xá', 'Căn hộ dịch vụ'];
 
 const initForm = {
   title: '', type: '', city: '', district: '', address: '',
@@ -58,7 +58,7 @@ export default function PostRoom({ user, onLogout }) {
     const parts    = loc.display_name.split(', ');
     const address  = parts.slice(0, 3).join(', ');
     const district = parts.find(p => /quận|huyện|thị xã/i.test(p)) || '';
-    const CITY_MAP = { 'Hà Nội': 'Hà Nội', 'Thành phố Hồ Chí Minh': 'TP. Hồ Chí Minh', 'Đà Nẵng': 'Đà Nẵng', 'Cần Thơ': 'Cần Thơ', 'Hải Phòng': 'Hải Phòng', 'Bình Dương': 'Bình Dương', 'Đồng Nai': 'Đồng Nai' };
+    const CITY_MAP = { 'Hà Nội': 'Hà Nội', 'Thành phố Hồ Chí Minh': 'TP. Hồ Chí Minh', 'Đà Nẵng': 'Đà Nẵng', 'Cần Thơ': 'Cần Thơ', 'Hải Nhà': 'Hải Nhà', 'Bình Dương': 'Bình Dương', 'Đồng Nai': 'Đồng Nai' };
     const cityRaw  = parts.find(p => CITY_MAP[p]) || '';
     const city     = CITY_MAP[cityRaw] || cityRaw;
     setForm(p => ({ ...p, address: address || p.address, district: district || p.district, city: city || p.city, lat: parseFloat(loc.lat), lon: parseFloat(loc.lon) }));
@@ -82,7 +82,7 @@ export default function PostRoom({ user, onLogout }) {
     const e = {};
     if (step === 0) {
       if (!form.title.trim())   e.title   = 'Vui lòng nhập tiêu đề';
-      if (!form.type)           e.type    = 'Vui lòng chọn loại phòng';
+      if (!form.type)           e.type    = 'Vui lòng chọn loại nhà';
       if (!form.city)           e.city    = 'Vui lòng chọn tỉnh/thành';
       if (!form.address.trim()) e.address = 'Vui lòng nhập địa chỉ';
       if (!form.price)          e.price   = 'Vui lòng nhập giá thuê';
@@ -161,7 +161,7 @@ export default function PostRoom({ user, onLogout }) {
 
       <div className="pr-body">
         <div className="pr-page-title">
-          <h1>📝 Đăng tin cho thuê phòng</h1>
+          <h1>📝 Đăng tin cho thuê nhà</h1>
           <p>Điền đầy đủ thông tin để tin đăng được duyệt nhanh hơn</p>
         </div>
 
@@ -182,11 +182,11 @@ export default function PostRoom({ user, onLogout }) {
               {/* STEP 0 */}
               {step === 0 && (
                 <div className="pr-card">
-                  <h2 className="pr-card-title">Thông tin phòng trọ</h2>
+                  <h2 className="pr-card-title">Thông tin nhà cho thuê</h2>
 
                   <div className="pr-field">
                     <label>Tiêu đề tin đăng <span className="pr-req">*</span></label>
-                    <input type="text" placeholder="VD: Phòng trọ cao cấp gần ĐH Bách Khoa, đầy đủ nội thất"
+                    <input type="text" placeholder="VD: Nhà cho thuê cao cấp gần ĐH Bách Khoa, đầy đủ nội thất"
                       value={form.title} onChange={e => set('title', e.target.value)} className={errors.title ? 'error' : ''} />
                     {errors.title && <span className="pr-error">{errors.title}</span>}
                     <span className="pr-hint">{form.title.length}/100 ký tự</span>
@@ -194,9 +194,9 @@ export default function PostRoom({ user, onLogout }) {
 
                   <div className="pr-two-col">
                     <div className="pr-field">
-                      <label>Loại phòng <span className="pr-req">*</span></label>
+                      <label>Loại nhà <span className="pr-req">*</span></label>
                       <select value={form.type} onChange={e => set('type', e.target.value)} className={errors.type ? 'error' : ''}>
-                        <option value="">Chọn loại phòng</option>
+                        <option value="">Chọn loại nhà</option>
                         {TYPES.map(t => <option key={t}>{t}</option>)}
                       </select>
                       {errors.type && <span className="pr-error">{errors.type}</span>}
@@ -263,7 +263,7 @@ export default function PostRoom({ user, onLogout }) {
 
                   <div className="pr-field">
                     <label>Mô tả chi tiết</label>
-                    <textarea rows={6} placeholder="Mô tả về phòng trọ: vị trí, nội thất, tiện ích xung quanh, quy định nhà trọ..."
+                    <textarea rows={6} placeholder="Mô tả về nhà cho thuê: vị trí, nội thất, tiện ích xung quanh, quy định nhà trọ..."
                       value={form.description} onChange={e => set('description', e.target.value)} />
                     <span className="pr-hint">{form.description.length} ký tự</span>
                   </div>
@@ -292,7 +292,7 @@ export default function PostRoom({ user, onLogout }) {
                   </div>
 
                   <div className="pr-field">
-                    <label>Hình ảnh phòng</label>
+                    <label>Hình ảnh nhà</label>
                     <label className="pr-upload-area" htmlFor="img-upload">
                       <span className="pr-upload-icon">📷</span>
                       <p>Kéo thả hoặc <span>click để chọn ảnh</span></p>
@@ -361,7 +361,7 @@ export default function PostRoom({ user, onLogout }) {
                     <h3>📋 Xem lại thông tin</h3>
                     <div className="pr-preview-grid">
                       <div className="pr-preview-item"><span>Tiêu đề</span><strong>{form.title || '—'}</strong></div>
-                      <div className="pr-preview-item"><span>Loại phòng</span><strong>{form.type || '—'}</strong></div>
+                      <div className="pr-preview-item"><span>Loại nhà</span><strong>{form.type || '—'}</strong></div>
                       <div className="pr-preview-item"><span>Địa chỉ</span><strong>{form.city ? `${form.address}, ${form.city}` : '—'}</strong></div>
                       <div className="pr-preview-item"><span>Giá thuê</span><strong>{form.price ? `${parseInt(form.price).toLocaleString('vi-VN')}đ/tháng` : '—'}</strong></div>
                       <div className="pr-preview-item"><span>Diện tích</span><strong>{form.area ? `${form.area} m²` : '—'}</strong></div>
@@ -388,7 +388,7 @@ export default function PostRoom({ user, onLogout }) {
               <div className="pr-tip-card">
                 <h3>💡 Mẹo đăng tin hiệu quả</h3>
                 <ul>
-                  <li><strong>Tiêu đề rõ ràng</strong> — nêu rõ loại phòng, vị trí, điểm nổi bật</li>
+                  <li><strong>Tiêu đề rõ ràng</strong> — nêu rõ loại nhà, vị trí, điểm nổi bật</li>
                   <li><strong>Ảnh chất lượng cao</strong> — tối thiểu 5 ảnh, chụp đủ các góc</li>
                   <li><strong>Giá cạnh tranh</strong> — tham khảo giá khu vực lân cận</li>
                   <li><strong>Mô tả chi tiết</strong> — tiện ích, quy định, giao thông</li>
@@ -400,7 +400,7 @@ export default function PostRoom({ user, onLogout }) {
                 <ul>
                   <li>Thông tin phải chính xác, trung thực</li>
                   <li>Không đăng tin trùng lặp</li>
-                  <li>Ảnh phải là ảnh thực tế của phòng</li>
+                  <li>Ảnh phải là ảnh thực tế của nhà</li>
                   <li>Tin được duyệt trong vòng 24 giờ</li>
                 </ul>
               </div>

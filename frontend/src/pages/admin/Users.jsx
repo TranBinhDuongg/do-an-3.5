@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 import {
   adminGetUsersApi,
   adminGetUserStatsApi,
@@ -11,11 +11,11 @@ import './Users.css';
 const TABS = [
   { key: 'all',      label: 'Tất cả' },
   { key: 'user',     label: 'Người thuê' },
-  { key: 'employer', label: 'Chủ trọ' },
+  { key: 'employer', label: 'Chủ nhà' },
   { key: 'admin',    label: 'Admin' },
 ];
 
-const ROLE_LABEL = { user: 'Người thuê', employer: 'Chủ trọ', admin: 'Admin' };
+const ROLE_LABEL = { user: 'Người thuê', employer: 'Chủ nhà', admin: 'Admin' };
 
 function PackageBadge({ name, daysLeft }) {
   if (!name) return <span className="au-pkg-none">Chưa có gói</span>;
@@ -100,7 +100,7 @@ export default function AdminUsers({ user, onLogout }) {
         </div>
         <div className="au-stat-card au-stat-employer">
           <span className="au-stat-icon">🏠</span>
-          <div><strong>{stats.employer}</strong><span>Chủ trọ</span></div>
+          <div><strong>{stats.employer}</strong><span>Chủ nhà</span></div>
         </div>
         <div className="au-stat-card au-stat-active">
           <span className="au-stat-icon">✅</span>

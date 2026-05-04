@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { adminGetDashboardApi, adminUpdateRoomStatusApi } from '../../api/admin';
 import AdminLayout from '../../components/AdminLayout';
@@ -78,7 +78,7 @@ export default function AdminDashboard({ user, onLogout }) {
                     <thead>
                       <tr>
                         <th>Tiêu đề</th>
-                        <th>Chủ trọ</th>
+                        <th>Chủ nhà</th>
                         <th>Loại</th>
                         <th>Giá</th>
                         <th>Thời gian</th>
@@ -129,7 +129,7 @@ export default function AdminDashboard({ user, onLogout }) {
                       <span>@{u.username}</span>
                     </div>
                     <span className={`adm-role-badge ${u.role}`}>
-                      {u.role === 'employer' ? 'Chủ trọ' : 'Người thuê'}
+                      {u.role === 'employer' ? 'Chủ nhà' : 'Người thuê'}
                     </span>
                     <span className="adm-user-time">{u.joinedAt}</span>
                   </div>

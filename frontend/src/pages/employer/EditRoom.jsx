@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { getRoomDetailEmployerApi, updateRoomApi } from '../../api/employer';
 import NotificationBell from '../../components/NotificationBell';
@@ -23,8 +23,8 @@ const AMENITIES = [
   { key: 'wardrobe', label: 'Tủ quần áo',  icon: '🗄️' },
 ];
 
-const CITIES = ['Hà Nội', 'TP. Hồ Chí Minh', 'Đà Nẵng', 'Cần Thơ', 'Hải Phòng', 'Bình Dương', 'Đồng Nai'];
-const TYPES  = ['Phòng trọ', 'Chung cư mini', 'Nhà nguyên căn', 'Studio', 'Ký túc xá', 'Căn hộ dịch vụ'];
+const CITIES = ['Hà Nội', 'TP. Hồ Chí Minh', 'Đà Nẵng', 'Cần Thơ', 'Hải Nhà', 'Bình Dương', 'Đồng Nai'];
+const TYPES  = ['Nhà cho thuê', 'Chung cư mini', 'Nhà nguyên căn', 'Studio', 'Ký túc xá', 'Căn hộ dịch vụ'];
 
 export default function EditRoom({ user, onLogout }) {
   const { id } = useParams();
@@ -74,7 +74,7 @@ export default function EditRoom({ user, onLogout }) {
     const parts    = loc.display_name.split(', ');
     const address  = parts.slice(0, 3).join(', ');
     const district = parts.find(p => /quận|huyện|thị xã/i.test(p)) || '';
-    const CITY_MAP = { 'Hà Nội': 'Hà Nội', 'Thành phố Hồ Chí Minh': 'TP. Hồ Chí Minh', 'Đà Nẵng': 'Đà Nẵng', 'Cần Thơ': 'Cần Thơ', 'Hải Phòng': 'Hải Phòng', 'Bình Dương': 'Bình Dương', 'Đồng Nai': 'Đồng Nai' };
+    const CITY_MAP = { 'Hà Nội': 'Hà Nội', 'Thành phố Hồ Chí Minh': 'TP. Hồ Chí Minh', 'Đà Nẵng': 'Đà Nẵng', 'Cần Thơ': 'Cần Thơ', 'Hải Nhà': 'Hải Nhà', 'Bình Dương': 'Bình Dương', 'Đồng Nai': 'Đồng Nai' };
     const cityRaw  = parts.find(p => CITY_MAP[p]) || '';
     const city     = CITY_MAP[cityRaw] || cityRaw;
     setForm(p => ({
@@ -107,7 +107,7 @@ export default function EditRoom({ user, onLogout }) {
     const e = {};
     if (step === 0) {
       if (!form.title.trim())   e.title   = 'Vui lòng nhập tiêu đề';
-      if (!form.type)           e.type    = 'Vui lòng chọn loại phòng';
+      if (!form.type)           e.type    = 'Vui lòng chọn loại nhà';
       if (!form.city)           e.city    = 'Vui lòng chọn tỉnh/thành';
       if (!form.address.trim()) e.address = 'Vui lòng nhập địa chỉ';
       if (!form.price)          e.price   = 'Vui lòng nhập giá thuê';
@@ -195,7 +195,7 @@ export default function EditRoom({ user, onLogout }) {
       <div className="pr-body">
         <div className="pr-page-title">
           <h1>✏️ Sửa tin đăng</h1>
-          <p>Cập nhật thông tin phòng trọ — tin sẽ được gửi duyệt lại sau khi lưu</p>
+          <p>Cập nhật thông tin nhà cho thuê — tin sẽ được gửi duyệt lại sau khi lưu</p>
         </div>
 
         <div className="pr-stepper">
@@ -215,7 +215,7 @@ export default function EditRoom({ user, onLogout }) {
               {/* STEP 0 */}
               {step === 0 && (
                 <div className="pr-card">
-                  <h2 className="pr-card-title">Thông tin phòng trọ</h2>
+                  <h2 className="pr-card-title">Thông tin nhà cho thuê</h2>
 
                   <div className="pr-field">
                     <label>Tiêu đề tin đăng <span className="pr-req">*</span></label>
@@ -226,9 +226,9 @@ export default function EditRoom({ user, onLogout }) {
 
                   <div className="pr-two-col">
                     <div className="pr-field">
-                      <label>Loại phòng <span className="pr-req">*</span></label>
+                      <label>Loại nhà <span className="pr-req">*</span></label>
                       <select value={form.type} onChange={e => set('type', e.target.value)} className={errors.type ? 'error' : ''}>
-                        <option value="">Chọn loại phòng</option>
+                        <option value="">Chọn loại nhà</option>
                         {TYPES.map(t => <option key={t}>{t}</option>)}
                       </select>
                       {errors.type && <span className="pr-error">{errors.type}</span>}
@@ -323,7 +323,7 @@ export default function EditRoom({ user, onLogout }) {
                   </div>
 
                   <div className="pr-field">
-                    <label>Hình ảnh phòng ({totalImgCount}/10)</label>
+                    <label>Hình ảnh nhà ({totalImgCount}/10)</label>
                     {keepImages.length > 0 && (
                       <div className="pr-img-preview-grid" style={{ marginBottom: 12 }}>
                         {keepImages.map((src, i) => (
@@ -386,7 +386,7 @@ export default function EditRoom({ user, onLogout }) {
                     <h3>📋 Xem lại thông tin</h3>
                     <div className="pr-preview-grid">
                       <div className="pr-preview-item"><span>Tiêu đề</span><strong>{form.title || '—'}</strong></div>
-                      <div className="pr-preview-item"><span>Loại phòng</span><strong>{form.type || '—'}</strong></div>
+                      <div className="pr-preview-item"><span>Loại nhà</span><strong>{form.type || '—'}</strong></div>
                       <div className="pr-preview-item"><span>Địa chỉ</span><strong>{form.city ? `${form.address}, ${form.city}` : '—'}</strong></div>
                       <div className="pr-preview-item"><span>Giá thuê</span><strong>{form.price ? `${parseInt(form.price).toLocaleString('vi-VN')}đ/tháng` : '—'}</strong></div>
                       <div className="pr-preview-item"><span>Diện tích</span><strong>{form.area ? `${form.area} m²` : '—'}</strong></div>

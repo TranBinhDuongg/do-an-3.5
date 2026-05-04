@@ -23,9 +23,9 @@ const sections = [
       <ul>
         <li>"Dịch vụ" là nền tảng ThueNhaVN bao gồm website và ứng dụng di động.</li>
         <li>"Người dùng" là bất kỳ cá nhân nào truy cập hoặc sử dụng dịch vụ.</li>
-        <li>"Chủ trọ" là người dùng đăng tin cho thuê phòng trọ trên nền tảng.</li>
-        <li>"Người thuê" là người dùng tìm kiếm và liên hệ thuê phòng trọ.</li>
-        <li>"Nội dung" bao gồm văn bản, hình ảnh, thông tin phòng trọ do người dùng đăng tải.</li>
+        <li>"Chủ nhà" là người dùng đăng tin cho thuê nhà cho thuê trên nền tảng.</li>
+        <li>"Người thuê" là người dùng tìm kiếm và liên hệ thuê nhà cho thuê.</li>
+        <li>"Nội dung" bao gồm văn bản, hình ảnh, thông tin nhà cho thuê do người dùng đăng tải.</li>
       </ul>
     ),
   },
@@ -48,10 +48,10 @@ const sections = [
     title: 'Quy tắc đăng tin',
     content: (
       <>
-        <p>Chủ trọ khi đăng tin phải đảm bảo:</p>
+        <p>Chủ nhà khi đăng tin phải đảm bảo:</p>
         <ul>
-          <li>Thông tin phòng trọ phải chính xác, trung thực và đầy đủ.</li>
-          <li>Hình ảnh phải là ảnh thực tế của phòng trọ, không chỉnh sửa gây hiểu nhầm.</li>
+          <li>Thông tin nhà cho thuê phải chính xác, trung thực và đầy đủ.</li>
+          <li>Hình ảnh phải là ảnh thực tế của nhà cho thuê, không chỉnh sửa gây hiểu nhầm.</li>
           <li>Giá thuê phải rõ ràng, bao gồm các khoản phí phát sinh nếu có.</li>
           <li>Không đăng tin trùng lặp hoặc spam.</li>
           <li>Không đăng nội dung vi phạm pháp luật, thuần phong mỹ tục.</li>
@@ -85,7 +85,7 @@ const sections = [
           Việc tìm kiếm và xem tin đăng trên ThueNhaVN hoàn toàn miễn phí đối với người thuê.
         </p>
         <p>
-          Đối với chủ trọ, một số tính năng nâng cao có thể yêu cầu thanh toán theo gói dịch vụ.
+          Đối với chủ nhà, một số tính năng nâng cao có thể yêu cầu thanh toán theo gói dịch vụ.
           Chi tiết về các gói dịch vụ được công bố tại trang Bảng giá.
         </p>
         <ul>
@@ -100,12 +100,12 @@ const sections = [
     content: (
       <>
         <p>
-          ThueNhaVN là nền tảng kết nối, không phải bên trung gian trong giao dịch thuê phòng.
+          ThueNhaVN là nền tảng kết nối, không phải bên trung gian trong giao dịch thuê nhà.
           Chúng tôi không chịu trách nhiệm về:
         </p>
         <ul>
-          <li>Tính chính xác của thông tin do chủ trọ cung cấp.</li>
-          <li>Tranh chấp phát sinh giữa chủ trọ và người thuê.</li>
+          <li>Tính chính xác của thông tin do chủ nhà cung cấp.</li>
+          <li>Tranh chấp phát sinh giữa chủ nhà và người thuê.</li>
           <li>Thiệt hại trực tiếp hoặc gián tiếp từ việc sử dụng dịch vụ.</li>
           <li>Gián đoạn dịch vụ do sự cố kỹ thuật ngoài tầm kiểm soát.</li>
         </ul>

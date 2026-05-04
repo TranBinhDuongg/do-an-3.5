@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+﻿import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getProfileApi, updateProfileApi, changePasswordApi, updateAvatarApi } from '../api/auth';
 import UserNavbar from '../components/UserNavbar';
@@ -128,7 +128,7 @@ export default function Profile({ user, onLogin, onLogout }) {
             </div>
             <h3>{user?.name}</h3>
             <span className={`prof-role-badge ${user?.role}`}>
-              {user?.role === 'employer' ? '🏠 Chủ trọ' : user?.role === 'admin' ? '⚙️ Admin' : '👤 Người thuê'}
+              {user?.role === 'employer' ? '🏠 Chủ nhà' : user?.role === 'admin' ? '⚙️ Admin' : '👤 Người thuê'}
             </span>
           </div>
           <nav className="prof-side-nav">
@@ -175,7 +175,7 @@ export default function Profile({ user, onLogin, onLogout }) {
                 <div className="prof-field">
                   <label>Vai trò</label>
                   <input type="text"
-                    value={user?.role === 'employer' ? 'Chủ trọ' : user?.role === 'admin' ? 'Quản trị viên' : 'Người thuê'}
+                    value={user?.role === 'employer' ? 'Chủ nhà' : user?.role === 'admin' ? 'Quản trị viên' : 'Người thuê'}
                     disabled className="prof-input-disabled" />
                 </div>
                 <button type="submit" className="prof-btn-save" disabled={loading}>

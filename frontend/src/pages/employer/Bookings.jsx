@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import EmployerNavbar from '../../components/EmployerNavbar';
 import { getEmployerBookingsApi, respondBookingApi, activateBookingApi, endBookingApi } from '../../api/bookings';
@@ -65,7 +65,7 @@ export default function EmployerBookings({ user, onLogout }) {
   };
 
   const handleActivate = async (id) => {
-    if (!window.confirm('Kích hoạt hợp đồng? Phòng sẽ được đánh dấu hết chỗ.')) return;
+    if (!window.confirm('Kích hoạt hợp đồng? Nhà sẽ được đánh dấu hết chỗ.')) return;
     setActionLoading(id);
     try {
       await activateBookingApi(id);
@@ -79,7 +79,7 @@ export default function EmployerBookings({ user, onLogout }) {
   };
 
   const handleEnd = async (id) => {
-    if (!window.confirm('Kết thúc hợp đồng? Phòng sẽ được mở lại.')) return;
+    if (!window.confirm('Kết thúc hợp đồng? Nhà sẽ được mở lại.')) return;
     setActionLoading(id);
     try {
       await endBookingApi(id);
@@ -97,7 +97,7 @@ export default function EmployerBookings({ user, onLogout }) {
     try {
       const result = await startConversationApi(
         b.ma_nguoi_thue,
-        `Xin chào ${b.ten_nguoi_thue}, tôi muốn trao đổi về yêu cầu đặt phòng "${b.tieu_de}".`,
+        `Xin chào ${b.ten_nguoi_thue}, tôi muốn trao đổi về yêu cầu đặt nhà "${b.tieu_de}".`,
         b.ma_phong
       );
       navigate(`/message?conversationId=${result.ma_ctc}`);
@@ -114,7 +114,7 @@ export default function EmployerBookings({ user, onLogout }) {
       {toast && <div className={`ebk-toast ${toast.isError ? 'error' : 'success'}`}>{toast.msg}</div>}
 
       <div className="ebk-container">
-        <h1 className="ebk-title">📋 Quản lý đặt phòng</h1>
+        <h1 className="ebk-title">📋 Quản lý đặt nhà</h1>
 
         <div className="ebk-filters">
           {FILTERS.map(f => (

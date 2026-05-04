@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import NotificationBell from './NotificationBell';
 import './EmployerNavbar.css';
@@ -6,7 +6,7 @@ import './EmployerNavbar.css';
 const NAV_LINKS = [
   { to: '/employer',              label: 'Tổng quan' },
   { to: '/employer/rooms',        label: 'Tin đăng' },
-  { to: '/employer/bookings',     label: 'Đặt phòng' },
+  { to: '/employer/bookings',     label: 'Đặt nhà' },
   { to: '/employer/maintenance',  label: 'Sự cố' },
   { to: '/employer/wallet',       label: 'Ví của tôi' },
   { to: '/employer/pricing',      label: 'Dịch vụ', highlight: true },
@@ -49,8 +49,8 @@ export default function EmployerNavbar({ user, onLogout }) {
                   : (user?.name?.charAt(0) || 'C')}
               </div>
               <div className="emp-user-info">
-                <span className="emp-user-name">{user?.name || 'Chủ trọ'}</span>
-                <span className="emp-user-role">Chủ trọ</span>
+                <span className="emp-user-name">{user?.name || 'Chủ nhà'}</span>
+                <span className="emp-user-role">Chủ nhà</span>
               </div>
               <span>▾</span>
             </button>

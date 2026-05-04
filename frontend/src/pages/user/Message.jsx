@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+﻿import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import {
@@ -9,7 +9,7 @@ import {
 } from '../../api/messages';
 import './Message.css';
 
-const ROLE_LABEL = { user: 'Người thuê', employer: 'Chủ trọ', admin: 'Quản trị viên' };
+const ROLE_LABEL = { user: 'Người thuê', employer: 'Chủ nhà', admin: 'Quản trị viên' };
 
 function formatTime(dateStr) {
   if (!dateStr) return '';

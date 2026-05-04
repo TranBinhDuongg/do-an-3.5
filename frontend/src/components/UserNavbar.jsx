@@ -1,14 +1,14 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import './UserNavbar.css';
 
-const ROLE_LABEL = { user: 'Người thuê', employer: 'Chủ trọ', admin: 'Quản trị viên' };
+const ROLE_LABEL = { user: 'Người thuê', employer: 'Chủ nhà', admin: 'Quản trị viên' };
 
 const NAV_LINKS = [
   { to: '/',          label: 'Trang chủ',  exact: true },
-  { to: '/search',    label: 'Tìm phòng' },
+  { to: '/search',    label: 'Tìm nhà' },
   { to: '/favorites', label: 'Yêu thích' },
-  { to: '/bookings',  label: 'Đặt phòng' },
+  { to: '/bookings',  label: 'Đặt nhà' },
   { to: '/maintenance', label: 'Sự cố' },
 ];
 

@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { getRoomsApi, addFavoriteApi, removeFavoriteApi, checkFavoriteApi } from '../../api/rooms';
 import UserNavbar from '../../components/UserNavbar';
 import './Search.css';
 
 const FALLBACK_IMG = 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400&h=250&fit=crop';
-const CITIES = ['Hà Nội', 'TP. Hồ Chí Minh', 'Đà Nẵng', 'Cần Thơ', 'Hải Phòng'];
-const TYPES  = ['Phòng trọ', 'Chung cư mini', 'Nhà nguyên căn', 'Studio', 'Ký túc xá', 'Căn hộ dịch vụ'];
+const CITIES = ['Hà Nội', 'TP. Hồ Chí Minh', 'Đà Nẵng', 'Cần Thơ', 'Hải Nhà'];
+const TYPES  = ['Nhà cho thuê', 'Chung cư mini', 'Nhà nguyên căn', 'Studio', 'Ký túc xá', 'Căn hộ dịch vụ'];
 const PRICES = [
   { label: 'Tất cả',       min: '',        max: '' },
   { label: 'Dưới 2 triệu', min: '',        max: '2000000' },
@@ -82,7 +82,7 @@ export default function Search({ user, onLogout }) {
             {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
           <select value={type} onChange={e => setType(e.target.value)}>
-            <option value="">🏠 Loại phòng</option>
+            <option value="">🏠 Loại nhà</option>
             {TYPES.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
           <button className="search-topbar-btn">Tìm kiếm</button>
@@ -98,7 +98,7 @@ export default function Search({ user, onLogout }) {
               {activeCount > 0 && <button className="search-filter-clear" onClick={clearFilters}>Xóa tất cả</button>}
             </div>
             <div className="search-filter-group">
-              <p className="search-filter-label">Loại phòng</p>
+              <p className="search-filter-label">Loại nhà</p>
               <div className="search-filter-tags">
                 <button className={`search-filter-tag ${type === '' ? 'active' : ''}`} onClick={() => setType('')}>Tất cả</button>
                 {TYPES.map(t => (
@@ -144,7 +144,7 @@ export default function Search({ user, onLogout }) {
         <main className="search-main">
           <div className="search-result-bar">
             <p className="search-result-count">
-              {loading ? 'Đang tìm...' : <>Tìm thấy <strong>{total}</strong> phòng{keyword && <span> cho "<em>{keyword}</em>"</span>}</>}
+              {loading ? 'Đang tìm...' : <>Tìm thấy <strong>{total}</strong> nhà{keyword && <span> cho "<em>{keyword}</em>"</span>}</>}
             </p>
             <div className="search-result-controls">
               <select value={sort} onChange={e => { setSort(e.target.value); setPage(1); }} className="search-sort-select">
@@ -172,7 +172,7 @@ export default function Search({ user, onLogout }) {
           {!loading && results.length === 0 ? (
             <div className="search-empty">
               <span>🔍</span>
-              <h3>Không tìm thấy phòng phù hợp</h3>
+              <h3>Không tìm thấy nhà phù hợp</h3>
               <p>Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
               <button onClick={clearFilters} className="search-empty-btn">Xóa bộ lọc</button>
             </div>
@@ -219,7 +219,7 @@ function RoomCard({ room, user }) {
     <Link to={`/room/${room.id}`} className={`sc-card ${room.priority <= 1 ? 'sc-card-vip' : ''}`}>
       <div className="sc-card-img">
         <img src={room.image || FALLBACK_IMG} alt={room.title} />
-        <span className={`sc-badge ${room.available ? 'green' : 'red'}`}>{room.available ? 'Còn phòng' : 'Hết phòng'}</span>
+        <span className={`sc-badge ${room.available ? 'green' : 'red'}`}>{room.available ? 'Còn nhà' : 'Hết nhà'}</span>
         {badgeStyle && (
           <span className="sc-pkg-badge" style={{ background: badgeStyle.bg }}>
             {badgeStyle.icon} {badgeStyle.label}
@@ -263,7 +263,7 @@ function RoomListItem({ room, user }) {
     <Link to={`/room/${room.id}`} className={`sc-list-item ${room.priority <= 1 ? 'sc-list-vip' : ''}`}>
       <div className="sc-list-img">
         <img src={room.image || FALLBACK_IMG} alt={room.title} />
-        <span className={`sc-badge ${room.available ? 'green' : 'red'}`}>{room.available ? 'Còn phòng' : 'Hết phòng'}</span>
+        <span className={`sc-badge ${room.available ? 'green' : 'red'}`}>{room.available ? 'Còn nhà' : 'Hết nhà'}</span>
         {badgeStyle && (
           <span className="sc-pkg-badge" style={{ background: badgeStyle.bg }}>
             {badgeStyle.icon} {badgeStyle.label}

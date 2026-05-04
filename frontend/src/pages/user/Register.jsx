@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Login.css';
 import './Register.css';
@@ -54,23 +54,23 @@ export default function Register({ onLogin }) {
 
           <div className="login-hero-text">
             <h1>Tham gia cộng đồng<br />ThueNhaVN</h1>
-            <p>Đăng ký miễn phí và bắt đầu tìm kiếm hoặc đăng tin phòng trọ ngay hôm nay.</p>
+            <p>Đăng ký miễn phí và bắt đầu tìm kiếm hoặc đăng tin nhà cho thuê ngay hôm nay.</p>
           </div>
 
           <ul className="login-features">
             <li><span className="login-check">✓</span> Đăng ký nhanh, hoàn toàn miễn phí</li>
-            <li><span className="login-check">✓</span> Tìm kiếm hàng nghìn phòng trọ uy tín</li>
-            <li><span className="login-check">✓</span> Nhắn tin trực tiếp với chủ trọ</li>
+            <li><span className="login-check">✓</span> Tìm kiếm hàng nghìn nhà cho thuê uy tín</li>
+            <li><span className="login-check">✓</span> Nhắn tin trực tiếp với chủ nhà</li>
           </ul>
 
           <div className="login-stats">
             <div className="login-stat">
               <strong>50K+</strong>
-              <span>Phòng trọ</span>
+              <span>Nhà cho thuê</span>
             </div>
             <div className="login-stat">
               <strong>10K+</strong>
-              <span>Chủ trọ</span>
+              <span>Chủ nhà</span>
             </div>
             <div className="login-stat">
               <strong>500K+</strong>
@@ -100,7 +100,7 @@ export default function Register({ onLogin }) {
               className={`login-role-tab ${role === 'employer' ? 'active' : ''}`}
               onClick={() => { setRole('employer'); setError(''); }}
             >
-              Chủ trọ
+              Chủ nhà
             </button>
           </div>
 

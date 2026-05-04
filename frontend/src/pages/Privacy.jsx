@@ -23,7 +23,7 @@ const sections = [
         <p>Chúng tôi thu thập các loại thông tin sau:</p>
         <ul>
           <li><strong style={{ color: '#d1d5db' }}>Thông tin tài khoản:</strong> Họ tên, tên đăng nhập, số điện thoại khi bạn đăng ký.</li>
-          <li><strong style={{ color: '#d1d5db' }}>Thông tin sử dụng:</strong> Lịch sử tìm kiếm, phòng đã xem, tin đã lưu.</li>
+          <li><strong style={{ color: '#d1d5db' }}>Thông tin sử dụng:</strong> Lịch sử tìm kiếm, nhà đã xem, tin đã lưu.</li>
           <li><strong style={{ color: '#d1d5db' }}>Thông tin thiết bị:</strong> Địa chỉ IP, loại trình duyệt, hệ điều hành.</li>
           <li><strong style={{ color: '#d1d5db' }}>Thông tin liên lạc:</strong> Nội dung tin nhắn giữa người dùng trên nền tảng.</li>
         </ul>
@@ -36,7 +36,7 @@ const sections = [
       <>
         <p>Thông tin thu thập được sử dụng để:</p>
         <ul>
-          <li>Cung cấp và cải thiện dịch vụ tìm kiếm phòng trọ.</li>
+          <li>Cung cấp và cải thiện dịch vụ tìm kiếm nhà cho thuê.</li>
           <li>Xác thực danh tính và bảo mật tài khoản.</li>
           <li>Gửi thông báo liên quan đến tài khoản và dịch vụ.</li>
           <li>Phân tích hành vi sử dụng để cải thiện trải nghiệm.</li>
@@ -52,7 +52,7 @@ const sections = [
       <>
         <p>Chúng tôi có thể chia sẻ thông tin của bạn trong các trường hợp sau:</p>
         <ul>
-          <li><strong style={{ color: '#d1d5db' }}>Giữa người dùng:</strong> Thông tin liên lạc cơ bản (tên, SĐT) được chia sẻ khi bạn chủ động liên hệ chủ trọ.</li>
+          <li><strong style={{ color: '#d1d5db' }}>Giữa người dùng:</strong> Thông tin liên lạc cơ bản (tên, SĐT) được chia sẻ khi bạn chủ động liên hệ chủ nhà.</li>
           <li><strong style={{ color: '#d1d5db' }}>Đối tác dịch vụ:</strong> Các nhà cung cấp dịch vụ kỹ thuật hỗ trợ vận hành nền tảng.</li>
           <li><strong style={{ color: '#d1d5db' }}>Yêu cầu pháp lý:</strong> Khi có yêu cầu từ cơ quan nhà nước có thẩm quyền.</li>
         </ul>

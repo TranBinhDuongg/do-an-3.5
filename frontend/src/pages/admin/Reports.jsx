@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 import {
   adminGetReportSummaryApi,
   adminGetRoomsByMonthApi,
@@ -172,7 +172,7 @@ export default function AdminReports({ user, onLogout }) {
           <div className="adm-card-header"><h2>👥 Người dùng mới theo tháng</h2></div>
           <div className="rp-legend">
             <span className="rp-dot" style={{ background: '#3b82f6' }}></span>Người thuê
-            <span className="rp-dot" style={{ background: '#f97316' }}></span>Chủ trọ
+            <span className="rp-dot" style={{ background: '#f97316' }}></span>Chủ nhà
           </div>
           <div className="rp-bar-chart">
             {usersByMonth.length === 0 ? emptyChart : usersByMonth.map(d => (
@@ -197,7 +197,7 @@ export default function AdminReports({ user, onLogout }) {
       {/* TYPE + CITY */}
       <div className="rp-grid-2">
         <div className="adm-card">
-          <div className="adm-card-header"><h2>🏷 Phân bổ loại phòng</h2></div>
+          <div className="adm-card-header"><h2>🏷 Phân bổ loại nhà</h2></div>
           <div className="rp-type-list">
             {roomTypes.map(t => (
               <div key={t.type} className="rp-type-row">
@@ -241,13 +241,13 @@ export default function AdminReports({ user, onLogout }) {
 
       {/* TOP EMPLOYERS */}
       <div className="adm-card">
-        <div className="adm-card-header"><h2>🏆 Top chủ trọ hoạt động</h2></div>
+        <div className="adm-card-header"><h2>🏆 Top chủ nhà hoạt động</h2></div>
         <div className="adm-table-wrap">
           <table className="adm-table">
             <thead>
               <tr>
                 <th>Hạng</th>
-                <th>Chủ trọ</th>
+                <th>Chủ nhà</th>
                 <th>Số tin đăng</th>
                 <th>Lượt xem</th>
                 <th>Lượt liên hệ</th>

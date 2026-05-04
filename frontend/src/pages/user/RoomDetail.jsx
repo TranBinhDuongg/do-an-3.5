@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+﻿import { useState, useEffect, useRef } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { getRoomDetailApi, addFavoriteApi, removeFavoriteApi, checkFavoriteApi, getReviewsApi, postReviewApi, deleteReviewApi, updateReviewApi } from '../../api/rooms';
 import { startConversationApi } from '../../api/messages';
@@ -160,7 +160,7 @@ export default function RoomDetail({ user, onLogout }) {
     if (!user) { navigate('/login'); return; }
     setChatLoading(true);
     try {
-      const result = await startConversationApi(room.ownerId, `Xin chào! Tôi quan tâm đến phòng "${room.title}". Phòng còn trống không ạ?`, room.id);
+      const result = await startConversationApi(room.ownerId, `Xin chào! Tôi quan tâm đến nhà "${room.title}". Nhà còn trống không ạ?`, room.id);
       navigate(`/message?conversationId=${result.ma_ctc}`);
     } catch (err) {
       console.error(err);
@@ -177,7 +177,7 @@ export default function RoomDetail({ user, onLogout }) {
     setBookingMsg('');
     try {
       await createBookingApi({ ma_phong: id, ...bookingForm });
-      setBookingMsg('✅ Đã gửi yêu cầu đặt phòng! Chủ trọ sẽ liên hệ xác nhận.');
+      setBookingMsg('✅ Đã gửi yêu cầu đặt nhà! Chủ nhà sẽ liên hệ xác nhận.');
       setBookingForm({ ngay_bat_dau: '', ngay_ket_thuc: '', ghi_chu: '' });
       setTimeout(() => { setShowBookingForm(false); setBookingMsg(''); }, 3000);
     } catch (err) {
@@ -229,7 +229,7 @@ export default function RoomDetail({ user, onLogout }) {
   if (loading) return (
     <div className="rd-loading-wrap">
       <div className="rd-spinner" />
-      <p>Đang tải thông tin phòng...</p>
+      <p>Đang tải thông tin nhà...</p>
     </div>
   );
 
@@ -244,7 +244,7 @@ export default function RoomDetail({ user, onLogout }) {
       <div className="rd-breadcrumb">
         <div className="rd-container">
           <Link to="/">Trang chủ</Link> <span>›</span>
-          <Link to="/search">Tìm phòng</Link> <span>›</span>
+          <Link to="/search">Tìm nhà</Link> <span>›</span>
           <Link to={`/search?city=${room.city}`}>{room.city}</Link> <span>›</span>
           <span className="rd-bc-current">{room.title}</span>
         </div>
@@ -260,7 +260,7 @@ export default function RoomDetail({ user, onLogout }) {
               <img src={images[imgIdx] || FALLBACK_IMG} alt={room.title}
                 onError={e => { e.target.src = FALLBACK_IMG; }} />
               <span className="rd-gallery-count">📷 {images.length} ảnh</span>
-              {!room.available && <div className="rd-sold-overlay">Hết phòng</div>}
+              {!room.available && <div className="rd-sold-overlay">Hết nhà</div>}
             </div>
             {images.length > 1 && (
               <div className="rd-gallery-thumbs">
@@ -279,7 +279,7 @@ export default function RoomDetail({ user, onLogout }) {
             <div>
               <div className="rd-badges">
                 <span className={`rd-badge-status ${room.available ? 'green' : 'red'}`}>
-                  {room.available ? '✅ Còn phòng' : '❌ Hết phòng'}
+                  {room.available ? '✅ Còn nhà' : '❌ Hết nhà'}
                 </span>
                 {room.isFeatured && <span className="rd-badge-featured">⭐ Nổi bật</span>}
                 <span className="rd-badge-type">{room.type}</span>
@@ -314,7 +314,7 @@ export default function RoomDetail({ user, onLogout }) {
               </div>
             )}
             <div className="rd-key-item">
-              <span className="rd-key-label">Loại phòng</span>
+              <span className="rd-key-label">Loại nhà</span>
               <span className="rd-key-value">{room.type}</span>
             </div>
             <div className="rd-key-item">
@@ -377,7 +377,7 @@ export default function RoomDetail({ user, onLogout }) {
             {user?.role === 'user' && (
               <div className="rd-review-action">
                 {!daThue && !myReview ? (
-                  <p className="rd-review-gate">💡 Chỉ người đã từng thuê phòng này mới có thể đánh giá.</p>
+                  <p className="rd-review-gate">💡 Chỉ người đã từng thuê nhà này mới có thể đánh giá.</p>
                 ) : myReview ? (
                   editMode ? (
                     <form className="rd-review-form" onSubmit={handleSubmitReview}>
@@ -431,7 +431,7 @@ export default function RoomDetail({ user, onLogout }) {
                   )
                 ) : showReviewForm ? (
                   <form className="rd-review-form" onSubmit={handleSubmitReview}>
-                    <p className="rd-review-form-title">Đánh giá phòng này</p>
+                    <p className="rd-review-form-title">Đánh giá nhà này</p>
                     <div className="rd-star-picker">
                       {[1,2,3,4,5].map(s => (
                         <button
@@ -444,7 +444,7 @@ export default function RoomDetail({ user, onLogout }) {
                     </div>
                     <textarea
                       className="rd-review-textarea"
-                      placeholder="Nhận xét của bạn về phòng trọ này... (không bắt buộc)"
+                      placeholder="Nhận xét của bạn về nhà cho thuê này... (không bắt buộc)"
                       value={reviewForm.content}
                       onChange={e => setReviewForm(f => ({ ...f, content: e.target.value }))}
                       rows={3}
@@ -497,7 +497,7 @@ export default function RoomDetail({ user, onLogout }) {
           {/* RELATED */}
           {related.length > 0 && (
             <div className="rd-section">
-              <h2 className="rd-section-title">🏠 Phòng tương tự</h2>
+              <h2 className="rd-section-title">🏠 Nhà tương tự</h2>
               <div className="rd-related-grid">
                 {related.map(r => <RelatedCard key={r.id} room={r} />)}
               </div>
@@ -516,7 +516,7 @@ export default function RoomDetail({ user, onLogout }) {
               </div>
               <div>
                 <p className="rd-owner-name">{room.contactName || room.ownerName}</p>
-                <span className="rd-owner-label">Chủ trọ</span>
+                <span className="rd-owner-label">Chủ nhà</span>
               </div>
             </div>
 
@@ -538,7 +538,7 @@ export default function RoomDetail({ user, onLogout }) {
                 )}
               </div>
             ) : (
-              <p className="rd-no-phone">Chủ trọ ẩn số điện thoại</p>
+              <p className="rd-no-phone">Chủ nhà ẩn số điện thoại</p>
             )}
 
             <button
@@ -549,12 +549,12 @@ export default function RoomDetail({ user, onLogout }) {
               {chatLoading ? '⏳ Đang mở...' : '💬 Nhắn tin'}
             </button>
 
-            {/* Đặt phòng */}
+            {/* Đặt nhà */}
             {user?.role === 'user' && room.available && (
               <div className="rd-booking-wrap">
                 {showBookingForm ? (
                   <form className="rd-booking-form" onSubmit={handleBooking}>
-                    <p className="rd-booking-title">📋 Đặt phòng</p>
+                    <p className="rd-booking-title">📋 Đặt nhà</p>
                     <div className="rd-booking-field">
                       <label>Ngày bắt đầu *</label>
                       <input type="date" required
@@ -588,7 +588,7 @@ export default function RoomDetail({ user, onLogout }) {
                   </form>
                 ) : (
                   <button className="rd-btn-book-open" onClick={() => setShowBookingForm(true)}>
-                    📋 Đặt phòng ngay
+                    📋 Đặt nhà ngay
                   </button>
                 )}
               </div>
@@ -605,9 +605,9 @@ export default function RoomDetail({ user, onLogout }) {
           <div className="rd-safety-card">
             <h4>⚠️ Lưu ý an toàn</h4>
             <ul>
-              <li>Không đặt cọc khi chưa xem phòng trực tiếp</li>
+              <li>Không đặt cọc khi chưa xem nhà trực tiếp</li>
               <li>Kiểm tra hợp đồng trước khi ký</li>
-              <li>Xác minh thông tin chủ trọ</li>
+              <li>Xác minh thông tin chủ nhà</li>
             </ul>
           </div>
         </aside>
@@ -646,7 +646,7 @@ function RelatedCard({ room }) {
       <div className="rd-related-img">
         <img src={room.image || FALLBACK} alt={room.title} onError={e => { e.target.src = FALLBACK; }} />
         <span className={`rd-related-badge ${room.available ? 'green' : 'red'}`}>
-          {room.available ? 'Còn phòng' : 'Hết phòng'}
+          {room.available ? 'Còn nhà' : 'Hết nhà'}
         </span>
       </div>
       <div className="rd-related-body">

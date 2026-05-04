@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import UserNavbar from '../../components/UserNavbar';
 import { getMyMaintenanceApi, createMaintenanceApi } from '../../api/bookings';
@@ -96,7 +96,7 @@ export default function Maintenance({ user, onLogout }) {
               <div className="mt-field">
                 <label>Hợp đồng *</label>
                 <select value={form.ma_hd} onChange={e => setForm(f => ({ ...f, ma_hd: e.target.value }))} required>
-                  <option value="">-- Chọn phòng đang thuê --</option>
+                  <option value="">-- Chọn nhà đang thuê --</option>
                   {activeBookings.map(b => (
                     <option key={b.ma_hd} value={b.ma_hd}>{b.tieu_de} - {b.tinh_thanh}</option>
                   ))}
@@ -162,7 +162,7 @@ export default function Maintenance({ user, onLogout }) {
                   <p className="mt-desc">{r.mo_ta}</p>
                   {r.phan_hoi && (
                     <div className="mt-reply">
-                      <strong>💬 Phản hồi từ chủ trọ:</strong>
+                      <strong>💬 Phản hồi từ chủ nhà:</strong>
                       <p>{r.phan_hoi}</p>
                     </div>
                   )}

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+﻿import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { getHomeDataApi } from '../../api/rooms';
 import UserNavbar from '../../components/UserNavbar';
@@ -7,7 +7,7 @@ import './Home.css';
 const FALLBACK_IMG = 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400&h=250&fit=crop';
 
 const categories = [
-  { icon: '🛏️', label: 'Phòng trọ',      color: '#eff6ff', border: '#bfdbfe', count: '1.2k+' },
+  { icon: '🛏️', label: 'Nhà cho thuê',      color: '#eff6ff', border: '#bfdbfe', count: '1.2k+' },
   { icon: '🏢', label: 'Chung cư mini',   color: '#f0fdf4', border: '#bbf7d0', count: '850+' },
   { icon: '🏡', label: 'Nhà nguyên căn',  color: '#fff7ed', border: '#fed7aa', count: '430+' },
   { icon: '🏨', label: 'Studio',          color: '#fdf4ff', border: '#e9d5ff', count: '320+' },
@@ -15,8 +15,8 @@ const categories = [
   { icon: '🏠', label: 'Căn hộ dịch vụ', color: '#fff1f2', border: '#fecdd3', count: '180+' },
 ];
 
-const CITIES = ['Hà Nội', 'TP. Hồ Chí Minh', 'Đà Nẵng', 'Cần Thơ', 'Hải Phòng'];
-const TYPES  = ['Phòng trọ', 'Chung cư mini', 'Nhà nguyên căn', 'Studio', 'Ký túc xá'];
+const CITIES = ['Hà Nội', 'TP. Hồ Chí Minh', 'Đà Nẵng', 'Cần Thơ', 'Hải Nhà'];
+const TYPES  = ['Nhà cho thuê', 'Chung cư mini', 'Nhà nguyên căn', 'Studio', 'Ký túc xá'];
 
 const BADGE_CONFIG = {
   'VIP Diamond': { bg: 'linear-gradient(135deg,#a855f7,#7c3aed)', icon: '💎', text: '#fff' },
@@ -78,21 +78,21 @@ export default function Home({ user, onLogout }) {
         <div className="home-hero-overlay" />
         <div className="home-hero-content">
           <div className="home-hero-badge-top">
-            <span role="img" aria-label="trophy">🏆</span> Nền tảng tìm phòng trọ uy tín #1 Việt Nam
+            <span role="img" aria-label="trophy">🏆</span> Nền tảng tìm nhà cho thuê uy tín #1 Việt Nam
           </div>
           <h1 className="home-hero-title">
-            Tìm <span className="home-hero-highlight">Phòng Trọ Ưng Ý</span><br />
+            Tìm <span className="home-hero-highlight">Nhà Ưng Ý</span><br />
             Chỉ Trong Vài Giây
           </h1>
           <p className="home-hero-sub">
-            Khám phá hàng nghìn không gian sống lý tưởng. Cập nhật liên tục mỗi ngày từ các chủ trọ uy tín trên toàn quốc.
+            Khám phá hàng nghìn không gian sống lý tưởng. Cập nhật liên tục mỗi ngày từ các chủ nhà uy tín trên toàn quốc.
           </p>
 
           {/* Search box */}
           <div className="home-search-wrap">
             <div className="home-search-tabs">
               <button type="button" className={`home-search-tab ${heroTab === 'keyword' ? 'active' : ''}`} onClick={() => setHeroTab('keyword')}>Tất cả</button>
-              <button type="button" className={`home-search-tab ${heroTab === 'city' ? 'active' : ''}`} onClick={() => setHeroTab('city')}>Phòng trọ</button>
+              <button type="button" className={`home-search-tab ${heroTab === 'city' ? 'active' : ''}`} onClick={() => setHeroTab('city')}>Nhà cho thuê</button>
               <button type="button" className={`home-search-tab ${heroTab === 'type' ? 'active' : ''}`} onClick={() => setHeroTab('type')}>Căn hộ</button>
             </div>
             <form className="home-search-box" onSubmit={handleSearch}>
@@ -114,7 +114,7 @@ export default function Home({ user, onLogout }) {
               </select>
               <div className="home-search-divider" />
               <select value={search.type} onChange={e => setSearch({ ...search, type: e.target.value })}>
-                <option value="">Loại phòng</option>
+                <option value="">Loại nhà</option>
                 {TYPES.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
               <button type="submit" className="home-search-btn">
@@ -137,7 +137,7 @@ export default function Home({ user, onLogout }) {
         <div className="home-container">
           {[
             { icon: '🏠', num: (stats.total_rooms || 0).toLocaleString('vi-VN') + '+', label: 'Tin đăng', color: '#3b82f6', bg: '#eff6ff' },
-            { icon: '👥', num: (stats.total_employers || 0).toLocaleString('vi-VN') + '+', label: 'Chủ trọ', color: '#8b5cf6', bg: '#f5f3ff' },
+            { icon: '👥', num: (stats.total_employers || 0).toLocaleString('vi-VN') + '+', label: 'Chủ nhà', color: '#8b5cf6', bg: '#f5f3ff' },
             { icon: '🔍', num: (stats.total_users || 0).toLocaleString('vi-VN') + '+', label: 'Người thuê', color: '#0ea5e9', bg: '#f0f9ff' },
             { icon: '🌆', num: '63',  label: 'Tỉnh thành', color: '#10b981', bg: '#ecfdf5' },
           ].map(s => (
@@ -159,8 +159,8 @@ export default function Home({ user, onLogout }) {
         <div className="home-container">
           <div className="home-section-head">
             <div>
-              <h2>Danh mục phòng</h2>
-              <p className="home-section-sub">Chọn loại phòng phù hợp với nhu cầu của bạn</p>
+              <h2>Danh mục nhà</h2>
+              <p className="home-section-sub">Chọn loại nhà phù hợp với nhu cầu của bạn</p>
             </div>
             <Link to="/search" className="home-see-all">Xem tất cả →</Link>
           </div>
@@ -185,8 +185,8 @@ export default function Home({ user, onLogout }) {
             <div className="home-section-head">
               <div>
                 <div className="home-vip-label">💎 TIN VIP</div>
-                <h2>Phòng VIP</h2>
-                <p className="home-section-sub">Chủ trọ đăng ký gói VIP – ưu tiên hiển thị cao nhất</p>
+                <h2>Nhà VIP</h2>
+                <p className="home-section-sub">Chủ nhà đăng ký gói VIP – ưu tiên hiển thị cao nhất</p>
               </div>
               <Link to="/search" className="home-see-all home-see-all-vip">Xem tất cả →</Link>
             </div>
@@ -204,8 +204,8 @@ export default function Home({ user, onLogout }) {
             <div className="home-section-head">
               <div>
                 <div className="home-trusted-label">⭐ UY TÍN</div>
-                <h2>Phòng uy tín</h2>
-                <p className="home-section-sub">Chủ trọ đã xác thực, tin đăng chất lượng</p>
+                <h2>Nhà uy tín</h2>
+                <p className="home-section-sub">Chủ nhà đã xác thực, tin đăng chất lượng</p>
               </div>
               <Link to="/search" className="home-see-all home-see-all-trusted">Xem tất cả →</Link>
             </div>
@@ -222,7 +222,7 @@ export default function Home({ user, onLogout }) {
           <div className="home-section-head">
             <div>
               <h2>🆕 Tin mới nhất</h2>
-              <p className="home-section-sub">Cập nhật liên tục mỗi ngày từ chủ trọ trên toàn quốc</p>
+              <p className="home-section-sub">Cập nhật liên tục mỗi ngày từ chủ nhà trên toàn quốc</p>
             </div>
             <Link to="/search" className="home-see-all">Xem tất cả →</Link>
           </div>
@@ -240,7 +240,7 @@ export default function Home({ user, onLogout }) {
           <div className="home-container">
             <div className="home-section-head">
               <div>
-                <h2>🏠 Phòng nổi bật</h2>
+                <h2>🏠 Nhà nổi bật</h2>
                 <p className="home-section-sub">Được đề xuất dựa trên lượt xem và đánh giá từ người dùng</p>
               </div>
               <Link to="/search" className="home-see-all">Xem tất cả →</Link>
@@ -278,14 +278,14 @@ export default function Home({ user, onLogout }) {
             <div>
               <h4>Người thuê</h4>
               <ul>
-                <li><Link to="/search">Tìm phòng trọ</Link></li>
+                <li><Link to="/search">Tìm nhà cho thuê</Link></li>
                 <li><Link to="/search?type=Chung cư mini">Chung cư mini</Link></li>
                 <li><Link to="/search?type=Nhà nguyên căn">Nhà nguyên căn</Link></li>
                 <li><Link to="/favorites">Tin đã lưu</Link></li>
               </ul>
             </div>
             <div>
-              <h4>Chủ trọ</h4>
+              <h4>Chủ nhà</h4>
               <ul>
                 <li><Link to="/employer/post">Đăng tin cho thuê</Link></li>
                 <li><Link to="/employer/rooms">Quản lý tin đăng</Link></li>
@@ -330,7 +330,7 @@ function VipRoomCard({ room }) {
           </span>
         )}
         <span className={`vip-card-avail ${room.available ? 'green' : 'red'}`}>
-          {room.available ? 'Còn phòng' : 'Hết phòng'}
+          {room.available ? 'Còn nhà' : 'Hết nhà'}
         </span>
       </div>
       <div className="vip-card-body">
@@ -357,7 +357,7 @@ function RoomCard({ room, isNew }) {
       <div className="room-card-img-wrap">
         <img src={room.image || FALLBACK_IMG} alt={room.title} />
         <span className={`room-card-badge ${room.available ? 'green' : 'red'}`}>
-          {room.available ? 'Còn phòng' : 'Hết phòng'}
+          {room.available ? 'Còn nhà' : 'Hết nhà'}
         </span>
         {isNew && <span className="room-card-new">MỚI</span>}
         {badgeStyle && (

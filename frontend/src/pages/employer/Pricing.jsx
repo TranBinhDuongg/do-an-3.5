@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getPackagesApi, getBalanceApi, purchasePackageApi, getMyPackageApi } from '../../api/wallet';
 import EmployerNavbar from '../../components/EmployerNavbar';
@@ -57,7 +57,7 @@ const plans = [
       'Hiển thị 30 ngày',
       'Tin nổi bật & ưu tiên',
       'Đẩy tin lên đầu không giới hạn',
-      'Huy hiệu "Chủ trọ uy tín"',
+      'Huy hiệu "Chủ nhà uy tín"',
       'Hỗ trợ 24/7 ưu tiên',
       'Thống kê chi tiết',
     ],
@@ -148,7 +148,7 @@ export default function Pricing({ user, onLogout }) {
         {/* Header */}
         <div className="pricing-header">
           <h1>Chọn gói đăng tin</h1>
-          <p>Mua gói phù hợp để bắt đầu đăng tin cho thuê phòng trọ của bạn</p>
+          <p>Mua gói phù hợp để bắt đầu đăng tin cho thuê nhà cho thuê của bạn</p>
         </div>
 
         {/* Current plan */}

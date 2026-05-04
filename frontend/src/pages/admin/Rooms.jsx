@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 import {
   adminGetRoomsApi,
   adminGetRoomStatsApi,
@@ -102,7 +102,7 @@ export default function AdminRooms({ user, onLogout }) {
   };
 
   return (
-    <AdminLayout user={user} onLogout={onLogout} title="Quản lý tin đăng" subtitle="Duyệt và quản lý tất cả tin đăng phòng trọ">
+    <AdminLayout user={user} onLogout={onLogout} title="Quản lý tin đăng" subtitle="Duyệt và quản lý tất cả tin đăng nhà cho thuê">
       {/* STATS ROW */}
       <div className="ar-stats-row">
         {TABS.map(t => (
@@ -128,7 +128,7 @@ export default function AdminRooms({ user, onLogout }) {
           </div>
           <input
             className="ar-search"
-            placeholder="🔍  Tìm tiêu đề, chủ trọ..."
+            placeholder="🔍  Tìm tiêu đề, chủ nhà..."
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
@@ -143,7 +143,7 @@ export default function AdminRooms({ user, onLogout }) {
               <tr>
                 <th>#</th>
                 <th>Tiêu đề</th>
-                <th>Chủ trọ</th>
+                <th>Chủ nhà</th>
                 <th>Loại</th>
                 <th>Thành phố</th>
                 <th>Giá/tháng</th>
@@ -226,8 +226,8 @@ export default function AdminRooms({ user, onLogout }) {
                   </div>
                   <div className="ar-modal-rows">
                     <div className="ar-modal-row"><span>Tiêu đề</span><strong>{detail.title}</strong></div>
-                    <div className="ar-modal-row"><span>Chủ trọ</span><strong>{detail.employer}</strong></div>
-                    <div className="ar-modal-row"><span>Loại phòng</span><strong>{detail.type}</strong></div>
+                    <div className="ar-modal-row"><span>Chủ nhà</span><strong>{detail.employer}</strong></div>
+                    <div className="ar-modal-row"><span>Loại nhà</span><strong>{detail.type}</strong></div>
                     <div className="ar-modal-row"><span>Địa chỉ</span><strong>{detail.address}</strong></div>
                     <div className="ar-modal-row"><span>Thành phố</span><strong>{detail.city}</strong></div>
                     <div className="ar-modal-row"><span>Giá/tháng</span><strong className="ar-modal-price">{Number(detail.price).toLocaleString('vi-VN')}đ</strong></div>

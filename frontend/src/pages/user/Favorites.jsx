@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getFavoritesApi, removeFavoriteApi } from '../../api/rooms';
 import UserNavbar from '../../components/UserNavbar';
@@ -45,10 +45,10 @@ export default function Favorites({ user, onLogout }) {
       <div className="fav-header">
         <div className="fav-header-inner">
           <div>
-            <h1 className="fav-header-title">❤️ Phòng yêu thích</h1>
-            <p className="fav-header-sub">{rooms.length} phòng đã lưu</p>
+            <h1 className="fav-header-title">❤️ Nhà yêu thích</h1>
+            <p className="fav-header-sub">{rooms.length} nhà đã lưu</p>
           </div>
-          <Link to="/search" className="fav-header-btn">🔍 Tìm thêm phòng</Link>
+          <Link to="/search" className="fav-header-btn">🔍 Tìm thêm nhà</Link>
         </div>
       </div>
 
@@ -66,9 +66,9 @@ export default function Favorites({ user, onLogout }) {
         ) : rooms.length === 0 ? (
           <div className="fav-empty">
             <span>💔</span>
-            <h3>Chưa có phòng yêu thích</h3>
-            <p>Nhấn vào biểu tượng ❤️ trên các tin đăng để lưu lại những phòng bạn thích.</p>
-            <Link to="/search" className="fav-empty-btn">Khám phá phòng ngay</Link>
+            <h3>Chưa có nhà yêu thích</h3>
+            <p>Nhấn vào biểu tượng ❤️ trên các tin đăng để lưu lại những nhà bạn thích.</p>
+            <Link to="/search" className="fav-empty-btn">Khám phá nhà ngay</Link>
           </div>
         ) : (
           <div className="fav-grid">
@@ -81,7 +81,7 @@ export default function Favorites({ user, onLogout }) {
                     onError={e => { e.target.src = FALLBACK_IMG; }}
                   />
                   <span className={`fav-badge ${room.available ? 'green' : 'red'}`}>
-                    {room.available ? 'Còn phòng' : 'Hết phòng'}
+                    {room.available ? 'Còn nhà' : 'Hết nhà'}
                   </span>
                   {room.isFeatured && <span className="fav-featured">⭐ Nổi bật</span>}
                   <button

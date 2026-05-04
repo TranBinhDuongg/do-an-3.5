@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+﻿import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import UserNavbar from '../components/UserNavbar';
 import EmployerNavbar from '../components/EmployerNavbar';
@@ -77,7 +77,7 @@ export default function ContractView({ user, onLogout }) {
     <div className="ct-sign">
       <div className="ct-sign-row">
         <div className="ct-sign-col">
-          <p className="ct-sign-role">BÊN A (Chủ trọ)</p>
+          <p className="ct-sign-role">BÊN A (Chủ nhà)</p>
           <p className="ct-sign-name">{contract.ten_chu_tro}</p>
           <p className="ct-sign-status">
             {contract.chu_tro_ky ? '(Đã ký)' : '(Chưa ký)'}

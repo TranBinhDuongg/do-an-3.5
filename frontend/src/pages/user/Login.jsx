@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import './Login.css';
 import { loginApi } from '../../api/auth';
@@ -55,24 +55,24 @@ export default function Login({ onLogin }) {
           </div>
 
           <div className="login-hero-text">
-            <h1>Tìm phòng trọ<br />mơ ước của bạn</h1>
-            <p>Kết nối hàng nghìn chủ trọ uy tín với người thuê tài năng trên toàn quốc.</p>
+            <h1>Tìm nhà cho thuê<br />mơ ước của bạn</h1>
+            <p>Kết nối hàng nghìn chủ nhà uy tín với người thuê tài năng trên toàn quốc.</p>
           </div>
 
           <ul className="login-features">
-            <li><span className="login-check">✓</span> Hơn 10.000 phòng trọ mới mỗi tháng</li>
-            <li><span className="login-check">✓</span> Kết nối trực tiếp với chủ trọ</li>
+            <li><span className="login-check">✓</span> Hơn 10.000 nhà cho thuê mới mỗi tháng</li>
+            <li><span className="login-check">✓</span> Kết nối trực tiếp với chủ nhà</li>
             <li><span className="login-check">✓</span> Tìm kiếm nhanh chóng, miễn phí</li>
           </ul>
 
           <div className="login-stats">
             <div className="login-stat">
               <strong>50K+</strong>
-              <span>Phòng trọ</span>
+              <span>Nhà cho thuê</span>
             </div>
             <div className="login-stat">
               <strong>10K+</strong>
-              <span>Chủ trọ</span>
+              <span>Chủ nhà</span>
             </div>
             <div className="login-stat">
               <strong>500K+</strong>
@@ -102,7 +102,7 @@ export default function Login({ onLogin }) {
               className={`login-role-tab ${role === 'employer' ? 'active' : ''}`}
               onClick={() => { setRole('employer'); setError(''); }}
             >
-              Chủ trọ
+              Chủ nhà
             </button>
           </div>
 

@@ -78,7 +78,7 @@ export default function AdminTopups({ user, onLogout }) {
   ] : [];
 
   return (
-    <AdminLayout user={user} onLogout={onLogout} title="Quản lý nạp tiền" subtitle="Duyệt và quản lý yêu cầu nạp tiền của chủ trọ">
+    <AdminLayout user={user} onLogout={onLogout} title="Quản lý nạp tiền" subtitle="Duyệt và quản lý yêu cầu nạp tiền của chủ nhà">
       {/* STATS */}
       {statCards.length > 0 && (
         <div className="adm-stats-grid" style={{ marginBottom: 24 }}>

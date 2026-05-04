@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+﻿import { useState, useEffect, useRef } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { getRoomDetailEmployerApi, updateRoomStatusApi, deleteRoomApi } from '../../api/employer';
 import { getReviewsApi } from '../../api/rooms';
@@ -285,7 +285,7 @@ export default function EmployerRoomDetail({ user, onLogout }) {
               )}
 
               {reviews.length === 0 ? (
-                <p className="erd-no-reviews">Chưa có đánh giá nào cho phòng này.</p>
+                <p className="erd-no-reviews">Chưa có đánh giá nào cho nhà này.</p>
               ) : (
                 <div className="erd-review-list">
                   {reviews.map(rv => (
@@ -333,7 +333,7 @@ export default function EmployerRoomDetail({ user, onLogout }) {
                   <strong className={`erd-status-inline ${st?.cls}`}>{st?.icon} {st?.text}</strong>
                 </div>
                 <div className="erd-contact-row"><span>Tình trạng</span>
-                  <strong>{room.available ? '✅ Còn phòng' : '❌ Hết phòng'}</strong>
+                  <strong>{room.available ? '✅ Còn nhà' : '❌ Hết nhà'}</strong>
                 </div>
               </div>
             </div>

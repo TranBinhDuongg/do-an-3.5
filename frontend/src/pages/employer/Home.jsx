@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getDashboardApi } from '../../api/employer';
 import NotificationBell from '../../components/NotificationBell';
@@ -44,7 +44,7 @@ export default function EmployerHome({ user, onLogout }) {
         {/* PAGE HEADER */}
         <div className="emp-page-header">
           <div>
-            <h1>Xin chào, {user?.name || 'Chủ trọ'}! 👋</h1>
+            <h1>Xin chào, {user?.name || 'Chủ nhà'}! 👋</h1>
             <p>Quản lý tin đăng và theo dõi hiệu quả cho thuê của bạn</p>
           </div>
           <Link to="/employer/post" className="emp-post-btn">+ Đăng tin mới</Link>
@@ -191,7 +191,7 @@ export default function EmployerHome({ user, onLogout }) {
                   <div className="emp-quick-actions">
                     <Link to="/employer/post"    className="emp-quick-btn blue">  <span>📝</span> Đăng tin mới</Link>
                     <Link to="/employer/rooms"   className="emp-quick-btn green"> <span>📋</span> Quản lý tin</Link>
-                    <Link to="/profile"          className="emp-quick-btn purple"><span>👤</span> Hồ sơ chủ trọ</Link>
+                    <Link to="/profile"          className="emp-quick-btn purple"><span>👤</span> Hồ sơ chủ nhà</Link>
                     <Link to="/"                 className="emp-quick-btn gray">  <span>🔍</span> Xem trang thuê</Link>
                   </div>
                 </div>

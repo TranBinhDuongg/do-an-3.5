@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import UserNavbar from '../../components/UserNavbar';
 import { getMyBookingsApi, cancelBookingApi } from '../../api/bookings';
@@ -40,7 +40,7 @@ export default function Bookings({ user, onLogout }) {
     setCancelling(id);
     try {
       await cancelBookingApi(id);
-      showToast('Đã hủy yêu cầu đặt phòng');
+      showToast('Đã hủy yêu cầu đặt nhà');
       load();
     } catch (err) {
       showToast(err.message, true);
@@ -59,7 +59,7 @@ export default function Bookings({ user, onLogout }) {
     try {
       const result = await startConversationApi(
         b.ma_chu_tro,
-        `Xin chào! Tôi muốn trao đổi về yêu cầu đặt phòng "${b.tieu_de}".`,
+        `Xin chào! Tôi muốn trao đổi về yêu cầu đặt nhà "${b.tieu_de}".`,
         b.ma_phong
       );
       navigate(`/message?conversationId=${result.ma_ctc}`);
@@ -82,8 +82,8 @@ export default function Bookings({ user, onLogout }) {
 
       <div className="bk-container">
         <div className="bk-header">
-          <h1>📋 Yêu cầu đặt phòng của tôi</h1>
-          <Link to="/search" className="bk-find-btn">🔍 Tìm phòng mới</Link>
+          <h1>📋 Yêu cầu đặt nhà của tôi</h1>
+          <Link to="/search" className="bk-find-btn">🔍 Tìm nhà mới</Link>
         </div>
 
         {loading ? (
@@ -91,8 +91,8 @@ export default function Bookings({ user, onLogout }) {
         ) : bookings.length === 0 ? (
           <div className="bk-empty">
             <span>📋</span>
-            <p>Bạn chưa có yêu cầu đặt phòng nào</p>
-            <Link to="/search" className="bk-find-btn">Tìm phòng ngay</Link>
+            <p>Bạn chưa có yêu cầu đặt nhà nào</p>
+            <Link to="/search" className="bk-find-btn">Tìm nhà ngay</Link>
           </div>
         ) : (
           <div className="bk-list">
@@ -117,7 +117,7 @@ export default function Bookings({ user, onLogout }) {
                       <span>💰 {Number(b.tien_thue).toLocaleString('vi-VN')}đ/tháng</span>
                       {b.tien_coc > 0 && <span>🔒 Cọc: {Number(b.tien_coc).toLocaleString('vi-VN')}đ</span>}
                     </div>
-                    <p className="bk-landlord">👤 Chủ trọ: {b.ten_chu_tro} · {b.sdt_chu_tro}</p>
+                    <p className="bk-landlord">👤 Chủ nhà: {b.ten_chu_tro} · {b.sdt_chu_tro}</p>
                     {b.ghi_chu && <p className="bk-note">💬 {b.ghi_chu}</p>}
                     <div className="bk-actions">
                       {b.ma_hd && (

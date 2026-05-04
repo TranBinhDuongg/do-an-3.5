@@ -1,4 +1,4 @@
-// Mẫu hợp đồng theo từng loại phòng — plain text, không ô/border
+﻿// Mẫu hợp đồng theo từng loại nhà — plain text, không ô/border
 // Nguồn tham khảo: luatvietnam.vn/bieu-mau/mau-hop-dong-thue-nha
 
 const fmt  = (n) => Number(n).toLocaleString('vi-VN');
@@ -124,7 +124,7 @@ function CommonClauses({ c, startNum }) {
   );
 }
 
-// ─── MẪU 1: Phòng trọ / Ký túc xá ───────────────────────────────────────────
+// ─── MẪU 1: Nhà cho thuê / Ký túc xá ───────────────────────────────────────────
 function TroTemplate({ c }) {
   const soHD = `HD-${String(c.ma_hd).padStart(6,'0')}`;
   return (
@@ -135,15 +135,15 @@ function TroTemplate({ c }) {
 
       <div className="ct-dieu">
         <p className="ct-dieu-title">Điều 1. Đối tượng của hợp đồng</p>
-        <p>1.1. Bên A đồng ý cho Bên B thuê phòng trọ tại địa chỉ: <strong>{c.dia_chi}, {c.tinh_thanh}</strong> thuộc sở hữu hợp pháp của Bên A.</p>
-        <p>1.2. Chi tiết phòng: Loại phòng <strong>{c.loai_phong}</strong> — <strong>{c.tieu_de}</strong>. Bao gồm hệ thống điện nước sẵn sàng sử dụng.</p>
+        <p>1.1. Bên A đồng ý cho Bên B thuê nhà cho thuê tại địa chỉ: <strong>{c.dia_chi}, {c.tinh_thanh}</strong> thuộc sở hữu hợp pháp của Bên A.</p>
+        <p>1.2. Chi tiết nhà: Loại nhà <strong>{c.loai_phong}</strong> — <strong>{c.tieu_de}</strong>. Bao gồm hệ thống điện nước sẵn sàng sử dụng.</p>
         <p>1.3. Bên A cam kết tài sản cho thuê là tài sản sở hữu hợp pháp. Mọi tranh chấp phát sinh từ tài sản cho thuê, Bên A hoàn toàn chịu trách nhiệm trước pháp luật.</p>
       </div>
 
       <div className="ct-dieu">
         <p className="ct-dieu-title">Điều 2. Bàn giao và sử dụng</p>
-        <p>2.1. Thời điểm Bên A bàn giao phòng trọ cho Bên B: ngày <strong>{fmtD(c.ngay_bat_dau)}</strong>.</p>
-        <p>2.2. Bên B được toàn quyền sử dụng phòng trọ kể từ thời điểm được Bên A bàn giao.</p>
+        <p>2.1. Thời điểm Bên A bàn giao nhà cho thuê cho Bên B: ngày <strong>{fmtD(c.ngay_bat_dau)}</strong>.</p>
+        <p>2.2. Bên B được toàn quyền sử dụng nhà cho thuê kể từ thời điểm được Bên A bàn giao.</p>
         <p>2.3. Bên A có trách nhiệm hướng dẫn Bên B thực hiện đúng các quy định về đăng ký tạm trú.</p>
       </div>
 
@@ -222,7 +222,7 @@ function NhaTemplate({ c }) {
   );
 }
 
-// ─── Router: chọn mẫu theo loại phòng ────────────────────────────────────────
+// ─── Router: chọn mẫu theo loại nhà ────────────────────────────────────────
 export function ContractTemplate({ contract }) {
   const type = contract.loai_phong || '';
   if (type === 'Nhà nguyên căn') return <NhaTemplate c={contract} />;
