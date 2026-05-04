@@ -508,12 +508,6 @@ export default function RoomDetail({ user, onLogout }) {
               <p className="rd-no-phone">Chủ trọ ẩn số điện thoại</p>
             )}
 
-            {room.contactEmail && (
-              <a href={`mailto:${room.contactEmail}`} className="rd-btn-email">
-                ✉️ Gửi email
-              </a>
-            )}
-
             <button
               className="rd-btn-chat"
               onClick={handleChat}
