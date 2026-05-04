@@ -225,15 +225,18 @@ module.exports = router;
 
 function formatUser(u) {
   return {
-    id:       u.ma_nd,
-    name:     u.ho_ten,
-    username: u.tai_khoan,
-    phone:    u.dien_thoai,
-    role:     u.vai_tro,
-    active:   u.con_hoat_dong,
-    avatar:   u.anh_dai_dien || null,
-    rooms:    u.so_tin ?? 0,
-    joinedAt: u.ngay_tao,
+    id:           u.ma_nd,
+    name:         u.ho_ten,
+    username:     u.tai_khoan,
+    phone:        u.dien_thoai,
+    role:         u.vai_tro,
+    active:       u.con_hoat_dong,
+    avatar:       u.anh_dai_dien || null,
+    rooms:        u.so_tin ?? 0,
+    joinedAt:     u.ngay_tao,
+    packageName:  u.ten_goi_hien_tai || null,
+    packageExpiry: u.het_han_goi || null,
+    packageDaysLeft: u.ngay_con_lai_goi ?? null,
   };
 }
 

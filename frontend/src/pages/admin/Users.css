@@ -134,3 +134,31 @@
   border-radius: 8px;
   cursor: pointer;
 }
+
+/* ── Package badge ── */
+.au-pkg-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.au-pkg-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.au-pkg-active  { background: #f0fdf4; color: #16a34a; }
+.au-pkg-warning { background: #fefce8; color: #ca8a04; }
+.au-pkg-expired { background: #fef2f2; color: #dc2626; }
+.au-pkg-none    { font-size: 0.78rem; color: #94a3b8; }
+
+.au-pkg-days {
+  font-size: 0.7rem;
+  color: #94a3b8;
+}
+.au-pkg-days-expired {
+  color: #dc2626;
+  font-weight: 600;
+}

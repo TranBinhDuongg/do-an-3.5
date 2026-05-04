@@ -455,8 +455,13 @@ BEGIN
     SELECT n.ma_nd, n.ho_ten, n.tai_khoan, n.dien_thoai, n.vai_tro,
         n.con_hoat_dong, n.anh_dai_dien, n.ngay_tao,
         (SELECT COUNT(*) FROM phong_tro p WHERE p.ma_chu_tro=n.ma_nd) AS so_tin,
+        g.ten_goi AS ten_goi_hien_tai,
+        ndg.het_han AS het_han_goi,
+        DATEDIFF(DAY, GETDATE(), ndg.het_han) AS ngay_con_lai_goi,
         COUNT(*) OVER() AS tong_so
     FROM nguoi_dung n
+    LEFT JOIN nguoi_dung_goi ndg ON ndg.ma_nd = n.ma_nd AND ndg.con_hieu_luc = 1
+    LEFT JOIN goi_dang_tin g ON g.ma_goi = ndg.ma_goi
     WHERE (@vai_tro IS NULL OR n.vai_tro=@vai_tro)
       AND (@tu_khoa IS NULL OR n.ho_ten LIKE N'%'+@tu_khoa+N'%'
            OR n.tai_khoan LIKE N'%'+@tu_khoa+N'%' OR n.dien_thoai LIKE N'%'+@tu_khoa+N'%')

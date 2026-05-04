@@ -1,0 +1,25 @@
+.tp-id     { color: #94a3b8; font-size: 0.82rem; }
+.tp-amount { font-weight: 700; color: #22c55e; white-space: nowrap; }
+
+.tp-ref-input {
+  width: 130px;
+}
+
+.tp-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #1e293b;
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  z-index: 9999;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  animation: tp-fadein 0.2s ease;
+}
+
+@keyframes tp-fadein {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
