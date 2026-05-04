@@ -97,15 +97,14 @@ router.post('/', auth(), async (req, res) => {
       ma_chu_tro_val = myId;
     }
 
-    // Tìm hoặc tạo conversation
+    // Tìm conversation đã tồn tại giữa 2 người (bất kể phòng nào)
     const existing = await pool.request()
       .input('ma_nd',      sql.Int, ma_nd_val)
       .input('ma_chu_tro', sql.Int, ma_chu_tro_val)
-      .input('ma_phong',   sql.Int, ma_phong || null)
       .query(`
-        SELECT ma_ctc FROM cuoc_tro_chuyen
+        SELECT TOP 1 ma_ctc FROM cuoc_tro_chuyen
         WHERE ma_nd = @ma_nd AND ma_chu_tro = @ma_chu_tro
-          AND (ma_phong = @ma_phong OR (@ma_phong IS NULL AND ma_phong IS NULL))
+        ORDER BY ngay_tao DESC
       `);
 
     let ma_ctc;

@@ -73,11 +73,17 @@ export default function Message({ user, onLogout }) {
 
     // Conversation mới xuất hiện (đối phương nhắn lần đầu)
     socket.on('conversation_updated', ({ ma_ctc }) => {
-      // Reload danh sách để lấy conversation mới nếu chưa có
       setConversations(prev => {
         if (prev.some(c => c.ma_ctc === ma_ctc)) return prev;
-        // Fetch lại danh sách
-        getConversationsApi().then(list => setConversations(list)).catch(() => {});
+        getConversationsApi().then(list => {
+          const seen = new Set();
+          const deduped = list.filter(c => {
+            if (seen.has(c.ma_doi_phuong)) return false;
+            seen.add(c.ma_doi_phuong);
+            return true;
+          });
+          setConversations(deduped);
+        }).catch(() => {});
         return prev;
       });
     });
@@ -85,15 +91,22 @@ export default function Message({ user, onLogout }) {
     return () => { socket.disconnect(); };
   }, [user]);
 
-  // Load conversations
+  // Load conversations — deduplicate theo đối phương, giữ conversation mới nhất
   useEffect(() => {
     if (!user) return;
     getConversationsApi()
       .then(list => {
-        setConversations(list);
+        // Giữ 1 conversation mới nhất cho mỗi đối phương
+        const seen = new Set();
+        const deduped = list.filter(c => {
+          if (seen.has(c.ma_doi_phuong)) return false;
+          seen.add(c.ma_doi_phuong);
+          return true;
+        });
+        setConversations(deduped);
         const cid = searchParams.get('conversationId');
         if (cid) setActiveId(Number(cid));
-        else if (list.length) setActiveId(list[0].ma_ctc);
+        else if (deduped.length) setActiveId(deduped[0].ma_ctc);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
