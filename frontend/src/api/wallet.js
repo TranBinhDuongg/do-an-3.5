@@ -13,12 +13,24 @@ export async function getBalanceApi() {
   return data; // { so_du }
 }
 
-export async function getTransactionsApi(loai = null) {
-  const url = loai ? `${BASE}/transactions?loai=${loai}` : `${BASE}/transactions`;
-  const res = await fetch(url, { headers: authHeader() });
+export async function getTransactionsApi({ loai, tu_ngay, den_ngay, trang = 1, gioi_han = 10 } = {}) {
+  const params = new URLSearchParams();
+  if (loai)     params.set('loai', loai);
+  if (tu_ngay)  params.set('tu_ngay', tu_ngay);
+  if (den_ngay) params.set('den_ngay', den_ngay);
+  params.set('trang', trang);
+  params.set('gioi_han', gioi_han);
+  const res = await fetch(`${BASE}/transactions?${params}`, { headers: authHeader() });
   const data = await res.json();
   if (!res.ok) throw new Error(data.message);
-  return data; // { transactions }
+  return data; // { transactions, tong_so, trang, gioi_han }
+}
+
+export async function getTransactionsSummaryApi() {
+  const res = await fetch(`${BASE}/transactions/summary`, { headers: authHeader() });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message);
+  return data; // { tong_nap, tong_chi, tong_hoan, tong_gd, cho_xu_ly }
 }
 
 export async function topupApi(so_tien, phuong_thuc) {

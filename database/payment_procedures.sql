@@ -15,22 +15,27 @@ END
 GO
 
 -- ============================================================
--- WALLET - Lịch sử giao dịch
+-- WALLET - Lịch sử giao dịch (có phân trang, lọc ngày)
 -- ============================================================
 CREATE OR ALTER PROCEDURE sp_LayLichSuGiaoDich
-    @ma_nd   INT,
-    @loai    NVARCHAR(20) = NULL,
-    @gioi_han INT = 50,
-    @bo_qua  INT = 0
+    @ma_nd    INT,
+    @loai     NVARCHAR(20) = NULL,
+    @tu_ngay  DATE         = NULL,
+    @den_ngay DATE         = NULL,
+    @gioi_han INT          = 10,
+    @bo_qua   INT          = 0
 AS
 BEGIN
     SET NOCOUNT ON;
     SELECT
         ma_gd, loai, so_tien, mo_ta, trang_thai,
-        phuong_thuc, ma_tham_chieu, ma_goi, ngay_tao
+        phuong_thuc, ma_tham_chieu, ma_goi, ngay_tao,
+        COUNT(*) OVER() AS tong_so
     FROM giao_dich
     WHERE ma_nd = @ma_nd
-      AND (@loai IS NULL OR loai = @loai)
+      AND (@loai     IS NULL OR loai = @loai)
+      AND (@tu_ngay  IS NULL OR CAST(ngay_tao AS DATE) >= @tu_ngay)
+      AND (@den_ngay IS NULL OR CAST(ngay_tao AS DATE) <= @den_ngay)
     ORDER BY ngay_tao DESC
     OFFSET @bo_qua ROWS FETCH NEXT @gioi_han ROWS ONLY;
 END
