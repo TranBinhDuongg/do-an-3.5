@@ -5,6 +5,7 @@ import {
   getConversationsApi,
   getMessagesApi,
   sendMessageApi,
+  deleteMessageApi,
 } from '../../api/messages';
 import './Message.css';
 
@@ -16,12 +17,14 @@ function formatTime(dateStr) {
   const now = new Date();
   const diff = now - d;
   if (diff < 60000) return 'Vừa xong';
-  if (diff < 3600000) return `${Math.floor(diff / 60000)} phút trước`;
+  if (diff < 3600000) return `${Math.floor(diff / 60000)} phút`;
   if (d.toDateString() === now.toDateString())
     return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
   const yesterday = new Date(now); yesterday.setDate(now.getDate() - 1);
-  if (d.toDateString() === yesterday.toDateString()) return 'Hôm qua';
-  return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
+  if (d.toDateString() === yesterday.toDateString())
+    return 'Hôm qua ' + d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+  return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' }) + ' ' +
+    d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
 }
 
 export default function Message({ user, onLogout }) {
@@ -32,11 +35,15 @@ export default function Message({ user, onLogout }) {
   const [loading, setLoading]             = useState(true);
   const [sending, setSending]             = useState(false);
   const [menuOpen, setMenuOpen]           = useState(false);
+  const [msgMenu, setMsgMenu]             = useState(null); // { ma_tn, x, y }
+  const [imagePreview, setImagePreview]   = useState(null); // object URL để preview
+  const [imageFile, setImageFile]         = useState(null); // File gốc để convert khi gửi
   const [searchParams]                    = useSearchParams();
 
   const bottomRef   = useRef(null);
   const socketRef   = useRef(null);
-  const activeIdRef = useRef(null); // ref để dùng trong socket callback
+  const activeIdRef = useRef(null);
+  const fileInputRef = useRef(null);
   const navigate    = useNavigate();
 
   // Sync activeId vào ref
@@ -55,13 +62,16 @@ export default function Message({ user, onLogout }) {
 
     // Nhận tin nhắn mới trong conversation đang mở
     socket.on('new_message', ({ ma_ctc, message }) => {
-      // Chỉ xử lý tin từ đối phương, tin của mình đã được add khi gửi
       if (message.ma_nguoi_gui === user.id) return;
 
       if (ma_ctc === activeIdRef.current) {
-        setMessages(prev => [...prev, message]);
+        // Nếu có ảnh, reload messages để lấy base64 thật từ server
+        if (message.anh_url === '[has_image]') {
+          getMessagesApi(ma_ctc).then(msgs => setMessages(msgs)).catch(() => {});
+        } else {
+          setMessages(prev => [...prev, message]);
+        }
       }
-      // Cập nhật preview sidebar
       setConversations(prev =>
         prev.map(c => c.ma_ctc === ma_ctc
           ? { ...c, tin_nhan_cuoi: message.noi_dung, thoi_gian_cuoi: message.ngay_tao,
@@ -71,9 +81,13 @@ export default function Message({ user, onLogout }) {
       );
     });
 
+    // Tin nhắn bị xóa
+    socket.on('message_deleted', ({ ma_tn }) => {
+      setMessages(prev => prev.filter(m => m.ma_tn !== ma_tn));
+    });
+
     // Conversation mới xuất hiện (đối phương nhắn lần đầu)
-    socket.on('conversation_updated', ({ ma_ctc }) => {
-      setConversations(prev => {
+    socket.on('conversation_updated', ({ ma_ctc }) => {      setConversations(prev => {
         if (prev.some(c => c.ma_ctc === ma_ctc)) return prev;
         getConversationsApi().then(list => {
           const seen = new Set();
@@ -140,31 +154,97 @@ export default function Message({ user, onLogout }) {
   const activeConv = conversations.find(c => c.ma_ctc === activeId);
 
   const sendMessage = async () => {
-    if (!input.trim() || sending) return;
+    if ((!input.trim() && !imageFile) || sending) return;
     const text = input.trim();
+    const file = imageFile;
+    const previewUrl = imagePreview;
     setInput('');
+    setImagePreview(null);
+    setImageFile(null);
     setSending(true);
 
     try {
-      const msg = await sendMessageApi(activeId, text);
-      // Thêm tin thật vào UI (không dùng optimistic để tránh duplicate với socket)
-      setMessages(prev => [...prev, { ...msg, noi_dung: text, ma_nguoi_gui: user.id }]);
+      // Convert file sang base64 chỉ khi gửi
+      let anh_url = null;
+      if (file) {
+        anh_url = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (ev) => resolve(ev.target.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      }
+
+      const msg = await sendMessageApi(activeId, { noi_dung: text || undefined, anh_url: anh_url || undefined });
+
+      const now = msg.ngay_tao;
+      const newMsgs = [];
+
+      // Nếu có ảnh, thêm bubble ảnh trước
+      if (anh_url) {
+        newMsgs.push({
+          ma_tn: msg.ma_tn,
+          ma_nguoi_gui: user.id,
+          loai: 'image',
+          anh_url,
+          noi_dung: '[Hình ảnh]',
+          ngay_tao: now,
+        });
+      }
+      // Nếu có text, thêm bubble text sau
+      if (text) {
+        newMsgs.push({
+          ma_tn: anh_url ? msg.ma_tn + 0.1 : msg.ma_tn, // key tạm
+          ma_nguoi_gui: user.id,
+          loai: 'text',
+          anh_url: null,
+          noi_dung: text,
+          ngay_tao: now,
+        });
+      }
+
+      const preview = text ? (anh_url ? `🖼 ${text}` : text) : '[Hình ảnh]';
+      setMessages(prev => [...prev, ...newMsgs]);
       setConversations(prev =>
         prev.map(c => c.ma_ctc === activeId
-          ? { ...c, tin_nhan_cuoi: text, thoi_gian_cuoi: msg.ngay_tao }
+          ? { ...c, tin_nhan_cuoi: preview, thoi_gian_cuoi: now }
           : c
         ).sort((a, b) => new Date(b.thoi_gian_cuoi) - new Date(a.thoi_gian_cuoi))
       );
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
     } catch (err) {
       console.error(err);
       setInput(text);
+      setImageFile(file);
+      setImagePreview(previewUrl);
     } finally {
       setSending(false);
     }
   };
 
+  const handleImageSelect = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { alert('Ảnh tối đa 5MB'); return; }
+    // Dùng object URL để preview — nhẹ, không crash
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    setImagePreview(URL.createObjectURL(file));
+    setImageFile(file);
+    e.target.value = '';
+  };
+
   const handleKey = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  };
+
+  const handleDeleteMsg = async (ma_tn) => {
+    setMsgMenu(null);
+    try {
+      await deleteMessageApi(activeId, ma_tn);
+      setMessages(prev => prev.filter(m => m.ma_tn !== ma_tn));
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const totalUnread = conversations.reduce((s, c) => s + (c.chua_doc || 0), 0);
@@ -273,38 +353,105 @@ export default function Message({ user, onLogout }) {
                 </div>
               </div>
 
-              <div className="msg-messages">
-                {messages.map(msg => (
-                  <div key={msg.ma_tn} className={`msg-row ${msg.ma_nguoi_gui === user?.id ? 'me' : 'them'}`}>
-                    {msg.ma_nguoi_gui !== user?.id && (
-                      <div className="msg-bubble-avatar">
-                        {activeConv.avatar_doi_phuong
-                          ? <img src={activeConv.avatar_doi_phuong} alt="av" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
-                          : activeConv.ten_doi_phuong?.charAt(0)}
+              <div className="msg-messages" onClick={() => setMsgMenu(null)}>
+                {messages.map((msg, idx) => {
+                  const next = messages[idx + 1];
+                  const isLastInGroup = !next || next.ma_nguoi_gui !== msg.ma_nguoi_gui;
+                  const isMe = msg.ma_nguoi_gui === user?.id;
+                  return (
+                    <div key={msg.ma_tn} className={`msg-row ${isMe ? 'me' : 'them'}`}>
+                      {!isMe && (
+                        <div className={`msg-bubble-avatar ${isLastInGroup ? '' : 'invisible'}`}>
+                          {activeConv.avatar_doi_phuong
+                            ? <img src={activeConv.avatar_doi_phuong} alt="av" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                            : activeConv.ten_doi_phuong?.charAt(0)}
+                        </div>
+                      )}
+                      <div className="msg-bubble-wrap">
+                        <div className="msg-bubble-row">
+                          {/* Nút action — chỉ hiện khi hover */}
+                          {isMe && (
+                            <button
+                              className="msg-action-btn"
+                              onClick={e => { e.stopPropagation(); setMsgMenu(msgMenu?.ma_tn === msg.ma_tn ? null : { ma_tn: msg.ma_tn }); }}
+                            >•••</button>
+                          )}
+                          <div className={`msg-bubble ${isMe ? 'me' : 'them'} ${msg.loai === 'image' ? 'image' : ''}`}>
+                            {msg.loai === 'image' && (
+                              <img src={msg.anh_url} alt="ảnh" className="msg-img" onClick={() => window.open(msg.anh_url, '_blank')} />
+                            )}
+                            {msg.noi_dung && msg.noi_dung !== '[Hình ảnh]' && (
+                              <span className={msg.loai === 'image' ? 'msg-img-caption' : ''}>{msg.noi_dung}</span>
+                            )}
+                          </div>
+                          {!isMe && (
+                            <button
+                              className="msg-action-btn"
+                              onClick={e => { e.stopPropagation(); setMsgMenu(msgMenu?.ma_tn === msg.ma_tn ? null : { ma_tn: msg.ma_tn }); }}
+                            >•••</button>
+                          )}
+                        </div>
+                        {/* Context menu */}
+                        {msgMenu?.ma_tn === msg.ma_tn && (
+                          <div className={`msg-context-menu ${isMe ? 'me' : 'them'}`} onClick={e => e.stopPropagation()}>
+                            {isMe && (
+                              <button className="msg-context-delete" onClick={() => handleDeleteMsg(msg.ma_tn)}>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+                                </svg>
+                                Xóa tin nhắn
+                              </button>
+                            )}
+                          </div>
+                        )}
+                        {isLastInGroup && (
+                          <span className="msg-time">{formatTime(msg.ngay_tao)}</span>
+                        )}
                       </div>
-                    )}
-                    <div className="msg-bubble-wrap">
-                      <div className={`msg-bubble ${msg.ma_nguoi_gui === user?.id ? 'me' : 'them'}`}>
-                        {msg.noi_dung}
-                      </div>
-                      <span className="msg-time">{formatTime(msg.ngay_tao)}</span>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
                 <div ref={bottomRef} />
               </div>
 
               <div className="msg-input-bar">
+                <input
+                  type="file"
+                  accept="image/*"
+                  ref={fileInputRef}
+                  style={{ display: 'none' }}
+                  onChange={handleImageSelect}
+                />
+                <button
+                  className="msg-img-btn"
+                  onClick={() => fileInputRef.current?.click()}
+                  title="Gửi ảnh"
+                  disabled={sending}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+                  </svg>
+                </button>
                 <div className="msg-input-wrap">
+                  {imagePreview && (
+                    <div className="msg-input-img-preview">
+                      <img src={imagePreview} alt="preview" />
+                      <button className="msg-input-img-remove" onClick={() => {
+                        URL.revokeObjectURL(imagePreview);
+                        setImagePreview(null);
+                        setImageFile(null);
+                      }}>✕</button>
+                    </div>
+                  )}
                   <textarea
-                    placeholder="Nhập tin nhắn..."
+                    placeholder={imagePreview ? 'Thêm chú thích... (tuỳ chọn)' : 'Nhập tin nhắn...'}
                     value={input}
                     onChange={e => setInput(e.target.value)}
                     onKeyDown={handleKey}
                     rows={1}
                   />
                 </div>
-                <button className="msg-send-btn" onClick={sendMessage} disabled={!input.trim() || sending}>➤</button>
+                <button className="msg-send-btn" onClick={sendMessage} disabled={(!input.trim() && !imageFile) || sending}>➤</button>
               </div>
             </>
           )}

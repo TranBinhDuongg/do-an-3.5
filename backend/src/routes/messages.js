@@ -64,7 +64,7 @@ router.get('/:conversationId', auth(), async (req, res) => {
     const result = await pool.request()
       .input('ma_ctc', sql.Int, conversationId)
       .query(`
-        SELECT t.ma_tn, t.ma_nguoi_gui, t.noi_dung, t.da_doc, t.ngay_tao,
+        SELECT t.ma_tn, t.ma_nguoi_gui, t.noi_dung, t.loai, t.anh_url, t.da_doc, t.ngay_tao,
                nd.ho_ten AS ten_nguoi_gui, nd.anh_dai_dien AS avatar_nguoi_gui
         FROM tin_nhan t
         JOIN nguoi_dung nd ON nd.ma_nd = t.ma_nguoi_gui
@@ -156,11 +156,12 @@ router.post('/', auth(), async (req, res) => {
   }
 });
 
-// POST /api/messages/:conversationId — gửi tin nhắn
+// POST /api/messages/:conversationId — gửi tin nhắn (text, ảnh, hoặc cả hai)
 router.post('/:conversationId', auth(), async (req, res) => {
   const { conversationId } = req.params;
-  const { noi_dung } = req.body;
-  if (!noi_dung?.trim())
+  const { noi_dung, anh_url } = req.body;
+
+  if (!noi_dung?.trim() && !anh_url)
     return res.status(400).json({ message: 'Nội dung không được trống' });
 
   try {
@@ -175,35 +176,105 @@ router.post('/:conversationId', auth(), async (req, res) => {
     const conv = check.recordset[0];
     const doiPhuongId = conv.ma_nd === req.user.id ? conv.ma_chu_tro : conv.ma_nd;
 
+    // Xác định loại: image nếu có ảnh, text nếu chỉ có text
+    const loai = anh_url ? 'image' : 'text';
+    const noiDungLuu = noi_dung?.trim() || (anh_url ? '[Hình ảnh]' : '');
+
     const msgRes = await pool.request()
-      .input('ma_ctc',       sql.Int,      conversationId)
-      .input('ma_nguoi_gui', sql.Int,      req.user.id)
-      .input('noi_dung',     sql.NVarChar, noi_dung.trim())
+      .input('ma_ctc',       sql.Int,               conversationId)
+      .input('ma_nguoi_gui', sql.Int,               req.user.id)
+      .input('noi_dung',     sql.NVarChar,          noiDungLuu)
+      .input('loai',         sql.NVarChar(10),      loai)
+      .input('anh_url',      sql.NVarChar(sql.MAX), anh_url || null)
       .query(`
-        INSERT INTO tin_nhan (ma_ctc, ma_nguoi_gui, noi_dung)
+        INSERT INTO tin_nhan (ma_ctc, ma_nguoi_gui, noi_dung, loai, anh_url)
         OUTPUT INSERTED.ma_tn, INSERTED.ngay_tao
-        VALUES (@ma_ctc, @ma_nguoi_gui, @noi_dung)
+        VALUES (@ma_ctc, @ma_nguoi_gui, @noi_dung, @loai, @anh_url)
       `);
 
     const newMsg = {
       ma_tn:        msgRes.recordset[0].ma_tn,
       ngay_tao:     msgRes.recordset[0].ngay_tao,
-      noi_dung:     noi_dung.trim(),
+      noi_dung:     noiDungLuu,
+      loai,
+      anh_url:      anh_url || null,
       ma_nguoi_gui: req.user.id,
     };
 
-    // Emit socket
+    // Nếu có cả text lẫn ảnh, lưu thêm 1 tin nhắn text riêng
+    let textMsg = null;
+    if (anh_url && noi_dung?.trim()) {
+      const textRes = await pool.request()
+        .input('ma_ctc',       sql.Int,          conversationId)
+        .input('ma_nguoi_gui', sql.Int,          req.user.id)
+        .input('noi_dung',     sql.NVarChar,     noi_dung.trim())
+        .input('loai',         sql.NVarChar(10), 'text')
+        .query(`
+          INSERT INTO tin_nhan (ma_ctc, ma_nguoi_gui, noi_dung, loai, anh_url)
+          OUTPUT INSERTED.ma_tn, INSERTED.ngay_tao
+          VALUES (@ma_ctc, @ma_nguoi_gui, @noi_dung, @loai, NULL)
+        `);
+      textMsg = {
+        ma_tn:        textRes.recordset[0].ma_tn,
+        ngay_tao:     textRes.recordset[0].ngay_tao,
+        noi_dung:     noi_dung.trim(),
+        loai:         'text',
+        anh_url:      null,
+        ma_nguoi_gui: req.user.id,
+      };
+    }
+
+    const previewSidebar = noi_dung?.trim()
+      ? (anh_url ? `🖼 ${noi_dung.trim()}` : noi_dung.trim())
+      : '[Hình ảnh]';
+
     const io = req.app.get('io');
     if (io) {
-      io.to(`conv:${conversationId}`).emit('new_message', { ma_ctc: parseInt(conversationId), message: newMsg });
+      // Không emit anh_url (base64) qua socket — quá nặng
+      // Người nhận sẽ reload messages để lấy ảnh
+      const socketMsg = { ...newMsg, anh_url: anh_url ? '[has_image]' : null };
+      io.to(`conv:${conversationId}`).emit('new_message', { ma_ctc: parseInt(conversationId), message: socketMsg });
+      if (textMsg) {
+        io.to(`conv:${conversationId}`).emit('new_message', { ma_ctc: parseInt(conversationId), message: textMsg });
+      }
       io.to(`user:${doiPhuongId}`).emit('conversation_updated', {
         ma_ctc: parseInt(conversationId),
-        tin_nhan_cuoi: noi_dung.trim(),
-        thoi_gian_cuoi: newMsg.ngay_tao,
+        tin_nhan_cuoi: previewSidebar,
+        thoi_gian_cuoi: (textMsg || newMsg).ngay_tao,
       });
     }
 
-    res.status(201).json({ message: newMsg });
+    res.status(201).json({ message: newMsg, textMessage: textMsg || null });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Lỗi server' });
+  }
+});
+
+// DELETE /api/messages/:conversationId/:messageId — xóa tin nhắn (chỉ của mình)
+router.delete('/:conversationId/:messageId', auth(), async (req, res) => {
+  const { conversationId, messageId } = req.params;
+  try {
+    await poolConnect;
+    // Chỉ cho xóa tin nhắn của chính mình
+    const result = await pool.request()
+      .input('ma_tn',        sql.Int, messageId)
+      .input('ma_nguoi_gui', sql.Int, req.user.id)
+      .query(`DELETE FROM tin_nhan WHERE ma_tn = @ma_tn AND ma_nguoi_gui = @ma_nguoi_gui`);
+
+    if (result.rowsAffected[0] === 0)
+      return res.status(403).json({ message: 'Không thể xóa tin nhắn này' });
+
+    // Emit socket để đối phương cũng thấy tin bị xóa
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`conv:${conversationId}`).emit('message_deleted', {
+        ma_ctc: parseInt(conversationId),
+        ma_tn:  parseInt(messageId),
+      });
+    }
+
+    res.json({ message: 'Đã xóa' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Lỗi server' });
