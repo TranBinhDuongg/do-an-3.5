@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { getRoomDetailApi, addFavoriteApi, removeFavoriteApi, checkFavoriteApi, getReviewsApi, postReviewApi, deleteReviewApi, updateReviewApi } from '../../api/rooms';
 import { startConversationApi } from '../../api/messages';
+import { createBookingApi, checkRentedApi } from '../../api/bookings';
 import UserNavbar from '../../components/UserNavbar';
 import './RoomDetail.css';
 
@@ -105,6 +106,13 @@ export default function RoomDetail({ user, onLogout }) {
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [editMode, setEditMode] = useState(false);
 
+  // Booking state
+  const [showBookingForm, setShowBookingForm] = useState(false);
+  const [bookingForm, setBookingForm] = useState({ ngay_bat_dau: '', ngay_ket_thuc: '', ghi_chu: '' });
+  const [bookingLoading, setBookingLoading] = useState(false);
+  const [bookingMsg, setBookingMsg] = useState('');
+  const [daThue, setDaThue] = useState(false);
+
   useEffect(() => {
     setLoading(true);
     setImgIdx(0);
@@ -134,6 +142,12 @@ export default function RoomDetail({ user, onLogout }) {
       .catch(() => {});
   }, [id, user]);
 
+  // Check if user rented this room
+  useEffect(() => {
+    if (!user || !id) return;
+    checkRentedApi(id).then(d => setDaThue(d.daThue)).catch(() => {});
+  }, [id, user]);
+
   const toggleFav = async () => {
     if (!user) { navigate('/login'); return; }
     try {
@@ -153,6 +167,23 @@ export default function RoomDetail({ user, onLogout }) {
       navigate('/message');
     } finally {
       setChatLoading(false);
+    }
+  };
+
+  const handleBooking = async (e) => {
+    e.preventDefault();
+    if (!user) { navigate('/login'); return; }
+    setBookingLoading(true);
+    setBookingMsg('');
+    try {
+      await createBookingApi({ ma_phong: id, ...bookingForm });
+      setBookingMsg('✅ Đã gửi yêu cầu đặt phòng! Chủ trọ sẽ liên hệ xác nhận.');
+      setBookingForm({ ngay_bat_dau: '', ngay_ket_thuc: '', ghi_chu: '' });
+      setTimeout(() => { setShowBookingForm(false); setBookingMsg(''); }, 3000);
+    } catch (err) {
+      setBookingMsg(`❌ ${err.message}`);
+    } finally {
+      setBookingLoading(false);
     }
   };
 
@@ -345,7 +376,9 @@ export default function RoomDetail({ user, onLogout }) {
             {/* Form đánh giá */}
             {user?.role === 'user' && (
               <div className="rd-review-action">
-                {myReview ? (
+                {!daThue && !myReview ? (
+                  <p className="rd-review-gate">💡 Chỉ người đã từng thuê phòng này mới có thể đánh giá.</p>
+                ) : myReview ? (
                   editMode ? (
                     <form className="rd-review-form" onSubmit={handleSubmitReview}>
                       <p className="rd-review-form-title">Sửa đánh giá của bạn</p>
@@ -515,6 +548,51 @@ export default function RoomDetail({ user, onLogout }) {
             >
               {chatLoading ? '⏳ Đang mở...' : '💬 Nhắn tin'}
             </button>
+
+            {/* Đặt phòng */}
+            {user?.role === 'user' && room.available && (
+              <div className="rd-booking-wrap">
+                {showBookingForm ? (
+                  <form className="rd-booking-form" onSubmit={handleBooking}>
+                    <p className="rd-booking-title">📋 Đặt phòng</p>
+                    <div className="rd-booking-field">
+                      <label>Ngày bắt đầu *</label>
+                      <input type="date" required
+                        min={new Date().toISOString().split('T')[0]}
+                        value={bookingForm.ngay_bat_dau}
+                        onChange={e => setBookingForm(f => ({ ...f, ngay_bat_dau: e.target.value }))} />
+                    </div>
+                    <div className="rd-booking-field">
+                      <label>Ngày kết thúc *</label>
+                      <input type="date" required
+                        min={bookingForm.ngay_bat_dau || new Date().toISOString().split('T')[0]}
+                        value={bookingForm.ngay_ket_thuc}
+                        onChange={e => setBookingForm(f => ({ ...f, ngay_ket_thuc: e.target.value }))} />
+                    </div>
+                    <div className="rd-booking-field">
+                      <label>Ghi chú</label>
+                      <textarea rows={2} placeholder="Yêu cầu đặc biệt..."
+                        value={bookingForm.ghi_chu}
+                        onChange={e => setBookingForm(f => ({ ...f, ghi_chu: e.target.value }))}
+                        maxLength={500} />
+                    </div>
+                    {bookingMsg && <p className={`rd-booking-msg ${bookingMsg.startsWith('✅') ? 'success' : 'error'}`}>{bookingMsg}</p>}
+                    <div className="rd-booking-btns">
+                      <button type="submit" className="rd-btn-book" disabled={bookingLoading}>
+                        {bookingLoading ? 'Đang gửi...' : '📤 Gửi yêu cầu'}
+                      </button>
+                      <button type="button" className="rd-btn-book-cancel" onClick={() => { setShowBookingForm(false); setBookingMsg(''); }}>
+                        Hủy
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <button className="rd-btn-book-open" onClick={() => setShowBookingForm(true)}>
+                    📋 Đặt phòng ngay
+                  </button>
+                )}
+              </div>
+            )}
 
             <div className="rd-contact-info">
               <div className="rd-info-row"><span>📐 Diện tích</span><strong>{room.area} m²</strong></div>

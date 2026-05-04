@@ -8,6 +8,8 @@ const NAV_LINKS = [
   { to: '/',          label: 'Trang chủ',  exact: true },
   { to: '/search',    label: 'Tìm phòng' },
   { to: '/favorites', label: 'Yêu thích' },
+  { to: '/bookings',  label: 'Đặt phòng' },
+  { to: '/maintenance', label: 'Sự cố' },
 ];
 
 export default function UserNavbar({ user, onLogout }) {

@@ -4,6 +4,24 @@ const auth = require('../middleware/auth');
 
 const router = express.Router();
 
+// GET /api/reviews/check-rented/:roomId - Kiểm tra user đã từng thuê phòng chưa
+router.get('/check-rented/:roomId', auth(['user']), async (req, res) => {
+  const roomId = parseInt(req.params.roomId);
+  if (isNaN(roomId)) return res.status(400).json({ message: 'ID không hợp lệ' });
+  try {
+    await poolConnect;
+    const result = await pool.request()
+      .input('ma_phong', sql.Int, roomId)
+      .input('ma_nd',    sql.Int, req.user.id)
+      .query(`SELECT 1 AS da_thue FROM dat_phong
+              WHERE ma_phong = @ma_phong AND ma_nguoi_thue = @ma_nd AND trang_thai = 'ended'`);
+    return res.json({ daThue: result.recordset.length > 0 });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Lỗi server' });
+  }
+});
+
 // GET /api/reviews/:roomId - Lấy danh sách đánh giá
 router.get('/:roomId', async (req, res) => {
   const roomId = parseInt(req.params.roomId);
@@ -71,6 +89,15 @@ router.post('/:roomId', auth(['user']), async (req, res) => {
       .query(`SELECT ma_phong FROM phong_tro WHERE ma_phong = @ma_phong AND trang_thai = 'approved'`);
     if (!roomCheck.recordset.length)
       return res.status(404).json({ message: 'Không tìm thấy phòng' });
+
+    // Kiểm tra đã từng thuê phòng này chưa (phải có booking ended)
+    const rentedCheck = await pool.request()
+      .input('ma_phong', sql.Int, roomId)
+      .input('ma_nd',    sql.Int, req.user.id)
+      .query(`SELECT 1 FROM dat_phong
+              WHERE ma_phong = @ma_phong AND ma_nguoi_thue = @ma_nd AND trang_thai = 'ended'`);
+    if (!rentedCheck.recordset.length)
+      return res.status(403).json({ message: 'Bạn chỉ có thể đánh giá phòng đã từng thuê' });
 
     // Kiểm tra đã đánh giá chưa
     const existing = await pool.request()

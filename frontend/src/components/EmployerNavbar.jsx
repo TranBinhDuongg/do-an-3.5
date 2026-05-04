@@ -4,10 +4,12 @@ import NotificationBell from './NotificationBell';
 import './EmployerNavbar.css';
 
 const NAV_LINKS = [
-  { to: '/employer',         label: 'Tổng quan' },
-  { to: '/employer/rooms',   label: 'Tin đăng' },
-  { to: '/employer/wallet',  label: 'Ví của tôi' },
-  { to: '/employer/pricing', label: 'Dịch vụ', highlight: true },
+  { to: '/employer',              label: 'Tổng quan' },
+  { to: '/employer/rooms',        label: 'Tin đăng' },
+  { to: '/employer/bookings',     label: 'Đặt phòng' },
+  { to: '/employer/maintenance',  label: 'Sự cố' },
+  { to: '/employer/wallet',       label: 'Ví của tôi' },
+  { to: '/employer/pricing',      label: 'Dịch vụ', highlight: true },
 ];
 
 export default function EmployerNavbar({ user, onLogout }) {

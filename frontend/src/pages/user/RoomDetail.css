@@ -399,3 +399,35 @@
 .rd-review-name { font-size: 14px; font-weight: 600; color: #1e293b; margin: 0; }
 .rd-review-date { font-size: 11px; color: #94a3b8; margin: 0; }
 .rd-review-content { font-size: 14px; color: #475569; margin: 0; line-height: 1.6; }
+
+/* ===== BOOKING FORM IN SIDEBAR ===== */
+.rd-booking-wrap { margin-top: 12px; }
+.rd-btn-book-open {
+  width: 100%; background: #16a34a; color: #fff; border: none;
+  padding: 12px; border-radius: 8px; font-size: 0.95rem; font-weight: 700;
+  cursor: pointer; transition: background 0.2s;
+}
+.rd-btn-book-open:hover { background: #15803d; }
+.rd-booking-form { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 14px; }
+.rd-booking-title { font-size: 0.9rem; font-weight: 700; color: #15803d; margin: 0 0 12px; }
+.rd-booking-field { margin-bottom: 10px; }
+.rd-booking-field label { display: block; font-size: 0.78rem; font-weight: 600; color: #555; margin-bottom: 4px; }
+.rd-booking-field input, .rd-booking-field textarea {
+  width: 100%; border: 1px solid #ddd; border-radius: 6px; padding: 7px 10px;
+  font-size: 0.85rem; font-family: inherit; box-sizing: border-box;
+}
+.rd-booking-field input:focus, .rd-booking-field textarea:focus { outline: none; border-color: #16a34a; }
+.rd-booking-msg { font-size: 0.82rem; padding: 6px 10px; border-radius: 6px; margin: 6px 0; }
+.rd-booking-msg.success { background: #d4edda; color: #155724; }
+.rd-booking-msg.error   { background: #f8d7da; color: #721c24; }
+.rd-booking-btns { display: flex; gap: 8px; }
+.rd-btn-book { background: #16a34a; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer; flex: 1; }
+.rd-btn-book:hover:not(:disabled) { background: #15803d; }
+.rd-btn-book:disabled { opacity: 0.6; cursor: not-allowed; }
+.rd-btn-book-cancel { background: #fff; color: #666; border: 1px solid #ddd; padding: 8px 12px; border-radius: 6px; font-size: 0.85rem; cursor: pointer; }
+
+/* ===== REVIEW GATE ===== */
+.rd-review-gate {
+  background: #f0f4ff; border: 1px solid #c5d8fb; border-radius: 8px;
+  padding: 10px 14px; font-size: 0.85rem; color: #1a73e8; margin: 0;
+}

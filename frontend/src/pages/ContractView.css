@@ -1,0 +1,68 @@
+.cv-wrap { min-height: 100vh; background: #f5f7fa; }
+.cv-container { max-width: 860px; margin: 0 auto; padding: 24px 16px 48px; }
+.cv-back { margin-bottom: 16px; }
+.cv-back-btn { background: none; border: none; color: #e84393; font-size: 0.9rem; font-weight: 600; cursor: pointer; padding: 0; }
+.cv-back-btn:hover { text-decoration: underline; }
+
+.cv-loading { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 80px; color: #666; }
+.cv-spinner { width: 36px; height: 36px; border: 3px solid #eee; border-top-color: #e84393; border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.cv-doc { background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,.08); padding: 40px; }
+
+.cv-doc-header { text-align: center; border-bottom: 2px solid #e84393; padding-bottom: 20px; margin-bottom: 28px; }
+.cv-doc-header h1 { font-size: 1.6rem; font-weight: 800; color: #1a1a2e; margin: 0 0 6px; letter-spacing: 1px; }
+.cv-doc-sub { color: #888; font-size: 0.9rem; margin: 0 0 12px; }
+
+.cv-status { display: inline-block; padding: 4px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 700; }
+.cv-status.draft      { background: #fff3cd; color: #856404; }
+.cv-status.signed     { background: #d4edda; color: #155724; }
+.cv-status.terminated { background: #f8d7da; color: #721c24; }
+.cv-status.expired    { background: #e2e3e5; color: #383d41; }
+
+.cv-section { margin-bottom: 28px; }
+.cv-section h2 { font-size: 1rem; font-weight: 700; color: #1a1a2e; border-left: 4px solid #e84393; padding-left: 10px; margin-bottom: 14px; }
+
+.cv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.cv-grid label { font-size: 0.78rem; color: #888; display: block; margin-bottom: 2px; }
+.cv-grid p { font-size: 0.9rem; color: #333; margin: 0; font-weight: 500; }
+.cv-price { color: #e84393; font-weight: 700; font-size: 1rem !important; }
+
+.cv-terms-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.cv-terms-header h2 { margin: 0; }
+.cv-edit-btn { background: #f0f4ff; color: #1a73e8; border: 1px solid #c5d8fb; padding: 6px 14px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
+.cv-edit-btn:hover { background: #dce8fb; }
+
+.cv-terms-text { background: #f9f9f9; border-radius: 8px; padding: 16px; font-size: 0.88rem; color: #444; line-height: 1.7; }
+.cv-terms-text p { margin: 0 0 4px; }
+
+.cv-terms-textarea { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 12px; font-size: 0.88rem; line-height: 1.7; resize: vertical; font-family: inherit; box-sizing: border-box; }
+.cv-terms-btns { display: flex; gap: 10px; margin-top: 10px; }
+.cv-save-btn { background: #e84393; color: #fff; border: none; padding: 8px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; }
+.cv-save-btn:hover:not(:disabled) { background: #c73280; }
+.cv-save-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.cv-cancel-btn { background: #fff; color: #666; border: 1px solid #ddd; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
+
+.cv-sign-section { border-top: 1px dashed #ddd; padding-top: 24px; }
+.cv-sign-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.cv-sign-box { text-align: center; border: 1px solid #eee; border-radius: 8px; padding: 20px; }
+.cv-sign-role { font-size: 0.82rem; color: #888; margin: 0 0 4px; }
+.cv-sign-name { font-weight: 700; color: #1a1a2e; margin: 0 0 12px; }
+.cv-signed   { color: #155724; background: #d4edda; padding: 6px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 600; display: inline-block; }
+.cv-unsigned { color: #856404; background: #fff3cd; padding: 6px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 600; display: inline-block; }
+.cv-sign-date { text-align: center; color: #888; font-size: 0.85rem; margin-top: 12px; }
+
+.cv-actions { text-align: center; padding-top: 24px; border-top: 1px solid #eee; }
+.cv-sign-btn { background: #e84393; color: #fff; border: none; padding: 14px 40px; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer; }
+.cv-sign-btn:hover:not(:disabled) { background: #c73280; }
+.cv-sign-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.cv-sign-note { color: #888; font-size: 0.82rem; margin-top: 8px; }
+
+.cv-toast { position: fixed; top: 80px; right: 20px; padding: 12px 20px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; z-index: 9999; }
+.cv-toast.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+.cv-toast.error   { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+@media (max-width: 600px) {
+  .cv-doc { padding: 20px 16px; }
+  .cv-sign-grid { grid-template-columns: 1fr; }
+}

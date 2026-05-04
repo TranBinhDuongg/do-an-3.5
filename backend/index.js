@@ -71,6 +71,9 @@ app.use('/api/reviews',      require('./src/routes/reviews'));
 app.use('/api/wallet',       require('./src/routes/wallet'));
 app.use('/api/admin',        require('./src/routes/payment_admin'));
 app.use('/api/messages',     require('./src/routes/messages'));
+app.use('/api/bookings',     require('./src/routes/bookings'));
+app.use('/api/contracts',    require('./src/routes/contracts'));
+app.use('/api/maintenance',  require('./src/routes/maintenance'));
 
 app.get('/', (req, res) => res.json({ message: 'ThueNhaVN API running' }));
 

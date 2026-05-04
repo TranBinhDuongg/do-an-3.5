@@ -15,6 +15,8 @@ import Pricing from './pages/employer/Pricing';
 import EmployerRoomDetail from './pages/employer/RoomDetail';
 import EditRoom from './pages/employer/EditRoom';
 import Wallet from './pages/employer/Wallet';
+import EmployerBookings from './pages/employer/Bookings';
+import MaintenanceManage from './pages/employer/MaintenanceManage';
 import AdminLogin from './pages/admin/Login';
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminRooms from './pages/admin/Rooms';
@@ -24,6 +26,9 @@ import AdminTopups from './pages/admin/Topups';
 import Profile from './pages/Profile';
 import Message from './pages/user/Message';
 import Favorites from './pages/user/Favorites';
+import Bookings from './pages/user/Bookings';
+import Maintenance from './pages/user/Maintenance';
+import ContractView from './pages/ContractView';
 import ChatBubble from './components/ChatBubble';
 import GoogleCallback from './pages/GoogleCallback';
 import RoomDetail from './pages/user/RoomDetail';
@@ -71,6 +76,9 @@ export default function App() {
         <Route path="/admin/topups"    element={<AdminTopups    user={user} onLogout={logout} />} />
         <Route path="/profile"    element={<Profile   user={user} onLogin={login} onLogout={logout} />} />
         <Route path="/favorites"  element={<Favorites user={user} onLogout={logout} />} />
+        <Route path="/bookings"   element={<Bookings  user={user} onLogout={logout} />} />
+        <Route path="/bookings/:bookingId/contract" element={<ContractView user={user} onLogout={logout} />} />
+        <Route path="/maintenance" element={<Maintenance user={user} onLogout={logout} />} />
         <Route path="/employer"       element={<EmployerHome user={user} onLogout={logout} />} />
         <Route path="/employer/rooms"   element={<Rooms    user={user} onLogout={logout} />} />
         <Route path="/employer/post"    element={<PostRoom user={user} onLogout={logout} />} />
@@ -78,6 +86,9 @@ export default function App() {
         <Route path="/employer/rooms/:id" element={<EmployerRoomDetail user={user} onLogout={logout} />} />
         <Route path="/employer/rooms/:id/edit" element={<EditRoom user={user} onLogout={logout} />} />
         <Route path="/employer/wallet"         element={<Wallet   user={user} onLogout={logout} />} />
+        <Route path="/employer/bookings"       element={<EmployerBookings user={user} onLogout={logout} />} />
+        <Route path="/employer/bookings/:bookingId/contract" element={<ContractView user={user} onLogout={logout} />} />
+        <Route path="/employer/maintenance"    element={<MaintenanceManage user={user} onLogout={logout} />} />
         <Route path="*"         element={<Navigate to="/" replace />} />
       </Routes>
       <ChatBubbleWrapper />

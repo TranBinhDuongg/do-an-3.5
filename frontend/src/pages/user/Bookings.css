@@ -1,0 +1,61 @@
+.bk-wrap { min-height: 100vh; background: #f5f7fa; }
+.bk-container { max-width: 900px; margin: 0 auto; padding: 32px 16px; }
+.bk-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+.bk-header h1 { font-size: 1.5rem; font-weight: 700; color: #1a1a2e; margin: 0; }
+.bk-find-btn { background: #e84393; color: #fff; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.9rem; }
+.bk-find-btn:hover { background: #c73280; }
+
+.bk-loading { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 60px; color: #666; }
+.bk-spinner { width: 36px; height: 36px; border: 3px solid #eee; border-top-color: #e84393; border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.bk-empty { text-align: center; padding: 60px 20px; color: #888; }
+.bk-empty span { font-size: 3rem; display: block; margin-bottom: 12px; }
+.bk-empty p { margin-bottom: 20px; font-size: 1rem; }
+
+.bk-list { display: flex; flex-direction: column; gap: 16px; }
+
+.bk-card { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.07); display: flex; overflow: hidden; }
+.bk-card-img { width: 180px; flex-shrink: 0; }
+.bk-card-img img { width: 100%; height: 100%; object-fit: cover; }
+.bk-card-body { flex: 1; padding: 16px 20px; display: flex; flex-direction: column; gap: 6px; }
+
+.bk-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.bk-room-title { font-size: 1rem; font-weight: 700; color: #1a1a2e; margin: 0; flex: 1; }
+
+.bk-status { font-size: 0.78rem; font-weight: 600; padding: 4px 10px; border-radius: 20px; white-space: nowrap; }
+.bk-status.pending   { background: #fff3cd; color: #856404; }
+.bk-status.confirmed { background: #d1ecf1; color: #0c5460; }
+.bk-status.rejected  { background: #f8d7da; color: #721c24; }
+.bk-status.active    { background: #d4edda; color: #155724; }
+.bk-status.ended     { background: #e2e3e5; color: #383d41; }
+.bk-status.cancelled { background: #f8d7da; color: #721c24; }
+
+.bk-address { font-size: 0.85rem; color: #666; margin: 0; }
+.bk-dates   { font-size: 0.85rem; color: #555; }
+.bk-money   { display: flex; gap: 16px; font-size: 0.85rem; color: #333; font-weight: 600; }
+.bk-landlord { font-size: 0.82rem; color: #666; margin: 0; }
+.bk-note    { font-size: 0.82rem; color: #888; font-style: italic; margin: 0; }
+
+.bk-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+.bk-btn-contract    { background: #e8f4fd; color: #1a73e8; border: 1px solid #c5dff8; padding: 6px 14px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; text-decoration: none; cursor: pointer; }
+.bk-btn-contract:hover { background: #d0e8fb; }
+.bk-btn-maintenance { background: #fff3e0; color: #e65100; border: 1px solid #ffcc80; padding: 6px 14px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; text-decoration: none; cursor: pointer; }
+.bk-btn-maintenance:hover { background: #ffe0b2; }
+.bk-btn-cancel { background: #fff; color: #dc3545; border: 1px solid #dc3545; padding: 6px 14px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
+.bk-btn-cancel:hover:not(:disabled) { background: #dc3545; color: #fff; }
+.bk-btn-cancel:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.bk-toast { position: fixed; top: 80px; right: 20px; padding: 12px 20px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; z-index: 9999; animation: fadeIn 0.3s; }
+.bk-toast.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+.bk-toast.error   { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+@media (max-width: 600px) {
+  .bk-card { flex-direction: column; }
+  .bk-card-img { width: 100%; height: 160px; }
+}
+
+.bk-btn-chat { background: #e8f4fd; color: #1a73e8; border: 1px solid #c5dff8; padding: 6px 14px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
+.bk-btn-chat:hover:not(:disabled) { background: #d0e8fb; }
+.bk-btn-chat:disabled { opacity: 0.6; cursor: not-allowed; }
