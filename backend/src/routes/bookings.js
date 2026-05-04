@@ -101,19 +101,24 @@ router.get('/my', auth(['user']), async (req, res) => {
 router.put('/:id/cancel', auth(['user']), async (req, res) => {
   try {
     await poolConnect;
-    const result = await pool.request()
+    // Lấy thông tin trước
+    const check = await pool.request()
       .input('ma_dp', sql.Int, req.params.id)
       .input('ma_nd', sql.Int, req.user.id)
-      .query(`UPDATE dat_phong SET trang_thai = 'cancelled'
-              OUTPUT INSERTED.ma_chu_tro
+      .query(`SELECT ma_chu_tro FROM dat_phong
               WHERE ma_dp = @ma_dp AND ma_nguoi_thue = @ma_nd AND trang_thai IN ('pending','confirmed')`);
 
-    if (result.recordset.length === 0)
+    if (check.recordset.length === 0)
       return res.status(400).json({ message: 'Không thể hủy booking này' });
 
-    const ma_chu_tro = result.recordset[0].ma_chu_tro;
+    const ma_chu_tro = check.recordset[0].ma_chu_tro;
+
     await pool.request()
-      .input('ma_nd',    sql.Int,          ma_chu_tro)
+      .input('ma_dp', sql.Int, req.params.id)
+      .query(`UPDATE dat_phong SET trang_thai = 'cancelled' WHERE ma_dp = @ma_dp`);
+
+    await pool.request()
+      .input('ma_nd',    sql.Int,           ma_chu_tro)
       .input('noi_dung', sql.NVarChar(500), `❌ Người thuê đã hủy yêu cầu đặt phòng #${req.params.id}`)
       .query(`INSERT INTO thong_bao (ma_nd, bieu_tuong, noi_dung) VALUES (@ma_nd, N'❌', @noi_dung)`);
 
@@ -167,20 +172,25 @@ router.put('/:id/respond', auth(['employer']), async (req, res) => {
 
   try {
     await poolConnect;
-    const result = await pool.request()
-      .input('ma_dp',     sql.Int,          req.params.id)
-      .input('ma_chu_tro',sql.Int,          req.user.id)
-      .input('trang_thai',sql.NVarChar(20), action)
-      .query(`UPDATE dat_phong SET trang_thai = @trang_thai
-              OUTPUT INSERTED.ma_nguoi_thue, INSERTED.ma_phong,
-                     INSERTED.ngay_bat_dau, INSERTED.ngay_ket_thuc,
-                     INSERTED.tien_thue, INSERTED.tien_coc
+
+    // Lấy thông tin booking trước
+    const bookingRes = await pool.request()
+      .input('ma_dp',      sql.Int, req.params.id)
+      .input('ma_chu_tro', sql.Int, req.user.id)
+      .query(`SELECT ma_dp, ma_nguoi_thue, ma_phong, ngay_bat_dau, ngay_ket_thuc, tien_thue, tien_coc
+              FROM dat_phong
               WHERE ma_dp = @ma_dp AND ma_chu_tro = @ma_chu_tro AND trang_thai = 'pending'`);
 
-    if (result.recordset.length === 0)
+    if (bookingRes.recordset.length === 0)
       return res.status(400).json({ message: 'Không tìm thấy booking hoặc đã xử lý' });
 
-    const booking = result.recordset[0];
+    const booking = bookingRes.recordset[0];
+
+    // Cập nhật trạng thái
+    await pool.request()
+      .input('ma_dp',      sql.Int,          req.params.id)
+      .input('trang_thai', sql.NVarChar(20), action)
+      .query(`UPDATE dat_phong SET trang_thai = @trang_thai WHERE ma_dp = @ma_dp`);
 
     // Nếu xác nhận → tạo hợp đồng nháp
     if (action === 'confirmed') {
@@ -192,14 +202,14 @@ router.put('/:id/respond', auth(['employer']), async (req, res) => {
         `5. Không được tự ý sửa chữa, cải tạo phòng khi chưa có sự đồng ý của chủ trọ.`;
 
       await pool.request()
-        .input('ma_dp',         sql.Int,          parseInt(req.params.id))
-        .input('ma_phong',      sql.Int,          booking.ma_phong)
-        .input('ma_nguoi_thue', sql.Int,          booking.ma_nguoi_thue)
-        .input('ma_chu_tro',    sql.Int,          req.user.id)
-        .input('ngay_bat_dau',  sql.Date,         booking.ngay_bat_dau)
-        .input('ngay_ket_thuc', sql.Date,         booking.ngay_ket_thuc)
-        .input('tien_thue',     sql.Decimal(12,0), booking.tien_thue)
-        .input('tien_coc',      sql.Decimal(12,0), booking.tien_coc)
+        .input('ma_dp',         sql.Int,               parseInt(req.params.id))
+        .input('ma_phong',      sql.Int,               booking.ma_phong)
+        .input('ma_nguoi_thue', sql.Int,               booking.ma_nguoi_thue)
+        .input('ma_chu_tro',    sql.Int,               req.user.id)
+        .input('ngay_bat_dau',  sql.Date,              booking.ngay_bat_dau)
+        .input('ngay_ket_thuc', sql.Date,              booking.ngay_ket_thuc)
+        .input('tien_thue',     sql.Decimal(12, 0),    booking.tien_thue)
+        .input('tien_coc',      sql.Decimal(12, 0),    booking.tien_coc)
         .input('dieu_khoan',    sql.NVarChar(sql.MAX), defaultTerms)
         .query(`INSERT INTO hop_dong (ma_dp, ma_phong, ma_nguoi_thue, ma_chu_tro, ngay_bat_dau, ngay_ket_thuc, tien_thue, tien_coc, dieu_khoan)
                 VALUES (@ma_dp, @ma_phong, @ma_nguoi_thue, @ma_chu_tro, @ngay_bat_dau, @ngay_ket_thuc, @tien_thue, @tien_coc, @dieu_khoan)`);
@@ -211,7 +221,7 @@ router.put('/:id/respond', auth(['employer']), async (req, res) => {
       : `❌ Yêu cầu đặt phòng #${req.params.id} đã bị từ chối.`;
 
     await pool.request()
-      .input('ma_nd',    sql.Int,          booking.ma_nguoi_thue)
+      .input('ma_nd',    sql.Int,           booking.ma_nguoi_thue)
       .input('noi_dung', sql.NVarChar(500), msg)
       .query(`INSERT INTO thong_bao (ma_nd, bieu_tuong, noi_dung) VALUES (@ma_nd, N'📋', @noi_dung)`);
 
@@ -227,15 +237,20 @@ router.put('/:id/respond', auth(['employer']), async (req, res) => {
 router.put('/:id/activate', auth(['employer']), async (req, res) => {
   try {
     await poolConnect;
-    const result = await pool.request()
-      .input('ma_dp',     sql.Int, req.params.id)
-      .input('ma_chu_tro',sql.Int, req.user.id)
-      .query(`UPDATE dat_phong SET trang_thai = 'active'
-              OUTPUT INSERTED.ma_nguoi_thue
+    const check = await pool.request()
+      .input('ma_dp',      sql.Int, req.params.id)
+      .input('ma_chu_tro', sql.Int, req.user.id)
+      .query(`SELECT ma_nguoi_thue FROM dat_phong
               WHERE ma_dp = @ma_dp AND ma_chu_tro = @ma_chu_tro AND trang_thai = 'confirmed'`);
 
-    if (result.recordset.length === 0)
+    if (check.recordset.length === 0)
       return res.status(400).json({ message: 'Không thể kích hoạt booking này' });
+
+    const ma_nguoi_thue = check.recordset[0].ma_nguoi_thue;
+
+    await pool.request()
+      .input('ma_dp', sql.Int, req.params.id)
+      .query(`UPDATE dat_phong SET trang_thai = 'active' WHERE ma_dp = @ma_dp`);
 
     // Cập nhật trạng thái phòng → hết chỗ
     await pool.request()
@@ -244,7 +259,7 @@ router.put('/:id/activate', auth(['employer']), async (req, res) => {
               WHERE ma_phong = (SELECT ma_phong FROM dat_phong WHERE ma_dp = @ma_dp)`);
 
     await pool.request()
-      .input('ma_nd',    sql.Int,          result.recordset[0].ma_nguoi_thue)
+      .input('ma_nd',    sql.Int,           ma_nguoi_thue)
       .input('noi_dung', sql.NVarChar(500), `🏠 Hợp đồng thuê phòng #${req.params.id} đã bắt đầu hiệu lực!`)
       .query(`INSERT INTO thong_bao (ma_nd, bieu_tuong, noi_dung) VALUES (@ma_nd, N'🏠', @noi_dung)`);
 
@@ -260,17 +275,20 @@ router.put('/:id/activate', auth(['employer']), async (req, res) => {
 router.put('/:id/end', auth(['employer']), async (req, res) => {
   try {
     await poolConnect;
-    const result = await pool.request()
-      .input('ma_dp',     sql.Int, req.params.id)
-      .input('ma_chu_tro',sql.Int, req.user.id)
-      .query(`UPDATE dat_phong SET trang_thai = 'ended'
-              OUTPUT INSERTED.ma_nguoi_thue, INSERTED.ma_phong
+    const check = await pool.request()
+      .input('ma_dp',      sql.Int, req.params.id)
+      .input('ma_chu_tro', sql.Int, req.user.id)
+      .query(`SELECT ma_nguoi_thue, ma_phong FROM dat_phong
               WHERE ma_dp = @ma_dp AND ma_chu_tro = @ma_chu_tro AND trang_thai = 'active'`);
 
-    if (result.recordset.length === 0)
+    if (check.recordset.length === 0)
       return res.status(400).json({ message: 'Không thể kết thúc booking này' });
 
-    const { ma_nguoi_thue, ma_phong } = result.recordset[0];
+    const { ma_nguoi_thue, ma_phong } = check.recordset[0];
+
+    await pool.request()
+      .input('ma_dp', sql.Int, req.params.id)
+      .query(`UPDATE dat_phong SET trang_thai = 'ended' WHERE ma_dp = @ma_dp`);
 
     // Mở lại phòng
     await pool.request()
@@ -283,7 +301,7 @@ router.put('/:id/end', auth(['employer']), async (req, res) => {
       .query(`UPDATE hop_dong SET trang_thai = 'expired' WHERE ma_dp = @ma_dp`);
 
     await pool.request()
-      .input('ma_nd',    sql.Int,          ma_nguoi_thue)
+      .input('ma_nd',    sql.Int,           ma_nguoi_thue)
       .input('noi_dung', sql.NVarChar(500), `📝 Hợp đồng thuê phòng #${req.params.id} đã kết thúc. Cảm ơn bạn đã sử dụng dịch vụ!`)
       .query(`INSERT INTO thong_bao (ma_nd, bieu_tuong, noi_dung) VALUES (@ma_nd, N'📝', @noi_dung)`);
 
