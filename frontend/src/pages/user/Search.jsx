@@ -85,7 +85,7 @@ export default function Search({ user, onLogout }) {
             <option value="">🏠 Loại nhà</option>
             {TYPES.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
-          <button className="search-topbar-btn">Tìm kiếm</button>
+
         </div>
       </div>
 

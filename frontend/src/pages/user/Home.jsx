@@ -77,9 +77,6 @@ export default function Home({ user, onLogout }) {
         <div className="home-hero-bg" />
         <div className="home-hero-overlay" />
         <div className="home-hero-content">
-          <div className="home-hero-badge-top">
-            <span role="img" aria-label="trophy">🏆</span> Nền tảng tìm nhà cho thuê uy tín #1 Việt Nam
-          </div>
           <h1 className="home-hero-title">
             Tìm <span className="home-hero-highlight">Nhà Ưng Ý</span><br />
             Chỉ Trong Vài Giây

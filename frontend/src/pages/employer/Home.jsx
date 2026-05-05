@@ -120,9 +120,14 @@ export default function EmployerHome({ user, onLogout }) {
                         <div className="emp-room-info">
                           <div className="emp-room-top">
                             <h3 className="emp-room-title">{room.title}</h3>
-                            <span className={`emp-room-status ${STATUS_LABEL[room.status]?.cls}`}>
-                              ● {STATUS_LABEL[room.status]?.text}
-                            </span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                              {!room.available && (
+                                <span className="emp-rented-badge">🔑 Đang cho thuê</span>
+                              )}
+                              <span className={`emp-room-status ${STATUS_LABEL[room.status]?.cls}`}>
+                                ● {STATUS_LABEL[room.status]?.text}
+                              </span>
+                            </div>
                           </div>
                           <p className="emp-room-addr">📍 {room.address}</p>
                           <div className="emp-room-meta">
