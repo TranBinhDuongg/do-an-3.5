@@ -38,11 +38,32 @@ export default function Home({ user, onLogout }) {
   const [search, setSearch] = useState({ keyword: '', city: '', type: '' });
   const [newRooms, setNewRooms]          = useState([]);
   const [featuredRooms, setFeaturedRooms] = useState([]);
-  const [topRooms, setTopRooms]           = useState([]);   // VIP Diamond/Gold/Silver
-  const [trustedRooms, setTrustedRooms]   = useState([]);   // Uy tín / Pro / Basic
+  const [topRooms, setTopRooms]           = useState([]);
+  const [trustedRooms, setTrustedRooms]   = useState([]);
   const [stats, setStats] = useState({ total_rooms: 0, total_employers: 0, total_users: 0 });
   const [heroTab, setHeroTab] = useState('keyword');
+  const [listening, setListening] = useState(false);
+  const recognitionRef = useRef(null);
   const navigate = useNavigate();
+
+  const startVoice = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) { alert('Trình duyệt không hỗ trợ tìm kiếm bằng giọng nói.'); return; }
+    if (listening) { recognitionRef.current?.stop(); setListening(false); return; }
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'vi-VN';
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
+    recognitionRef.current = recognition;
+    recognition.onstart  = () => setListening(true);
+    recognition.onend    = () => setListening(false);
+    recognition.onerror  = () => setListening(false);
+    recognition.onresult = (e) => {
+      const transcript = Array.from(e.results).map(r => r[0].transcript).join('');
+      setSearch(s => ({ ...s, keyword: transcript }));
+    };
+    recognition.start();
+  };
 
   useEffect(() => {
     getHomeDataApi()
@@ -103,6 +124,18 @@ export default function Home({ user, onLogout }) {
                   value={search.keyword}
                   onChange={e => setSearch({ ...search, keyword: e.target.value })}
                 />
+                <button
+                  type="button"
+                  className={`home-mic-btn ${listening ? 'listening' : ''}`}
+                  onClick={startVoice}
+                  title={listening ? 'Đang nghe... (nhấn để dừng)' : 'Tìm kiếm bằng giọng nói'}
+                >
+                  {listening ? (
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+                  ) : (
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                  )}
+                </button>
               </div>
               <div className="home-search-divider" />
               <select value={search.city} onChange={e => setSearch({ ...search, city: e.target.value })}>

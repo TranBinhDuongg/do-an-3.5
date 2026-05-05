@@ -1021,3 +1021,21 @@
     gap: 12px;
   }
 }
+
+/* Mic button in hero search */
+.home-mic-btn {
+  background: none; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  padding: 4px 6px; border-radius: 6px;
+  color: #94a3b8; transition: color 0.2s, background 0.2s;
+  flex-shrink: 0;
+}
+.home-mic-btn:hover { color: #2563eb; background: #eff6ff; }
+.home-mic-btn.listening {
+  color: #ef4444;
+  animation: mic-pulse 1s ease-in-out infinite;
+}
+@keyframes mic-pulse {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.2); }
+}

@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+﻿import { useState, useEffect, useRef } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { getRoomsApi, addFavoriteApi, removeFavoriteApi, checkFavoriteApi } from '../../api/rooms';
 import UserNavbar from '../../components/UserNavbar';
@@ -44,6 +44,8 @@ export default function Search({ user, onLogout }) {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading]     = useState(false);
   const [viewMode, setViewMode]   = useState('grid');
+  const [listening, setListening] = useState(false);
+  const recognitionRef = useRef(null);
   const navigate = useNavigate();
 
   const priceFilter = PRICES[priceIdx];
@@ -63,6 +65,34 @@ export default function Search({ user, onLogout }) {
 
   const activeCount = [city, type, priceIdx > 0 ? '1' : '', minArea].filter(Boolean).length;
 
+  const startVoice = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) { alert('Trình duyệt không hỗ trợ tìm kiếm bằng giọng nói.'); return; }
+
+    if (listening) {
+      recognitionRef.current?.stop();
+      setListening(false);
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'vi-VN';
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
+    recognitionRef.current = recognition;
+
+    recognition.onstart  = () => setListening(true);
+    recognition.onend    = () => setListening(false);
+    recognition.onerror  = () => setListening(false);
+    recognition.onresult = (e) => {
+      const transcript = Array.from(e.results)
+        .map(r => r[0].transcript).join('');
+      setKeyword(transcript);
+      setPage(1);
+    };
+    recognition.start();
+  };
+
   return (
     <div className="search-page">
       {/* NAVBAR */}
@@ -76,6 +106,17 @@ export default function Search({ user, onLogout }) {
             <input type="text" placeholder="Tìm theo tên, địa chỉ, khu vực..."
               value={keyword} onChange={e => setKeyword(e.target.value)} />
             {keyword && <button className="search-clear-input" onClick={() => setKeyword('')}>✕</button>}
+            <button
+              className={`search-mic-btn ${listening ? 'listening' : ''}`}
+              onClick={startVoice}
+              title={listening ? 'Đang nghe... (nhấn để dừng)' : 'Tìm kiếm bằng giọng nói'}
+            >
+              {listening ? (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+              )}
+            </button>
           </div>
           <select value={city} onChange={e => setCity(e.target.value)}>
             <option value="">📍 Tất cả tỉnh/thành</option>

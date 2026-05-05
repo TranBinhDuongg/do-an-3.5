@@ -320,3 +320,20 @@
   box-shadow: 0 6px 20px rgba(124,58,237,0.16);
 }
 
+
+/* Mic button */
+.search-mic-btn {
+  background: none; border: none; cursor: pointer;
+  font-size: 16px; padding: 2px 4px; line-height: 1;
+  color: #94a3b8; transition: color 0.2s, transform 0.15s;
+  flex-shrink: 0;
+}
+.search-mic-btn:hover { color: #2563eb; }
+.search-mic-btn.listening {
+  color: #ef4444;
+  animation: mic-pulse 1s ease-in-out infinite;
+}
+@keyframes mic-pulse {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.25); }
+}
