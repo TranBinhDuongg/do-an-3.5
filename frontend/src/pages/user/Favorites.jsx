@@ -41,6 +41,7 @@ export default function Favorites({ user, onLogout }) {
   const handleRemove = async (roomId, e) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!window.confirm('Bạn có chắc muốn xóa nhà này khỏi danh sách yêu thích?')) return;
     try {
       await removeFavoriteApi(roomId);
       setAllRooms(prev => prev.filter(r => r.id !== roomId));
