@@ -31,7 +31,7 @@ export default function Favorites({ user, onLogout }) {
       .finally(() => setLoading(false));
   }, [user]);
 
-  useEffect(() => { setPageInput(String(page)); }, [page]);
+  useEffect(() => { setPageInput(String(page)); window.scrollTo({ top: 0, behavior: 'smooth' }); }, [page]);
 
   // Reset to page 1 if current page exceeds total after removal
   useEffect(() => {

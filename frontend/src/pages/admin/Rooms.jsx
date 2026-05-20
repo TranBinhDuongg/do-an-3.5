@@ -64,7 +64,7 @@ export default function AdminRooms({ user, onLogout }) {
 
   useEffect(() => { fetchRooms(); }, [fetchRooms]);
   useEffect(() => { setPage(1); }, [tab, search]);
-  useEffect(() => { setPageInput(String(page)); }, [page]);
+  useEffect(() => { setPageInput(String(page)); window.scrollTo({ top: 0, behavior: 'smooth' }); }, [page]);
 
   const openDetail = async (room) => {
     setDetail(room);

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import './App.css';
 import Login from './pages/user/Login';
@@ -33,6 +33,12 @@ import ChatBubble from './components/ChatBubble';
 import GoogleCallback from './pages/GoogleCallback';
 import RoomDetail from './pages/user/RoomDetail';
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, [pathname]);
+  return null;
+}
+
 function ChatBubbleWrapper() {
   const { pathname } = useLocation();
   if (pathname.startsWith('/admin') || ['/login', '/register', '/forgot-password', '/terms', '/privacy', '/message'].includes(pathname)) return null;
@@ -57,6 +63,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         <Route path="/"       element={<Home   user={user} onLogout={logout} />} />
         <Route path="/search"   element={<Search  user={user} onLogout={logout} />} />

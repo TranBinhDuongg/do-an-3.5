@@ -59,7 +59,7 @@ export default function Search({ user, onLogout }) {
       .finally(() => setLoading(false));
   }, [keyword, city, type, priceIdx, minArea, sort, page]);
 
-  useEffect(() => { setPageInput(String(page)); }, [page]);
+  useEffect(() => { setPageInput(String(page)); window.scrollTo({ top: 0, behavior: 'smooth' }); }, [page]);
 
   const clearFilters = () => {
     setKeyword(''); setCity(''); setType('');

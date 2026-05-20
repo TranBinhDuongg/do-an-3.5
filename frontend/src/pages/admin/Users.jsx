@@ -72,7 +72,7 @@ export default function AdminUsers({ user, onLogout }) {
 
   useEffect(() => { fetchUsers(); }, [fetchUsers]);
   useEffect(() => { setPage(1); }, [tab, search]);
-  useEffect(() => { setPageInput(String(page)); }, [page]);
+  useEffect(() => { setPageInput(String(page)); window.scrollTo({ top: 0, behavior: 'smooth' }); }, [page]);
 
   const toggleActive = async (u) => {
     const newActive = !u.active;
