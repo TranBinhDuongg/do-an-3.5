@@ -46,7 +46,12 @@ export default function Search({ user, onLogout }) {
   const [viewMode, setViewMode]   = useState('grid');
   const [pageInput, setPageInput] = useState('1');
   const [listening, setListening] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [searchHistory, setSearchHistory] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('searchHistory')) || []; } catch { return []; }
+  });
   const recognitionRef = useRef(null);
+  const historyRef = useRef(null);
   const navigate = useNavigate();
 
   const priceFilter = PRICES[priceIdx];
@@ -60,6 +65,44 @@ export default function Search({ user, onLogout }) {
   }, [keyword, city, type, priceIdx, minArea, sort, page]);
 
   useEffect(() => { setPageInput(String(page)); window.scrollTo({ top: 0, behavior: 'smooth' }); }, [page]);
+
+  // Save keyword to history when search triggers
+  useEffect(() => {
+    if (!keyword.trim()) return;
+    const timer = setTimeout(() => {
+      setSearchHistory(prev => {
+        const filtered = prev.filter(k => k !== keyword.trim());
+        const updated = [keyword.trim(), ...filtered].slice(0, 10);
+        localStorage.setItem('searchHistory', JSON.stringify(updated));
+        return updated;
+      });
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [keyword]);
+
+  // Close history dropdown on outside click
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (historyRef.current && !historyRef.current.contains(e.target)) setShowHistory(false);
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  const removeHistoryItem = (item, e) => {
+    e.stopPropagation();
+    setSearchHistory(prev => {
+      const updated = prev.filter(k => k !== item);
+      localStorage.setItem('searchHistory', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const clearHistory = (e) => {
+    e.stopPropagation();
+    setSearchHistory([]);
+    localStorage.removeItem('searchHistory');
+  };
 
   const clearFilters = () => {
     setKeyword(''); setCity(''); setType('');
@@ -104,22 +147,42 @@ export default function Search({ user, onLogout }) {
       {/* TOP SEARCH BAR */}
       <div className="search-topbar">
         <div className="search-topbar-inner">
-          <div className="search-topbar-input">
-            <span>🔍</span>
-            <input type="text" placeholder="Tìm theo tên, địa chỉ, khu vực..."
-              value={keyword} onChange={e => setKeyword(e.target.value)} />
-            {keyword && <button className="search-clear-input" onClick={() => setKeyword('')}>✕</button>}
-            <button
-              className={`search-mic-btn ${listening ? 'listening' : ''}`}
-              onClick={startVoice}
-              title={listening ? 'Đang nghe... (nhấn để dừng)' : 'Tìm kiếm bằng giọng nói'}
-            >
-              {listening ? (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
-              ) : (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-              )}
-            </button>
+          <div className="search-topbar-input-wrap" ref={historyRef}>
+            <div className="search-topbar-input">
+              <span>🔍</span>
+              <input type="text" placeholder="Tìm theo tên, địa chỉ, khu vực..."
+                value={keyword}
+                onChange={e => setKeyword(e.target.value)}
+                onFocus={() => setShowHistory(true)}
+              />
+              {keyword && <button className="search-clear-input" onClick={() => setKeyword('')}>✕</button>}
+              <button
+                className={`search-mic-btn ${listening ? 'listening' : ''}`}
+                onClick={startVoice}
+                title={listening ? 'Đang nghe... (nhấn để dừng)' : 'Tìm kiếm bằng giọng nói'}
+              >
+                {listening ? (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                )}
+              </button>
+            </div>
+            {showHistory && searchHistory.length > 0 && (
+              <div className="search-history-dropdown">
+                <div className="search-history-header">
+                  <span>Tìm kiếm gần đây</span>
+                  <button onClick={clearHistory}>Xóa tất cả</button>
+                </div>
+                {searchHistory.map(item => (
+                  <div key={item} className="search-history-item"
+                    onClick={() => { setKeyword(item); setPage(1); setShowHistory(false); }}>
+                    <span>🔍 {item}</span>
+                    <button onClick={(e) => removeHistoryItem(item, e)} title="Xóa">✕</button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           <select value={city} onChange={e => setCity(e.target.value)}>
             <option value="">📍 Tất cả tỉnh/thành</option>
