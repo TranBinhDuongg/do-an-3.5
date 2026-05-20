@@ -196,3 +196,34 @@
 .fav-noti-item div p { font-size: 13px; color: #1e293b; margin: 0 0 2px; line-height: 1.4; }
 .fav-noti-item div span { font-size: 11px; color: #94a3b8; }
 .fav-noti-item span:first-child { font-size: 18px; flex-shrink: 0; margin-top: 2px; }
+
+/* ===== PAGINATION ===== */
+.fav-pagination {
+  display: flex; align-items: center; justify-content: center;
+  gap: 16px; margin-top: 32px; padding-bottom: 16px;
+}
+.fav-pagination button {
+  padding: 8px 20px; border-radius: 8px;
+  border: 1.5px solid #e2e8f0; background: #fff;
+  font-size: 14px; font-weight: 600; color: #2563eb;
+  cursor: pointer; transition: all 0.15s;
+}
+.fav-pagination button:hover:not(:disabled) { background: #eff6ff; }
+.fav-pagination button:disabled { color: #94a3b8; cursor: not-allowed; }
+.fav-pagination-info {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 14px; color: #64748b;
+}
+.fav-pagination-input {
+  width: 48px; text-align: center;
+  padding: 5px 4px; border: 1.5px solid #e2e8f0;
+  border-radius: 6px; font-size: 14px; font-weight: 600;
+  color: #1e293b; background: #fff; outline: none;
+  transition: border-color 0.2s;
+  -moz-appearance: textfield;
+}
+.fav-pagination-input::-webkit-outer-spin-button,
+.fav-pagination-input::-webkit-inner-spin-button {
+  -webkit-appearance: none; margin: 0;
+}
+.fav-pagination-input:focus { border-color: #2563eb; }
