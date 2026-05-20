@@ -1,6 +1,3 @@
-/* ─────────────────────────────────────────────────────────────
-   Home.css  –  Trang chủ người thuê (redesigned)
-───────────────────────────────────────────────────────────── */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
 * {
@@ -35,14 +32,19 @@
 }
 
 @keyframes bgZoomOut {
-  from { transform: scale(1.05); }
-  to { transform: scale(1); }
+  from {
+    transform: scale(1.05);
+  }
+
+  to {
+    transform: scale(1);
+  }
 }
 
 .home-hero-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(15,23,42,0.4) 0%, rgba(15,23,42,0.95) 100%);
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.4) 0%, rgba(15, 23, 42, 0.95) 100%);
   z-index: 1;
 }
 
@@ -70,7 +72,7 @@
   font-weight: 600;
   margin-bottom: 32px;
   color: #e2e8f0;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
 .home-hero-title {
@@ -80,7 +82,7 @@
   margin-bottom: 24px;
   letter-spacing: -1.5px;
   color: #fff;
-  text-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
 .home-hero-highlight {
@@ -110,7 +112,7 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 24px;
   padding: 10px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
   margin-bottom: 32px;
 }
 
@@ -124,7 +126,7 @@
 .home-search-tab {
   background: transparent;
   border: none;
-  color: rgba(255,255,255,0.8);
+  color: rgba(255, 255, 255, 0.8);
   padding: 8px 20px;
   border-radius: 20px;
   font-size: 14px;
@@ -135,7 +137,7 @@
 
 .home-search-tab:hover {
   color: #fff;
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .home-search-tab.active {
@@ -224,7 +226,7 @@
 .home-search-btn:hover {
   background: #2563eb;
   transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(37,99,235,0.3);
+  box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
 }
 
 .home-search-btn:active {
@@ -241,7 +243,7 @@
 
 .home-quick-label {
   font-size: 14px;
-  color: rgba(255,255,255,0.8);
+  color: rgba(255, 255, 255, 0.8);
   font-weight: 500;
 }
 
@@ -263,15 +265,23 @@
 }
 
 @keyframes fadeInDown {
-  from { opacity: 0; transform: translateY(-20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ===== STATS ============================================== */
 .home-stats-bar {
   position: relative;
   z-index: 10;
-  margin-top: -60px; /* Thụt lên đè vào hero */
+  margin-top: -60px;
+  /* Thụt lên đè vào hero */
   margin-bottom: 0;
 }
 
@@ -288,15 +298,15 @@
   display: flex;
   align-items: center;
   gap: 20px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.06);
-  border: 1px solid rgba(0,0,0,0.03);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.03);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .home-stat-item:hover {
   transform: translateY(-8px);
-  box-shadow: 0 20px 40px rgba(0,0,0,0.12);
-  border-color: rgba(0,0,0,0.06);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+  border-color: rgba(0, 0, 0, 0.06);
 }
 
 .home-stat-icon-wrap {
@@ -308,7 +318,7 @@
   justify-content: center;
   font-size: 28px;
   flex-shrink: 0;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.5);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
 }
 
 .home-stat-content {
@@ -1024,18 +1034,37 @@
 
 /* Mic button in hero search */
 .home-mic-btn {
-  background: none; border: none; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  padding: 4px 6px; border-radius: 6px;
-  color: #94a3b8; transition: color 0.2s, background 0.2s;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 6px;
+  border-radius: 6px;
+  color: #94a3b8;
+  transition: color 0.2s, background 0.2s;
   flex-shrink: 0;
 }
-.home-mic-btn:hover { color: #2563eb; background: #eff6ff; }
+
+.home-mic-btn:hover {
+  color: #2563eb;
+  background: #eff6ff;
+}
+
 .home-mic-btn.listening {
   color: #ef4444;
   animation: mic-pulse 1s ease-in-out infinite;
 }
+
 @keyframes mic-pulse {
-  0%, 100% { transform: scale(1); }
-  50%       { transform: scale(1.2); }
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.2);
+  }
 }

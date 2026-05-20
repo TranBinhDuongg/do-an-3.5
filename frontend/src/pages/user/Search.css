@@ -252,6 +252,23 @@
 .search-pagination button:hover:not(:disabled) { background: #eff6ff; }
 .search-pagination button:disabled { color: #94a3b8; cursor: not-allowed; }
 .search-pagination span { font-size: 14px; color: #64748b; }
+.search-pagination-info {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 14px; color: #64748b;
+}
+.search-pagination-input {
+  width: 48px; text-align: center;
+  padding: 5px 4px; border: 1.5px solid #e2e8f0;
+  border-radius: 6px; font-size: 14px; font-weight: 600;
+  color: #1e293b; background: #fff; outline: none;
+  transition: border-color 0.2s;
+  -moz-appearance: textfield;
+}
+.search-pagination-input::-webkit-outer-spin-button,
+.search-pagination-input::-webkit-inner-spin-button {
+  -webkit-appearance: none; margin: 0;
+}
+.search-pagination-input:focus { border-color: #2563eb; }
 
 /* ===== NOTIFICATION ===== */
 .search-nav-avatar-wrap { position: relative; }

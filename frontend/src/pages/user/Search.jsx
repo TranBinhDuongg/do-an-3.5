@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { getRoomsApi, addFavoriteApi, removeFavoriteApi, checkFavoriteApi } from '../../api/rooms';
 import UserNavbar from '../../components/UserNavbar';
@@ -44,6 +44,7 @@ export default function Search({ user, onLogout }) {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading]     = useState(false);
   const [viewMode, setViewMode]   = useState('grid');
+  const [pageInput, setPageInput] = useState('1');
   const [listening, setListening] = useState(false);
   const recognitionRef = useRef(null);
   const navigate = useNavigate();
@@ -57,6 +58,8 @@ export default function Search({ user, onLogout }) {
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [keyword, city, type, priceIdx, minArea, sort, page]);
+
+  useEffect(() => { setPageInput(String(page)); }, [page]);
 
   const clearFilters = () => {
     setKeyword(''); setCity(''); setType('');
@@ -230,7 +233,30 @@ export default function Search({ user, onLogout }) {
           {totalPages > 1 && (
             <div className="search-pagination">
               <button disabled={page <= 1} onClick={() => setPage(p => p - 1)}>← Trước</button>
-              <span>Trang {page} / {totalPages}</span>
+              <span className="search-pagination-info">
+                Trang
+                <input
+                  type="number"
+                  className="search-pagination-input"
+                  min={1}
+                  max={totalPages}
+                  value={pageInput}
+                  onChange={e => setPageInput(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      const val = parseInt(pageInput, 10);
+                      if (!isNaN(val) && val >= 1 && val <= totalPages) setPage(val);
+                      else setPageInput(String(page));
+                    }
+                  }}
+                  onBlur={() => {
+                    const val = parseInt(pageInput, 10);
+                    if (!isNaN(val) && val >= 1 && val <= totalPages) setPage(val);
+                    else setPageInput(String(page));
+                  }}
+                />
+                / {totalPages}
+              </span>
               <button disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>Sau →</button>
             </div>
           )}

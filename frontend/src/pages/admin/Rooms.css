@@ -171,22 +171,41 @@
 .ar-pagination {
   display: flex;
   justify-content: center;
-  gap: 6px;
+  align-items: center;
+  gap: 16px;
   margin-top: 20px;
+  padding-bottom: 16px;
 }
 .ar-pagination button {
-  padding: 6px 12px;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  background: #f8fafc;
-  color: #475569;
-  font-size: 0.85rem;
+  padding: 8px 20px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  color: #0ea5e9;
+  font-size: 0.88rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.18s;
 }
-.ar-pagination button:hover:not(:disabled) { background: #e0f2fe; color: #0284c7; border-color: #bae6fd; }
-.ar-pagination button.active { background: #0ea5e9; color: #fff; border-color: #0ea5e9; }
-.ar-pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
+.ar-pagination button:hover:not(:disabled) { background: #e0f2fe; }
+.ar-pagination button:disabled { color: #94a3b8; cursor: not-allowed; }
+.ar-pagination-info {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 0.88rem; color: #64748b;
+}
+.ar-pagination-input {
+  width: 48px; text-align: center;
+  padding: 5px 4px; border: 1.5px solid #e2e8f0;
+  border-radius: 6px; font-size: 0.88rem; font-weight: 600;
+  color: #1e293b; background: #fff; outline: none;
+  transition: border-color 0.2s;
+  -moz-appearance: textfield;
+}
+.ar-pagination-input::-webkit-outer-spin-button,
+.ar-pagination-input::-webkit-inner-spin-button {
+  -webkit-appearance: none; margin: 0;
+}
+.ar-pagination-input:focus { border-color: #0ea5e9; }
 
 /* ── Delete button ── */
 .ar-btn-delete {

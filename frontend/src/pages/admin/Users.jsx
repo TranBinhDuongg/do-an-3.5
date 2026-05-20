@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   adminGetUsersApi,
   adminGetUserStatsApi,
@@ -38,6 +38,7 @@ export default function AdminUsers({ user, onLogout }) {
   const [tab,    setTab]    = useState('all');
   const [search, setSearch] = useState('');
   const [page,   setPage]   = useState(1);
+  const [pageInput, setPageInput] = useState('1');
 
   const [users,      setUsers]      = useState([]);
   const [stats,      setStats]      = useState({ all: 0, user: 0, employer: 0, admin: 0, active: 0, locked: 0 });
@@ -71,6 +72,7 @@ export default function AdminUsers({ user, onLogout }) {
 
   useEffect(() => { fetchUsers(); }, [fetchUsers]);
   useEffect(() => { setPage(1); }, [tab, search]);
+  useEffect(() => { setPageInput(String(page)); }, [page]);
 
   const toggleActive = async (u) => {
     const newActive = !u.active;
@@ -212,11 +214,32 @@ export default function AdminUsers({ user, onLogout }) {
         {/* PAGINATION */}
         {totalPages > 1 && (
           <div className="ar-pagination">
-            <button disabled={page === 1} onClick={() => setPage(p => p - 1)}>‹ Trước</button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-              <button key={p} className={page === p ? 'active' : ''} onClick={() => setPage(p)}>{p}</button>
-            ))}
-            <button disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>Sau ›</button>
+            <button disabled={page === 1} onClick={() => setPage(p => p - 1)}>← Trước</button>
+            <span className="ar-pagination-info">
+              Trang
+              <input
+                type="number"
+                className="ar-pagination-input"
+                min={1}
+                max={totalPages}
+                value={pageInput}
+                onChange={e => setPageInput(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    const val = parseInt(pageInput, 10);
+                    if (!isNaN(val) && val >= 1 && val <= totalPages) setPage(val);
+                    else setPageInput(String(page));
+                  }
+                }}
+                onBlur={() => {
+                  const val = parseInt(pageInput, 10);
+                  if (!isNaN(val) && val >= 1 && val <= totalPages) setPage(val);
+                  else setPageInput(String(page));
+                }}
+              />
+              / {totalPages}
+            </span>
+            <button disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>Sau →</button>
           </div>
         )}
       </div>
