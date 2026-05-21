@@ -18,6 +18,13 @@ export async function getRoomsApi(params = {}) {
   return data; // { rooms, total, page, totalPages }
 }
 
+export async function getSuggestionsApi(keyword) {
+  const res = await fetch(`${BASE}/suggest?keyword=${encodeURIComponent(keyword)}`);
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message);
+  return data; // { suggestions: [{ text, type }] }
+}
+
 function authHeader() {
   const token = localStorage.getItem('token');
   return token ? { Authorization: `Bearer ${token}` } : {};

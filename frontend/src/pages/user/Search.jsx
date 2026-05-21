@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
-import { getRoomsApi, addFavoriteApi, removeFavoriteApi, checkFavoriteApi } from '../../api/rooms';
+import { getRoomsApi, getSuggestionsApi, addFavoriteApi, removeFavoriteApi, checkFavoriteApi } from '../../api/rooms';
 import UserNavbar from '../../components/UserNavbar';
 import './Search.css';
 
@@ -33,6 +33,7 @@ function getBadgeStyle(badge) {
 export default function Search({ user, onLogout }) {
   const [searchParams] = useSearchParams();
   const [keyword, setKeyword]     = useState(searchParams.get('keyword') || '');
+  const [debouncedKeyword, setDebouncedKeyword] = useState(searchParams.get('keyword') || '');
   const [city, setCity]           = useState(searchParams.get('city') || '');
   const [type, setType]           = useState(searchParams.get('type') || '');
   const [priceIdx, setPriceIdx]   = useState(0);
@@ -47,6 +48,7 @@ export default function Search({ user, onLogout }) {
   const [pageInput, setPageInput] = useState('1');
   const [listening, setListening] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [suggestions, setSuggestions] = useState([]);
   const [searchHistory, setSearchHistory] = useState(() => {
     try { return JSON.parse(localStorage.getItem('searchHistory')) || []; } catch { return []; }
   });
@@ -56,27 +58,45 @@ export default function Search({ user, onLogout }) {
 
   const priceFilter = PRICES[priceIdx];
 
+  // Debounce keyword 400ms — tránh gọi API mỗi keystroke
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedKeyword(keyword), 400);
+    return () => clearTimeout(timer);
+  }, [keyword]);
+
   useEffect(() => {
     setLoading(true);
-    getRoomsApi({ keyword, city, type, minPrice: priceFilter.min, maxPrice: priceFilter.max, minArea, sort, page })
+    getRoomsApi({ keyword: debouncedKeyword, city, type, minPrice: priceFilter.min, maxPrice: priceFilter.max, minArea, sort, page })
       .then(d => { setResults(d.rooms); setTotal(d.total); setTotalPages(d.totalPages); })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [keyword, city, type, priceIdx, minArea, sort, page]);
+  }, [debouncedKeyword, city, type, priceIdx, minArea, sort, page]);
 
   useEffect(() => { setPageInput(String(page)); window.scrollTo({ top: 0, behavior: 'smooth' }); }, [page]);
 
   // Save keyword to history when search triggers
   useEffect(() => {
-    if (!keyword.trim()) return;
+    if (!debouncedKeyword.trim()) return;
     const timer = setTimeout(() => {
       setSearchHistory(prev => {
-        const filtered = prev.filter(k => k !== keyword.trim());
-        const updated = [keyword.trim(), ...filtered].slice(0, 10);
+        const filtered = prev.filter(k => k !== debouncedKeyword.trim());
+        const updated = [debouncedKeyword.trim(), ...filtered].slice(0, 10);
         localStorage.setItem('searchHistory', JSON.stringify(updated));
         return updated;
       });
     }, 1000);
+    return () => clearTimeout(timer);
+  }, [debouncedKeyword]);
+
+  // Fetch autocomplete suggestions
+  useEffect(() => {
+    if (!keyword.trim() || keyword.trim().length < 2) { setSuggestions([]); return; }
+    const timer = setTimeout(async () => {
+      try {
+        const data = await getSuggestionsApi(keyword.trim());
+        setSuggestions(data.suggestions || []);
+      } catch { setSuggestions([]); }
+    }, 300);
     return () => clearTimeout(timer);
   }, [keyword]);
 
@@ -150,7 +170,7 @@ export default function Search({ user, onLogout }) {
           <div className="search-topbar-input-wrap" ref={historyRef}>
             <div className="search-topbar-input">
               <span>🔍</span>
-              <input type="text" placeholder="Tìm theo tên, địa chỉ, khu vực..."
+              <input type="text" placeholder="Tìm theo tên, địa chỉ, mô tả, chủ nhà, tiện ích..."
                 value={keyword}
                 onChange={e => setKeyword(e.target.value)}
                 onFocus={() => setShowHistory(true)}
@@ -168,19 +188,35 @@ export default function Search({ user, onLogout }) {
                 )}
               </button>
             </div>
-            {showHistory && searchHistory.length > 0 && (
+            {showHistory && (suggestions.length > 0 || searchHistory.length > 0) && (
               <div className="search-history-dropdown">
-                <div className="search-history-header">
-                  <span>Tìm kiếm gần đây</span>
-                  <button onClick={clearHistory}>Xóa tất cả</button>
-                </div>
-                {searchHistory.map(item => (
-                  <div key={item} className="search-history-item"
-                    onClick={() => { setKeyword(item); setPage(1); setShowHistory(false); }}>
-                    <span>🔍 {item}</span>
-                    <button onClick={(e) => removeHistoryItem(item, e)} title="Xóa">✕</button>
-                  </div>
-                ))}
+                {suggestions.length > 0 && (
+                  <>
+                    <div className="search-history-header"><span>Gợi ý</span></div>
+                    {suggestions.map((s, i) => (
+                      <div key={'s'+i} className="search-history-item"
+                        onClick={() => { setKeyword(s.text); setPage(1); setShowHistory(false); }}>
+                        <span>{s.type === 'room' ? '🏠' : s.type === 'area' ? '📍' : '🏷️'} {s.text}</span>
+                        <span className="search-suggest-type">{s.type === 'room' ? 'Phòng' : s.type === 'area' ? 'Khu vực' : 'Loại'}</span>
+                      </div>
+                    ))}
+                  </>
+                )}
+                {searchHistory.length > 0 && (
+                  <>
+                    <div className="search-history-header">
+                      <span>Tìm kiếm gần đây</span>
+                      <button onClick={clearHistory}>Xóa tất cả</button>
+                    </div>
+                    {searchHistory.map(item => (
+                      <div key={item} className="search-history-item"
+                        onClick={() => { setKeyword(item); setPage(1); setShowHistory(false); }}>
+                        <span>🕐 {item}</span>
+                        <button onClick={(e) => removeHistoryItem(item, e)} title="Xóa">✕</button>
+                      </div>
+                    ))}
+                  </>
+                )}
               </div>
             )}
           </div>
@@ -251,10 +287,11 @@ export default function Search({ user, onLogout }) {
         <main className="search-main">
           <div className="search-result-bar">
             <p className="search-result-count">
-              {loading ? 'Đang tìm...' : <>Tìm thấy <strong>{total}</strong> nhà{keyword && <span> cho "<em>{keyword}</em>"</span>}</>}
+              {loading ? 'Đang tìm...' : <>Tìm thấy <strong>{total}</strong> nhà{debouncedKeyword && <span> cho "<em>{debouncedKeyword}</em>"</span>}</>}
             </p>
             <div className="search-result-controls">
               <select value={sort} onChange={e => { setSort(e.target.value); setPage(1); }} className="search-sort-select">
+                {debouncedKeyword && <option value="relevance">🎯 Liên quan nhất</option>}
                 <option value="newest">Mới nhất</option>
                 <option value="price-asc">Giá tăng dần</option>
                 <option value="price-desc">Giá giảm dần</option>
