@@ -14,6 +14,14 @@ const STATUS_LABEL = {
   cancelled: { text: 'Đã hủy',       cls: 'cancelled', icon: '🚫' },
 };
 
+const TABS = [
+  { key: 'all',       label: 'Tất cả' },
+  { key: 'pending',   label: 'Chờ xác nhận' },
+  { key: 'active',    label: 'Đang thuê' },
+  { key: 'ended',     label: 'Đã kết thúc' },
+  { key: 'cancelled', label: 'Đã hủy' },
+];
+
 export default function Bookings({ user, onLogout }) {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
@@ -21,6 +29,7 @@ export default function Bookings({ user, onLogout }) {
   const [cancelling, setCancelling] = useState(null);
   const [chatLoading, setChatLoading] = useState(null);
   const [toast, setToast] = useState('');
+  const [activeTab, setActiveTab] = useState('all');
 
   useEffect(() => {
     if (!user || user.role !== 'user') { navigate('/login'); return; }
@@ -86,6 +95,22 @@ export default function Bookings({ user, onLogout }) {
           <Link to="/search" className="bk-find-btn">🔍 Tìm nhà mới</Link>
         </div>
 
+        <div className="bk-tabs">
+          {TABS.map(tab => {
+            const count = tab.key === 'all' ? bookings.length : bookings.filter(b => b.trang_thai === tab.key).length;
+            return (
+              <button
+                key={tab.key}
+                className={`bk-tab ${activeTab === tab.key ? 'active' : ''}`}
+                onClick={() => setActiveTab(tab.key)}
+              >
+                {tab.label}
+                {count > 0 && <span className="bk-tab-count">{count}</span>}
+              </button>
+            );
+          })}
+        </div>
+
         {loading ? (
           <div className="bk-loading"><div className="bk-spinner" /><p>Đang tải...</p></div>
         ) : bookings.length === 0 ? (
@@ -94,9 +119,17 @@ export default function Bookings({ user, onLogout }) {
             <p>Bạn chưa có yêu cầu đặt nhà nào</p>
             <Link to="/search" className="bk-find-btn">Tìm nhà ngay</Link>
           </div>
-        ) : (
+        ) : (() => {
+          const filtered = bookings.filter(b => activeTab === 'all' || b.trang_thai === activeTab);
+          if (filtered.length === 0) return (
+            <div className="bk-empty">
+              <span>📋</span>
+              <p>Không có booking nào trong mục này</p>
+            </div>
+          );
+          return (
           <div className="bk-list">
-            {bookings.map(b => {
+            {filtered.map(b => {
               const s = STATUS_LABEL[b.trang_thai] || STATUS_LABEL.pending;
               return (
                 <div key={b.ma_dp} className="bk-card">
@@ -152,7 +185,8 @@ export default function Bookings({ user, onLogout }) {
               );
             })}
           </div>
-        )}
+          );
+        })()}
       </div>
     </div>
   );
