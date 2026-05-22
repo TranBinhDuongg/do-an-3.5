@@ -18,10 +18,32 @@ export default function Favorites({ user, onLogout }) {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [pageInput, setPageInput] = useState('1');
+  const [sort, setSort] = useState('newest');
+  const [filterType, setFilterType] = useState('');
+  const [filterCity, setFilterCity] = useState('');
+  const [filterAvail, setFilterAvail] = useState('');
   const navigate = useNavigate();
 
-  const totalPages = Math.max(1, Math.ceil(allRooms.length / ITEMS_PER_PAGE));
-  const rooms = allRooms.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+  // Derived lists for filter options
+  const typeOptions = [...new Set(allRooms.map(r => r.type).filter(Boolean))];
+  const cityOptions = [...new Set(allRooms.map(r => r.city || r.tinh_thanh).filter(Boolean))];
+
+  const filtered = allRooms
+    .filter(r => !filterType || r.type === filterType)
+    .filter(r => !filterCity || (r.city || r.tinh_thanh) === filterCity)
+    .filter(r => filterAvail === '' || String(r.available) === filterAvail)
+    .sort((a, b) => {
+      if (sort === 'price-asc')  return (a.price || 0) - (b.price || 0);
+      if (sort === 'price-desc') return (b.price || 0) - (a.price || 0);
+      // newest: by savedAt desc (default)
+      return 0;
+    });
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+  const rooms = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+
+  const resetFilters = () => { setFilterType(''); setFilterCity(''); setFilterAvail(''); setSort('newest'); setPage(1); };
+  const activeFilterCount = [filterType, filterCity, filterAvail].filter(Boolean).length;
 
   useEffect(() => {
     if (!user) { setLoading(false); return; }
@@ -86,42 +108,79 @@ export default function Favorites({ user, onLogout }) {
           </div>
         ) : (
           <>
-            <div className="fav-grid">
-              {rooms.map(room => (
-                <Link key={room.id} to={`/search?id=${room.id}`} className="fav-card">
-                  <div className="fav-card-img">
-                    <img
-                      src={room.image || FALLBACK_IMG}
-                      alt={room.title}
-                      onError={e => { e.target.src = FALLBACK_IMG; }}
-                    />
-                    <span className={`fav-badge ${room.available ? 'green' : 'red'}`}>
-                      {room.available ? 'Còn nhà' : 'Hết nhà'}
-                    </span>
-                    {room.isFeatured && <span className="fav-featured">⭐ Nổi bật</span>}
-                    <button
-                      className="fav-remove-btn"
-                      onClick={(e) => handleRemove(room.id, e)}
-                      title="Xóa khỏi yêu thích"
-                    >
-                      ❤️
-                    </button>
-                  </div>
-                  <div className="fav-card-body">
-                    <h3 className="fav-card-title">{room.title}</h3>
-                    <p className="fav-card-addr">📍 {room.address}</p>
-                    <div className="fav-card-meta">
-                      <span className="fav-card-area">📐 {room.area} m²</span>
-                      <span className="fav-card-type">{room.type}</span>
-                    </div>
-                    <div className="fav-card-footer">
-                      <span className="fav-card-price">{formatPrice(room.price)}</span>
-                      <span className="fav-card-saved">🕐 {room.savedAt}</span>
-                    </div>
-                  </div>
-                </Link>
-              ))}
+            {/* SORT & FILTER BAR */}
+            <div className="fav-toolbar">
+              <div className="fav-toolbar-left">
+                <select className="fav-select" value={sort} onChange={e => { setSort(e.target.value); setPage(1); }}>
+                  <option value="newest">Mới lưu nhất</option>
+                  <option value="price-asc">Giá tăng dần</option>
+                  <option value="price-desc">Giá giảm dần</option>
+                </select>
+                <select className="fav-select" value={filterType} onChange={e => { setFilterType(e.target.value); setPage(1); }}>
+                  <option value="">Loại nhà</option>
+                  {typeOptions.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+                <select className="fav-select" value={filterCity} onChange={e => { setFilterCity(e.target.value); setPage(1); }}>
+                  <option value="">Tỉnh/Thành</option>
+                  {cityOptions.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+                <select className="fav-select" value={filterAvail} onChange={e => { setFilterAvail(e.target.value); setPage(1); }}>
+                  <option value="">Tình trạng</option>
+                  <option value="true">Còn nhà</option>
+                  <option value="false">Hết nhà</option>
+                </select>
+                {activeFilterCount > 0 && (
+                  <button className="fav-reset-btn" onClick={resetFilters}>✕ Xóa lọc ({activeFilterCount})</button>
+                )}
+              </div>
+              <span className="fav-result-count">{filtered.length} nhà</span>
             </div>
+
+            {filtered.length === 0 ? (
+              <div className="fav-empty">
+                <span>🔍</span>
+                <h3>Không có kết quả</h3>
+                <p>Thử thay đổi bộ lọc</p>
+                <button className="fav-empty-btn" onClick={resetFilters}>Xóa bộ lọc</button>
+              </div>
+            ) : (
+              <div className="fav-grid">
+                {rooms.map(room => (
+                  <Link key={room.id} to={`/search?id=${room.id}`} className="fav-card">
+                    <div className="fav-card-img">
+                      <img
+                        src={room.image || FALLBACK_IMG}
+                        alt={room.title}
+                        onError={e => { e.target.src = FALLBACK_IMG; }}
+                      />
+                      <span className={`fav-badge ${room.available ? 'green' : 'red'}`}>
+                        {room.available ? 'Còn nhà' : 'Hết nhà'}
+                      </span>
+                      {room.isFeatured && <span className="fav-featured">⭐ Nổi bật</span>}
+                      <button
+                        className="fav-remove-btn"
+                        onClick={(e) => handleRemove(room.id, e)}
+                        title="Xóa khỏi yêu thích"
+                      >
+                        ❤️
+                      </button>
+                    </div>
+                    <div className="fav-card-body">
+                      <h3 className="fav-card-title">{room.title}</h3>
+                      <p className="fav-card-addr">📍 {room.address}</p>
+                      <div className="fav-card-meta">
+                        <span className="fav-card-area">📐 {room.area} m²</span>
+                        <span className="fav-card-type">{room.type}</span>
+                      </div>
+                      <div className="fav-card-footer">
+                        <span className="fav-card-price">{formatPrice(room.price)}</span>
+                        <span className="fav-card-saved">🕐 {room.savedAt}</span>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
 
             {totalPages > 1 && (
               <div className="fav-pagination">
