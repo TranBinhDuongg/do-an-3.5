@@ -17,6 +17,7 @@ import EditRoom from './pages/employer/EditRoom';
 import Wallet from './pages/employer/Wallet';
 import EmployerBookings from './pages/employer/Bookings';
 import MaintenanceManage from './pages/employer/MaintenanceManage';
+import Analytics from './pages/employer/Analytics';
 import AdminLogin from './pages/admin/Login';
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminRooms from './pages/admin/Rooms';
@@ -96,6 +97,7 @@ export default function App() {
         <Route path="/employer/bookings"       element={<EmployerBookings user={user} onLogout={logout} />} />
         <Route path="/employer/bookings/:bookingId/contract" element={<ContractView user={user} onLogout={logout} />} />
         <Route path="/employer/maintenance"    element={<MaintenanceManage user={user} onLogout={logout} />} />
+        <Route path="/employer/analytics"      element={<Analytics user={user} onLogout={logout} />} />
         <Route path="*"         element={<Navigate to="/" replace />} />
       </Routes>
       <ChatBubbleWrapper />

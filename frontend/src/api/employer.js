@@ -96,3 +96,10 @@ export async function pushRoomApi(id) {
   if (!res.ok) throw new Error(json.message);
   return json;
 }
+
+export async function getAnalyticsApi() {
+  const res = await fetch('http://localhost:5000/api/analytics/employer', { headers: authHeader() });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message);
+  return data; // { stats, rooms, chartData, suggestions }
+}

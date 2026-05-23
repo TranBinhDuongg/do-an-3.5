@@ -8,6 +8,7 @@ const NAV_LINKS = [
   { to: '/employer/rooms',        label: 'Tin đăng' },
   { to: '/employer/bookings',     label: 'Đặt nhà' },
   { to: '/employer/maintenance',  label: 'Sự cố' },
+  { to: '/employer/analytics',    label: 'Thống kê' },
   { to: '/employer/wallet',       label: 'Ví của tôi' },
   { to: '/employer/pricing',      label: 'Dịch vụ', highlight: true },
 ];

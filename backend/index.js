@@ -65,6 +65,7 @@ app.use('/api/profile', require('./src/routes/profile'));
 app.use('/api/rooms',     require('./src/routes/rooms'));
 app.use('/api/favorites', require('./src/routes/favorites'));
 app.use('/api/employer', require('./src/routes/employer'));
+app.use('/api/analytics', require('./src/routes/analytics'));
 app.use('/api/admin',   require('./src/routes/admin'));
 app.use('/api/notifications', require('./src/routes/notifications'));
 app.use('/api/reviews',      require('./src/routes/reviews'));
