@@ -89,8 +89,18 @@ BEGIN
     FROM phong_tro p
     LEFT JOIN nguoi_dung_goi ndg ON ndg.ma_nd = p.ma_chu_tro AND ndg.con_hieu_luc = 1
     LEFT JOIN goi_dang_tin g ON g.ma_goi = ndg.ma_goi
+    LEFT JOIN nguoi_dung n ON n.ma_nd = p.ma_chu_tro
     WHERE p.trang_thai='approved'
-      AND (@tu_khoa    IS NULL OR p.tieu_de LIKE '%'+@tu_khoa+'%' OR p.dia_chi LIKE '%'+@tu_khoa+'%')
+      AND (@tu_khoa IS NULL
+        OR p.tieu_de LIKE '%'+@tu_khoa+'%' COLLATE Vietnamese_CI_AI
+        OR p.dia_chi LIKE '%'+@tu_khoa+'%' COLLATE Vietnamese_CI_AI
+        OR p.mo_ta LIKE '%'+@tu_khoa+'%' COLLATE Vietnamese_CI_AI
+        OR p.quan_huyen LIKE '%'+@tu_khoa+'%' COLLATE Vietnamese_CI_AI
+        OR p.tinh_thanh LIKE '%'+@tu_khoa+'%' COLLATE Vietnamese_CI_AI
+        OR p.loai_phong LIKE '%'+@tu_khoa+'%' COLLATE Vietnamese_CI_AI
+        OR n.ho_ten LIKE '%'+@tu_khoa+'%' COLLATE Vietnamese_CI_AI
+        OR EXISTS (SELECT 1 FROM tien_ich_phong tip JOIN tien_ich ti ON ti.ma_tien_ich = tip.ma_tien_ich WHERE tip.ma_phong = p.ma_phong AND ti.ten_hien_thi LIKE '%'+@tu_khoa+'%' COLLATE Vietnamese_CI_AI)
+      )
       AND (@tinh_thanh IS NULL OR p.tinh_thanh=@tinh_thanh)
       AND (@loai_phong IS NULL OR p.loai_phong=@loai_phong)
       AND (@gia_min    IS NULL OR p.gia_thue>=@gia_min)
@@ -112,14 +122,24 @@ CREATE OR ALTER PROCEDURE sp_DemPhong
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT COUNT(*) AS tong_so FROM phong_tro
-    WHERE trang_thai='approved'
-      AND (@tu_khoa    IS NULL OR tieu_de LIKE '%'+@tu_khoa+'%' OR dia_chi LIKE '%'+@tu_khoa+'%')
-      AND (@tinh_thanh IS NULL OR tinh_thanh=@tinh_thanh)
-      AND (@loai_phong IS NULL OR loai_phong=@loai_phong)
-      AND (@gia_min    IS NULL OR gia_thue>=@gia_min)
-      AND (@gia_max    IS NULL OR gia_thue<=@gia_max)
-      AND (@dt_min     IS NULL OR dien_tich>=@dt_min);
+    SELECT COUNT(*) AS tong_so FROM phong_tro p
+    LEFT JOIN nguoi_dung n ON n.ma_nd = p.ma_chu_tro
+    WHERE p.trang_thai='approved'
+      AND (@tu_khoa IS NULL
+        OR p.tieu_de LIKE '%'+@tu_khoa+'%' COLLATE Vietnamese_CI_AI
+        OR p.dia_chi LIKE '%'+@tu_khoa+'%' COLLATE Vietnamese_CI_AI
+        OR p.mo_ta LIKE '%'+@tu_khoa+'%' COLLATE Vietnamese_CI_AI
+        OR p.quan_huyen LIKE '%'+@tu_khoa+'%' COLLATE Vietnamese_CI_AI
+        OR p.tinh_thanh LIKE '%'+@tu_khoa+'%' COLLATE Vietnamese_CI_AI
+        OR p.loai_phong LIKE '%'+@tu_khoa+'%' COLLATE Vietnamese_CI_AI
+        OR n.ho_ten LIKE '%'+@tu_khoa+'%' COLLATE Vietnamese_CI_AI
+        OR EXISTS (SELECT 1 FROM tien_ich_phong tip JOIN tien_ich ti ON ti.ma_tien_ich = tip.ma_tien_ich WHERE tip.ma_phong = p.ma_phong AND ti.ten_hien_thi LIKE '%'+@tu_khoa+'%' COLLATE Vietnamese_CI_AI)
+      )
+      AND (@tinh_thanh IS NULL OR p.tinh_thanh=@tinh_thanh)
+      AND (@loai_phong IS NULL OR p.loai_phong=@loai_phong)
+      AND (@gia_min    IS NULL OR p.gia_thue>=@gia_min)
+      AND (@gia_max    IS NULL OR p.gia_thue<=@gia_max)
+      AND (@dt_min     IS NULL OR p.dien_tich>=@dt_min);
 END
 GO
 

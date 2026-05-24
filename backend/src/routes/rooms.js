@@ -101,6 +101,30 @@ router.get('/home', async (req, res) => {  try {
   }
 });
 
+// GET /api/rooms/suggest?keyword= — Gợi ý tìm kiếm (Autocomplete)
+router.get('/suggest', async (req, res) => {
+  const { keyword } = req.query;
+  if (!keyword || keyword.trim().length < 2) return res.json({ suggestions: [] });
+
+  try {
+    await poolConnect;
+    const result = await pool.request()
+      .input('tu_khoa', sql.NVarChar, keyword.trim())
+      .input('gioi_han', sql.Int, 8)
+      .execute('sp_GoiYTimKiem');
+
+    return res.json({
+      suggestions: result.recordset.map(r => ({
+        text: r.goi_y,
+        type: r.loai
+      }))
+    });
+  } catch (err) {
+    console.error(err);
+    return res.json({ suggestions: [] });
+  }
+});
+
 // GET /api/rooms/:id - Chi tiết phòng
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
